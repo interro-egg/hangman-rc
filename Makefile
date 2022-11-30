@@ -2,23 +2,27 @@
 
 CC ?= gcc
 LD ?= gcc
-CLANG_FORMAT ?= clang-format
+FORMATTER ?= clang-format
 
-# space separated list of directories with header files
-INCLUDE_DIRS := src/player src/GS
-# this creates a space separated list of -I<dir> where <dir> is each of the values in INCLUDE_DIRS
-INCLUDES := $(addprefix -I, $(INCLUDE_DIRS))
+SRC := src
 
-SOURCES  := $(wildcard src/*/*.c)
-HEADERS  := $(wildcard src/*/*.h)
-OBJECTS  := $(SOURCES:.c=.o)
-TARGET_EXECS := player
-TEST_EXECS := $(patsubst %.c,%,$(wildcard tests/*.c))
+PLAYER_SOURCES := $(wildcard $(SRC)/player/*.c)
+PLAYER_HEADERS := $(PLAYER_SOURCES:.c=.h)
+PLAYER_OBJECTS := $(PLAYER_SOURCES:.c=.o)
+PLAYER_EXEC := player
 
-# VPATH is a variable used by Makefile which finds *sources* and makes them available throughout the codebase
-# vpath %.h <DIR> tells make to look for header files in <DIR>
-vpath # clears VPATH
-vpath %.h $(INCLUDE_DIRS)
+GS_SOURCES := $(wildcard $(SRC)/GS/*.c)
+GS_HEADERS := $(GS_SOURCES:.c=.h)
+GS_OBJECTS := $(GS_SOURCES:.c=.o)
+GS_EXEC := GS
+
+COMMON_SOURCES := $(wildcard $(SRC)/common/*.c)
+COMMON_HEADERS := $(COMMON_SOURCES:.c=.h)
+COMMON_OBJECTS := $(COMMON_SOURCES:.c=.o)
+
+SOURCES := $(PLAYER_SOURCES) $(GS_SOURCES) $(COMMON_SOURCES)
+OBJECTS := $(PLAYER_OBJECTS) $(GS_OBJECTS) $(COMMON_OBJECTS)
+TARGET_EXECS := $(PLAYER_EXEC) $(GS_EXEC)
 
 CFLAGS += -std=c17 -D_POSIX_C_SOURCE=200809L
 CFLAGS += $(INCLUDES)
@@ -42,74 +46,23 @@ endif
 CFLAGS += $(EXTRA_CFLAGS)
 LDFLAGS += $(EXTRA_LDFLAGS)
 
-# A phony target is one that is not really the name of a file
-# https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
-.PHONY: all clean depend fmt test
+.SECONDEXPANSION:
+
+%: src/%/$$@.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
+
+$(PLAYER_EXEC): $(PLAYER_OBJECTS) $(COMMON_OBJECTS)
+$(GS_EXEC): $(GS_OBJECTS) $(COMMON_OBJECTS)
+
+.PHONY: all clean fmt
 
 all: $(TARGET_EXECS)
 
-
-# The following target can be used to invoke clang-format on all the source and header
-# files. clang-format is a tool to format the source code based on the style specified
-# in the file '.clang-format'.
-# More info available here: https://clang.llvm.org/docs/ClangFormat.html
-
-# The $^ keyword is used in Makefile to refer to the right part of the ":" in the
-# enclosing rule. See https://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/
+clean: 
+	rm -f $(TARGET_EXECS) $(OBJECTS)
 
 fmt: $(SOURCES) $(HEADERS)
-	echo; \
-	echo; \
-	if ! command -v $(CLANG_FORMAT) 2>/dev/null >/dev/null; then \
-		echo "clang-format not installed. cannot format"; \
-		exit 1; \
-	fi; \
-	if [ $$($(CLANG_FORMAT) --version | grep --only-matching -E 'version [0-9]+' | cut -d' ' -f2) -lt 12 ]; then \
-		echo "clang-format is too old (version 12+ required). cannot format"; \
-		echo "install clang-format-12 and set CLANG_FORMAT to clang-format-12"; \
-		echo; \
-		echo "e.g.:"; \
-		echo '$$ export CLANG_FORMAT=clang-format-12'; \
-		echo '$$ make fmt'; \
-		echo; \
-		echo 'You can also add "export CLANG_FORMAT=clang-format-12" to ~/.profile and never have to do it again.'; \
-		exit 1; \
-	fi; \
-	$(CLANG_FORMAT) -i $^
+	$(FORMATTER) -i $^
 
-# Add dependency of target executables (to be linked with it)
-#$(TARGET_EXECS): $(OBJECTS)
-#$(TEST_EXECS): $(TARGET_EXECS)
-# ^ Note the lack of a rule.
-# make uses a set of default rules, one of which compiles C binaries
-# the CC, LD, CFLAGS and LDFLAGS are used in this rule
-# There is also an implicit dependency of an executable name in an object file (.o) with the same name
-
-player: src/player/player.o src/common/util.o
-	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
-
-# The following target runs all tests
-# Since it depends on all tests, it will trigger their compilation automatically.
-
-# $$f is "$f" escaped under the make program.
-
-test: $(TEST_EXECS)
-	retcode=0; \
-	for f in $^; do \
-		echo "Running test $$f"; \
-		$$f || (retcode=1; echo FAIL); \
-		echo; \
-	done; \
-	exit $$retcode
-
-
-clean:
-	rm -f $(OBJECTS) $(TARGET_EXECS) $(TEST_EXECS)
-
-
-# This generates a dependency file, with some default dependencies gathered from the include tree
-# The dependencies are gathered in the file autodep. You can find an example illustrating this GCC
-# feature, without Makefile, at this URL: https://renenyffenegger.ch/notes/development/languages/C-C-plus-plus/GCC/options/MM
-# Run `make depend` whenever you add new includes in your files
-depend : $(SOURCES)
-	$(CC) $(INCLUDES) -MM $^ > autodep
+fmt-check: $(SOURCES) $(HEADERS)
+	$(FORMATTER) --dry-run --Werror $^
