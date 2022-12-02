@@ -18,6 +18,8 @@ int main(int argc, char *argv[]) {
         exit_no_mem();
     }
 
+    PlayerState state = {false, NULL, NULL};
+
     while (printf(INPUT_PROMPT) >= 0 &&
            (getline(&line, &bufSize, stdin) != -1)) {
         size_t len = strlen(line);
@@ -27,7 +29,7 @@ int main(int argc, char *argv[]) {
         line[len - 1] = '\0'; // remove trailing newline
         lowercase(line);      // playing is case insensitive
 
-        dispatch(line, cmd);
+        dispatch(line, cmd, &state);
 
         putchar('\n');
     }
@@ -52,43 +54,37 @@ void read_opts(int argc, char *argv[], char **host, char **port) {
     }
 }
 
-void dispatch(char *line, char *cmd) {
+void dispatch(char *line, char *cmd, PlayerState *state) {
     CommandHandler handler;
 
     if (sscanf(line, MAX_COMMAND_NAME_SIZE_FMT, cmd) != 1) {
         printf(MSG_PARSE_ERROR);
     } else if ((handler = get_handler(cmd)) == NULL) {
         printf(MSG_UNKNOWN_COMMAND);
-    } else if (!handler(findArgs(line, cmd))) {
+    } else if (!handler(findArgs(line, cmd), state)) {
         printf(MSG_EXEC_ERROR);
     }
 }
 
 CommandHandler get_handler(char *cmd) {
     if (strcmp(cmd, "start") == 0 || strcmp(cmd, "sg") == 0) {
-        printf("<handle start command>\n");
-        return mock_handler;
+        return start_handler;
     } else if (strcmp(cmd, "play") == 0 || strcmp(cmd, "pl") == 0) {
-        printf("<handle play command>\n");
-        return mock_handler;
+        return play_handler;
     } else if (strcmp(cmd, "guess") == 0 || strcmp(cmd, "gw") == 0) {
-        printf("<handle guess command>\n");
-        return mock_handler;
+        return guess_handler;
+    } else if (strcmp(cmd, "reveal") == 0 || strcmp(cmd, "rev") == 0) {
+        return reveal_handler;
     } else if (strcmp(cmd, "scoreboard") == 0 || strcmp(cmd, "sb") == 0) {
-        printf("<handle scoreboard command>\n");
-        return mock_handler;
+        return scoreboard_handler;
     } else if (strcmp(cmd, "hint") == 0 || strcmp(cmd, "h") == 0) {
-        printf("<handle hint command>\n");
-        return mock_handler;
+        return hint_handler;
     } else if (strcmp(cmd, "state") == 0 || strcmp(cmd, "st") == 0) {
-        printf("<handle state command>\n");
-        return mock_handler;
+        return state_handler;
     } else if (strcmp(cmd, "quit") == 0) {
-        printf("<handle quit command>\n");
-        return mock_handler;
+        return quit_handler;
     } else if (strcmp(cmd, "exit") == 0) {
-        printf("<handle exit command>\n");
-        return mock_handler;
+        return exit_handler;
     }
     return NULL;
 }
@@ -102,10 +98,4 @@ char *findArgs(char *line, char *cmd) {
     }
     // this intentionally counts "cmd " as having no args
     // FIXME: report no args if there are only spaces after cmd
-}
-
-// FIXME: delete this
-bool mock_handler(char *args) {
-    printf("Mock: args = |%s|\n", args);
-    return true;
 }

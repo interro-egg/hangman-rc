@@ -2,7 +2,8 @@
 #define PLAYER_H
 
 #include "../common/common.h"
-#include <stdbool.h>
+#include "commands.h"
+#include "player_state.h"
 
 #define GS_DEFAULT_HOST "localhost"
 
@@ -14,13 +15,12 @@
 #define MSG_EXEC_ERROR "An error has occurred while executing your command.\n"
 #define MSG_UNKNOWN_COMMAND "Unknown command.\n"
 
-typedef bool (*CommandHandler)(char *args);
+typedef bool (*CommandHandler)(char *args, PlayerState *state);
 
 // TODO: check if order here matches order in .c
 void read_opts(int argc, char *argv[], char **host, char **port);
 CommandHandler get_handler(char *cmd);
-void dispatch(char *cmd, char *line);
+void dispatch(char *cmd, char *line, PlayerState *state);
 char *findArgs(char *line, char *cmd);
-bool mock_handler(char *args); // FIXME: delete this
 
 #endif // PLAYER_H
