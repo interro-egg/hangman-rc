@@ -7,8 +7,8 @@ typedef struct SNGMessage {
   char *PLID;
 } SNGMessage;
 
-char *serializeSNGMessage(SNGMessage *opts);
-SNGMessage *deserializeSNGMessage(char *msg);
+ssize_t serializeSNGMessage(SNGMessage *msg, char* outBuffer);
+SNGMessage *deserializeSNGMessage(char *inBuffer);
 
 // Response: Start Game
 
@@ -20,8 +20,8 @@ typedef struct RSGMessage {
 
 enum RSGMessageStatus { OK, NOK };
 
-char *serializeRSGMessage(RSGMessage *opts);
-RSGMessage *deserializeRSGMessage(char *msg);
+ssize_t serializeRSGMessage(RSGMessage *msg, char* outBuffer);
+RSGMessage *deserializeRSGMessage(char *inBuffer);
 
 // Letter Guess
 
@@ -31,8 +31,8 @@ typedef struct PLGMessage {
   unsigned int trial;
 } PLGMessage;
 
-char *serializePLGMessage(PLGMessage *opts);
-PLGMessage *deserializePLGMessage(char *msg);
+ssize_t serializePLGMessage(PLGMessage *msg, char* outBuffer);
+PLGMessage *deserializePLGMessage(char *inBuffer);
 
 // Response: Letter Guess
 
@@ -45,8 +45,8 @@ typedef struct RLGMessage {
 
 enum RLGMessageStatus { OK, WIN, DUP, NOK, OVR, INV, ERR };
 
-char *serializeRLGMessage(RLGMessage *opts);
-RLGMessage *deserializeRLGMessage(char *msg);
+ssize_t serializeRLGMessage(RLGMessage *msg, char* outBuffer);
+RLGMessage *deserializeRLGMessage(char *inBuffer);
 
 // Word Guess
 
@@ -56,8 +56,8 @@ typedef struct PWGMessage {
   unsigned int trial;
 } PWGMessage;
 
-char *serializePWGMessage(PWGMessage *opts);
-PWGMessage *deserializePWGMessage(char *msg);
+ssize_t serializePWGMessage(PWGMessage *msg, char* outBuffer);
+PWGMessage *deserializePWGMessage(char *inBuffer);
 
 // Response: Word Guess
 
@@ -68,8 +68,8 @@ typedef struct RWGMessage {
 
 enum RWGMessageStatus { WIN, NOK, OVR, INV, ERR };
 
-char *serializeRWGMessage(RWGMessage *opts);
-RWGMessage *deserializeRWGMessage(char *msg);
+ssize_t serializeRWGMessage(RWGMessage *msg, char* outBuffer);
+RWGMessage *deserializeRWGMessage(char *inBuffer);
 
 // Quit
 
@@ -77,8 +77,8 @@ typedef struct QUTMessage {
   char *PLID;
 } QUTMessage;
 
-char *serializeQUTMessage(QUTMessage *opts);
-QUTMessage *deserializeQUTMessage(char *msg);
+ssize_t serializeQUTMessage(QUTMessage *msg, char* outBuffer);
+QUTMessage *deserializeQUTMessage(char *inBuffer);
 
 // Response: Quit
 
@@ -88,8 +88,8 @@ typedef struct RQTMessage {
 
 enum RQTMessageStatus { OK, ERR };
 
-char *serializeRQTMessage(RQTMessage *opts);
-RQTMessage *deserializeRQTMessage(char *msg);
+ssize_t serializeRQTMessage(RQTMessage *msg, char* outBuffer);
+RQTMessage *deserializeRQTMessage(char *inBuffer);
 
 // Reveal
 
@@ -97,8 +97,8 @@ typedef struct REVMessage {
   char *PLID;
 } REVMessage;
 
-char *serializeREVMessage(REVMessage *opts);
-REVMessage *deserializeREVMessage(char *msg);
+ssize_t serializeREVMessage(REVMessage *msg, char* outBuffer);
+REVMessage *deserializeREVMessage(char *inBuffer);
 
 // Response: Reveal
 
@@ -112,7 +112,7 @@ enum RRVMessageType { WORD, STATUS };
 
 enum RRVMessageStatus { OK, ERR };
 
-char *serializeRRVMessage(RRVMessage *opts);
-RRVMessage *deserializeRRVMessage(char *msg);
+ssize_t serializeRRVMessage(RRVMessage *msg, char* outBuffer);
+RRVMessage *deserializeRRVMessage(char *inBuffer);
 
 #endif // MESSAGES_H
