@@ -15,7 +15,7 @@ SNGMessage *deserializeSNGMessage(char *inBuffer);
 // Response: Start Game
 
 enum RSGMessageStatus { RSG_OK, RSG_NOK };
-static const char *RSGMessageStatusStrings[] = {"OK", "NOK"};
+extern const char *RSGMessageStatusStrings[];
 
 typedef struct RSGMessage {
     enum RSGMessageStatus status;
@@ -48,8 +48,7 @@ enum RLGMessageStatus {
     RLG_INV,
     RLG_ERR
 };
-static const char *RLGMessageStatusStrings[] = {"OK",  "WIN", "DUP", "NOK",
-                                                "OVR", "INV", "ERR"};
+extern const char *RLGMessageStatusStrings[];
 
 typedef struct RLGMessage {
     enum RLGMessageStatus status;
@@ -75,8 +74,7 @@ PWGMessage *deserializePWGMessage(char *inBuffer);
 // Response: Word Guess
 
 enum RWGMessageStatus { RWG_WIN, RWG_NOK, RWG_OVR, RWG_INV, RWG_ERR };
-static const char *RWGMessageStatusStrings[] = {"WIN", "NOK", "OVR", "INV",
-                                                "ERR"};
+extern const char *RWGstaticMessageStatusStrings[];
 
 typedef struct RWGMessage {
     enum RWGMessageStatus status;
@@ -98,7 +96,7 @@ QUTMessage *deserializeQUTMessage(char *inBuffer);
 // Response: Quit
 
 enum RQTMessageStatus { RQT_OK, RQT_ERR };
-static const char *RQTMessageStatusStrings[] = {"OK", "ERR"};
+extern const char *RQTMessageStatusStrings[];
 
 typedef struct RQTMessage {
     enum RQTMessageStatus status;
@@ -119,9 +117,8 @@ REVMessage *deserializeREVMessage(char *inBuffer);
 // Response: Reveal
 
 enum RRVMessageType { RRV_WORD, RRV_STATUS };
-static const char *RRVMessageTypeStrings[] = {"WORD", "STATUS"};
 enum RRVMessageStatus { RRV_OK, RRV_ERR };
-static const char *RRVMessageStatusStrings[] = {"OK", "ERR"};
+extern const char *RRVMessageStatusStrings[];
 
 typedef struct RRVMessage {
     enum RRVMessageType type;
