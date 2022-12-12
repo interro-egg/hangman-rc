@@ -4,7 +4,8 @@
 #include <string.h>
 
 void destroySNGMessage(SNGMessage *msg) {
-  free(&msg->PLID);
+  if (msg != NULL)
+    free(msg->PLID);
   free(msg);
 }
 
