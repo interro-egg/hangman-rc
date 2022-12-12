@@ -132,8 +132,35 @@ ssize_t serializeREVMessage(REVMessage *msg, char *outBuffer) { return NULL; }
 
 REVMessage *deserializeREVMessage(char *inBuffer) { return NULL; }
 
-void destroyRRVMessage(RRVMessage *msg) { return NULL; }
+void destroyRRVMessage(RRVMessage *msg) {
+    free(msg->word);
+    free(msg);
+}
 
-ssize_t serializeRRVMessage(RRVMessage *msg, char *outBuffer) { return NULL; }
+ssize_t serializeRRVMessage(RRVMessage *msg, char *outBuffer) {
+    return sprintf(outBuffer, "RRV %s",
+                   msg->type == RRV_STATUS
+                       ? RRVMessageStatusStrings[msg->status]
+                       : msg->word);
+}
 
-RRVMessage *deserializeRRVMessage(char *inBuffer) { return NULL; }
+RRVMessage *deserializeRRVMessage(char *inBuffer) {
+    RRVMessage *msg = malloc(sizeof(RRVMessage));
+    if (msg == NULL) {
+        return NULL;
+    }
+    int status = parse_enum(RRVMessageStatusStrings, inBuffer);
+    if (status != -1) {
+        msg->type = RRV_STATUS;
+        msg->word = NULL;
+        msg->status = status;
+    } else {
+        msg->type = RRV_WORD;
+        if (sscanf("%m30s", msg->word) != 1) {
+            destroyRRVMessage(msg);
+            return NULL;
+        }
+        msg->status = NULL;
+    }
+    return msg;
+}
