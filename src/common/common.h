@@ -6,7 +6,6 @@
 #define GN 1 // FIXME: use actual group number when assigned
 #define GSPORT 58000 + GN
 
-#define COMMAND_LEN 3 + 1
-#define PLID_LEN 6 + 1
+int *readUnsignedInt(char *inBuffer, unsigned int *into);
 
 #endif // COMMON_H
