@@ -7,5 +7,6 @@
 #define GSPORT 58000 + GN
 
 int *readUnsignedInt(char *inBuffer, unsigned int *into);
+int parse_enum(char *strings[], char *to_parse);
 
 #endif // COMMON_H
