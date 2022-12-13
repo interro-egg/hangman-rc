@@ -150,12 +150,18 @@ RLGMessage *deserializeRLGMessage(char *inBuffer) {
         destroyRLGMessage(msg);
         return NULL;
     }
-    for (unsigned int i = 0; i < msg->n; i++) {
-        if (readUnsignedInt(inBuffer, &msg->pos[i]) == -1) {
-            destroyRLGMessage(msg);
-            return NULL;
+
+    char *cur = strtok(inBuffer, " ");
+    for (unsigned int i = 0; cur != NULL; i++) {
+        if (i > 1) {
+            if (sscanf(cur, "%2u", &msg->pos[i - 2]) != 1) {
+                destroyRLGMessage(msg);
+                return NULL;
+            }
         }
+        cur = strtok(NULL, " ");
     }
+
     return msg;
 }
 
