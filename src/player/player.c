@@ -9,13 +9,13 @@ int main(int argc, char *argv[]) {
     char *host = GS_DEFAULT_HOST;
     char *port = GS_DEFAULT_PORT;
 
-    read_opts(argc, argv, &host, &port);
+    readOpts(argc, argv, &host, &port);
 
     char *line = NULL;
     size_t bufSize;
     char *cmd = malloc(sizeof(char) * MAX_COMMAND_NAME_SIZE);
     if (cmd == NULL) {
-        exit_no_mem();
+        exitNoMem();
     }
 
     PlayerState state = {false, NULL, NULL};
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     free(line);
 }
 
-void read_opts(int argc, char *argv[], char **host, char **port) {
+void readOpts(int argc, char *argv[], char **host, char **port) {
     int opt;
 
     while ((opt = getopt(argc, argv, "n:p:")) != -1) {
@@ -59,32 +59,32 @@ void dispatch(char *line, char *cmd, PlayerState *state) {
 
     if (sscanf(line, MAX_COMMAND_NAME_SIZE_FMT, cmd) != 1) {
         printf(MSG_PARSE_ERROR);
-    } else if ((handler = get_handler(cmd)) == NULL) {
+    } else if ((handler = getHandler(cmd)) == NULL) {
         printf(MSG_UNKNOWN_COMMAND);
     } else if (!handler(findArgs(line, cmd), state)) {
         printf(MSG_EXEC_ERROR);
     }
 }
 
-CommandHandler get_handler(char *cmd) {
+CommandHandler getHandler(char *cmd) {
     if (strcmp(cmd, "start") == 0 || strcmp(cmd, "sg") == 0) {
-        return start_handler;
+        return startHandler;
     } else if (strcmp(cmd, "play") == 0 || strcmp(cmd, "pl") == 0) {
-        return play_handler;
+        return playHandler;
     } else if (strcmp(cmd, "guess") == 0 || strcmp(cmd, "gw") == 0) {
-        return guess_handler;
+        return guessHandler;
     } else if (strcmp(cmd, "reveal") == 0 || strcmp(cmd, "rev") == 0) {
-        return reveal_handler;
+        return revealHandler;
     } else if (strcmp(cmd, "scoreboard") == 0 || strcmp(cmd, "sb") == 0) {
-        return scoreboard_handler;
+        return scoreboardHandler;
     } else if (strcmp(cmd, "hint") == 0 || strcmp(cmd, "h") == 0) {
-        return hint_handler;
+        return hintHandler;
     } else if (strcmp(cmd, "state") == 0 || strcmp(cmd, "st") == 0) {
-        return state_handler;
+        return stateHandler;
     } else if (strcmp(cmd, "quit") == 0) {
-        return quit_handler;
+        return quitHandler;
     } else if (strcmp(cmd, "exit") == 0) {
-        return exit_handler;
+        return exitHandler;
     }
     return NULL;
 }

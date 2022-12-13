@@ -9,14 +9,14 @@
 // (if the command was successful or if the error was expected and dealt
 // with) they return true.
 
-bool start_handler(char *args, PlayerState *state);
-bool play_handler(char *args, PlayerState *state);
-bool guess_handler(char *args, PlayerState *state);
-bool reveal_handler(char *args, PlayerState *state);
-bool scoreboard_handler(char *args, PlayerState *state);
-bool hint_handler(char *args, PlayerState *state);
-bool state_handler(char *args, PlayerState *state);
-bool quit_handler(char *args, PlayerState *state);
-bool exit_handler(char *args, PlayerState *state);
+bool startHandler(char *args, PlayerState *state);
+bool playHandler(char *args, PlayerState *state);
+bool guessHandler(char *args, PlayerState *state);
+bool revealHandler(char *args, PlayerState *state);
+bool scoreboardHandler(char *args, PlayerState *state);
+bool hintHandler(char *args, PlayerState *state);
+bool stateHandler(char *args, PlayerState *state);
+bool quitHandler(char *args, PlayerState *state);
+bool exitHandler(char *args, PlayerState *state);
 
 #endif // COMMANDS_H

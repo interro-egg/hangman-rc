@@ -1,7 +1,7 @@
 #include "commands.h"
 #include <stdio.h>
 
-bool start_handler(char *args, UNUSED PlayerState *state) {
+bool startHandler(char *args, UNUSED PlayerState *state) {
     // SNGMessage *sng = parseSNGArgs(args);
     // char *req = serializeSNGMessage(sng);
     // char *resp = sendUDPMessage(state, req, "RSG");
@@ -12,42 +12,42 @@ bool start_handler(char *args, UNUSED PlayerState *state) {
     return true;
 }
 
-bool play_handler(char *args, UNUSED PlayerState *state) {
+bool playHandler(char *args, UNUSED PlayerState *state) {
     printf("Play! Args = |%s|\n", args);
     return true;
 }
 
-bool guess_handler(char *args, UNUSED PlayerState *state) {
+bool guessHandler(char *args, UNUSED PlayerState *state) {
     printf("Play! Args = |%s|\n", args);
     return true;
 }
 
-bool reveal_handler(char *args, UNUSED PlayerState *state) {
+bool revealHandler(char *args, UNUSED PlayerState *state) {
     printf("Play! Args = |%s|\n", args);
     return true;
 }
 
-bool scoreboard_handler(char *args, UNUSED PlayerState *state) {
+bool scoreboardHandler(char *args, UNUSED PlayerState *state) {
     printf("Play! Args = |%s|\n", args);
     return true;
 }
 
-bool hint_handler(char *args, UNUSED PlayerState *state) {
+bool hintHandler(char *args, UNUSED PlayerState *state) {
     printf("Play! Args = |%s|\n", args);
     return true;
 }
 
-bool state_handler(char *args, UNUSED PlayerState *state) {
+bool stateHandler(char *args, UNUSED PlayerState *state) {
     printf("Play! Args = |%s|\n", args);
     return true;
 }
 
-bool quit_handler(char *args, UNUSED PlayerState *state) {
+bool quitHandler(char *args, UNUSED PlayerState *state) {
     printf("Play! Args = |%s|\n", args);
     return true;
 }
 
-bool exit_handler(char *args, UNUSED PlayerState *state) {
+bool exitHandler(char *args, UNUSED PlayerState *state) {
     printf("Play! Args = |%s|\n", args);
     return true;
 }

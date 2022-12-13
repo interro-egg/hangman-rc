@@ -18,8 +18,8 @@
 typedef bool (*CommandHandler)(char *args, PlayerState *state);
 
 // TODO: check if order here matches order in .c
-void read_opts(int argc, char *argv[], char **host, char **port);
-CommandHandler get_handler(char *cmd);
+void readOpts(int argc, char *argv[], char **host, char **port);
+CommandHandler getHandler(char *cmd);
 void dispatch(char *cmd, char *line, PlayerState *state);
 char *findArgs(char *line, char *cmd);
 
