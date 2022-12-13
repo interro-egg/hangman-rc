@@ -92,13 +92,33 @@ PLGMessage *deserializePLGMessage(char *inBuffer) {
 const char *RLGMessageStatusStrings[] = {"OK",  "WIN", "DUP", "NOK",
                                          "OVR", "INV", "ERR"};
 
-void destroyRLGMessage(RLGMessage *msg) { free(msg); }
+void destroyRLGMessage(RLGMessage *msg) {
+    if (msg != NULL)
+        free(msg->pos);
+    free(msg);
+}
 
 ssize_t serializeRLGMessage(RLGMessage *msg, char *outBuffer) {
-    if (sprintf(outBuffer, "RLG %s %u %u", RLGMessageStatusStrings[msg->status],
-                msg->trial, msg->n) == -1)
+    char *posBuf = malloc((msg->n * 3 + 1) * sizeof(char));
+    char *cur = posBuf;
+    if (posBuf == NULL)
         return -1;
-    // TODO: write the positions into buffer
+
+    for (unsigned int i = 0; i < msg->n; i++) {
+        int r = sprintf(cur, " %u", msg->pos[i]);
+        if (r < 0) {
+            free(posBuf);
+            return -1;
+        }
+        cur += r;
+    }
+
+    if (sprintf(outBuffer, "RLG %s %u %u %s",
+                RLGMessageStatusStrings[msg->status], msg->trial, msg->n,
+                posBuf) < 0) {
+        free(posBuf);
+        return -1;
+    }
     return 0;
 }
 
