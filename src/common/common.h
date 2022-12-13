@@ -9,8 +9,8 @@
 
 #define UNUSED __attribute__((unused))
 
-void exit_no_mem();
+void exitNoMem();
 void lowercase(char *str);
-int parseEnum(const char *strings[], char *to_parse);
+int parseEnum(const char *strings[], char *toParse);
 
 #endif // COMMON_H

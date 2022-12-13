@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void exit_no_mem() {
+void exitNoMem() {
     perror("Out of memory!\n");
     exit(EXIT_FAILURE);
 }
@@ -15,9 +15,9 @@ void lowercase(char *str) {
     }
 }
 
-int parseEnum(const char *strings[], char *to_parse) {
+int parseEnum(const char *strings[], char *toParse) {
     for (unsigned int i = 0; i < sizeof(&strings) / sizeof(char *); i++) {
-        if (strcmp(strings[i], to_parse) == 0) {
+        if (strcmp(strings[i], toParse) == 0) {
             return (int)i;
         }
     };

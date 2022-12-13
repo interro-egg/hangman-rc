@@ -42,19 +42,19 @@ RSGMessage *deserializeRSGMessage(char *inBuffer) {
         destroyRSGMessage(msg);
         return NULL;
     }
-    char *status_str = NULL;
-    if (sscanf(inBuffer, "%m3s", status_str) != 1) {
+    char *statusStr = NULL;
+    if (sscanf(inBuffer, "%m3s", statusStr) != 1) {
         destroyRSGMessage(msg);
         return NULL;
     }
-    int status = parseEnum(RSGMessageStatusStrings, status_str);
+    int status = parseEnum(RSGMessageStatusStrings, statusStr);
     if (status == -1) {
         destroyRSGMessage(msg);
-        free(status_str);
+        free(statusStr);
         return NULL;
     }
     msg->status = status;
-    free(status_str);
+    free(statusStr);
 
     if (sscanf(inBuffer, "%*s %2u %1u", &msg->n_letters, &msg->max_errors) !=
         2) {
@@ -128,19 +128,19 @@ RLGMessage *deserializeRLGMessage(char *inBuffer) {
         destroyRLGMessage(msg);
         return NULL;
     }
-    char *status_str = NULL;
-    if (sscanf(inBuffer, "%m3s", status_str) != 1) {
+    char *statusStr = NULL;
+    if (sscanf(inBuffer, "%m3s", statusStr) != 1) {
         destroyRLGMessage(msg);
         return NULL;
     }
-    int status = parseEnum(RLGMessageStatusStrings, status_str);
+    int status = parseEnum(RLGMessageStatusStrings, statusStr);
     if (status == -1) {
         destroyRLGMessage(msg);
-        free(status_str);
+        free(statusStr);
         return NULL;
     }
     msg->status = status;
-    free(status_str);
+    free(statusStr);
     if (sscanf(inBuffer, "%*s %2u %2u", &msg->trial, &msg->n) != 2) {
         destroyRLGMessage(msg);
         return NULL;
@@ -207,19 +207,19 @@ RWGMessage *deserializeRWGMessage(char *inBuffer) {
         destroyRWGMessage(msg);
         return NULL;
     }
-    char *status_str = NULL;
-    if (sscanf(inBuffer, "%m3s", status_str) != 1) {
+    char *statusStr = NULL;
+    if (sscanf(inBuffer, "%m3s", statusStr) != 1) {
         destroyRWGMessage(msg);
         return NULL;
     }
-    int status = parseEnum(RWGMessageStatusStrings, status_str);
+    int status = parseEnum(RWGMessageStatusStrings, statusStr);
     if (status == -1) {
         destroyRWGMessage(msg);
-        free(status_str);
+        free(statusStr);
         return NULL;
     }
     msg->status = status;
-    free(status_str);
+    free(statusStr);
     if (sscanf(inBuffer, "%*s %2u", &msg->trials) != 1) {
         destroyRWGMessage(msg);
         return NULL;
@@ -264,19 +264,19 @@ RQTMessage *deserializeRQTMessage(char *inBuffer) {
         destroyRQTMessage(msg);
         return NULL;
     }
-    char *status_str = NULL;
-    if (sscanf(inBuffer, "%m3s", status_str) != 1) {
+    char *statusStr = NULL;
+    if (sscanf(inBuffer, "%m3s", statusStr) != 1) {
         destroyRQTMessage(msg);
         return NULL;
     }
-    int status = parseEnum(RQTMessageStatusStrings, status_str);
+    int status = parseEnum(RQTMessageStatusStrings, statusStr);
     if (status == -1) {
         destroyRQTMessage(msg);
-        free(status_str);
+        free(statusStr);
         return NULL;
     }
     msg->status = status;
-    free(status_str);
+    free(statusStr);
     return msg;
 }
 
