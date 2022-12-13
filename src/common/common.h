@@ -11,5 +11,6 @@
 
 void exit_no_mem();
 void lowercase(char *str);
+int parseEnum(const char *strings[], char *to_parse);
 
 #endif // COMMON_H
