@@ -8,5 +8,6 @@
 
 char *sendUDPMessage(PlayerState *state, char *req);
 int initUDPInfo(PlayerState *state);
+int sendTCPMessage(PlayerState *state, char* req);
 
 #endif // UTILS_H

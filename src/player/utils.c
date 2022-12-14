@@ -58,3 +58,35 @@ int initUDPInfo(PlayerState *state) {
     }
     return 1;
 }
+
+int sendTCPMessage(PlayerState *state, char* req){
+    // struct pollfd fd;
+    // fd.events = POLLIN;
+    // int ret = 0;
+    // int tries = 0;
+    size_t written = 0;
+    ssize_t n = 0;
+    char *cur = req;
+
+    int sock = socket(AF_INET, SOCK_STREAM, 0); // TCP socket
+    if (sock == -1)                            /*error*/
+        return -1;
+    // fd.fd = sock;
+
+    if (connect(sock, state->addr->ai_addr, state->addr->ai_addrlen) == -1) {
+        close(sock);
+        return -1;
+    }
+
+    while (written < strlen(req)) {
+        n = write(sock, cur, strlen(cur));
+        if (n == -1) {
+            close(sock);
+            return -1;
+        }
+        written += (size_t)n;
+        cur += n;
+    }
+
+    return sock;
+}
