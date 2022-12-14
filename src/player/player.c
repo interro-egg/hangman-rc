@@ -14,12 +14,17 @@ int main(int argc, char *argv[]) {
     char *line = NULL;
     size_t bufSize;
     char *cmd = malloc(sizeof(char) * MAX_COMMAND_NAME_SIZE);
-    if (cmd == NULL) {
+    char *outBuf = malloc(sizeof(char) * OUT_BUFFER_SIZE);
+    if (cmd == NULL || outBuf == NULL) {
+        free(cmd);
+        free(outBuf);
         exitNoMem();
     }
 
-    PlayerState state = {false, NULL, NULL};
-
+    PlayerState state = {host, port, false, NULL, NULL, outBuf, NULL};
+    if (initUDPinfo(&state) == -1) {
+        exit(EXIT_FAILURE);
+    }
     while (printf(INPUT_PROMPT) >= 0 &&
            (getline(&line, &bufSize, stdin) != -1)) {
         size_t len = strlen(line);

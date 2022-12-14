@@ -10,6 +10,7 @@
 #define INPUT_PROMPT "> "
 #define MAX_COMMAND_NAME_SIZE 10 + 1
 #define MAX_COMMAND_NAME_SIZE_FMT "%11s"
+#define OUT_BUFFER_SIZE 128 + 1
 
 #define MSG_PARSE_ERROR "An error has occurred while parsing your command.\n"
 #define MSG_EXEC_ERROR "An error has occurred while executing your command.\n"
