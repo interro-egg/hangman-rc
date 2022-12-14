@@ -63,16 +63,17 @@ void readOpts(int argc, char *argv[], char **host, char **port) {
 }
 
 void dispatch(char *line, char *cmd, PlayerState *state) {
-    CommandHandler handler;
+    const CommandDescriptor *desc;
 
     if (sscanf(line, MAX_COMMAND_NAME_SIZE_FMT, cmd) != 1) {
         printf(MSG_PARSE_ERROR);
-    } else if ((handler = getHandler(cmd)) == NULL) {
+    } else if ((desc = getCommandDescriptor(cmd)) == NULL) {
         printf(MSG_UNKNOWN_COMMAND);
     } else {
         int result;
-        if ((result = handler(findArgs(line, cmd), state)) != HANDLER_SUCCESS) {
-            fprintf(stderr, translate_handler_error(result));
+        if ((result = handleCommand(desc, findArgs(line, cmd), state)) !=
+            HANDLER_SUCCESS) {
+            fprintf(stderr, "%s", translateHandlerError(result));
 
             if (result == HANDLER_ENOMEM) {
                 exit(EXIT_FAILURE);
@@ -81,25 +82,13 @@ void dispatch(char *line, char *cmd, PlayerState *state) {
     }
 }
 
-CommandHandler getHandler(char *cmd) {
-    if (strcmp(cmd, "start") == 0 || strcmp(cmd, "sg") == 0) {
-        return startHandler;
-    } else if (strcmp(cmd, "play") == 0 || strcmp(cmd, "pl") == 0) {
-        return playHandler;
-    } else if (strcmp(cmd, "guess") == 0 || strcmp(cmd, "gw") == 0) {
-        return guessHandler;
-    } else if (strcmp(cmd, "reveal") == 0 || strcmp(cmd, "rev") == 0) {
-        return revealHandler;
-    } else if (strcmp(cmd, "scoreboard") == 0 || strcmp(cmd, "sb") == 0) {
-        return scoreboardHandler;
-    } else if (strcmp(cmd, "hint") == 0 || strcmp(cmd, "h") == 0) {
-        return hintHandler;
-    } else if (strcmp(cmd, "state") == 0 || strcmp(cmd, "st") == 0) {
-        return stateHandler;
-    } else if (strcmp(cmd, "quit") == 0) {
-        return quitHandler;
-    } else if (strcmp(cmd, "exit") == 0) {
-        return exitHandler;
+const CommandDescriptor *getCommandDescriptor(char *cmd) {
+    for (size_t i = 0; i < COMMANDS_COUNT; i++) {
+        for (size_t j = 0; j < COMMANDS[i].aliasesCount; j++) {
+            if (strcmp(cmd, COMMANDS[i].aliases[j]) == 0) {
+                return &COMMANDS[i];
+            }
+        }
     }
     return NULL;
 }
@@ -115,7 +104,7 @@ char *findArgs(char *line, char *cmd) {
     // FIXME: report no args if there are only spaces after cmd
 }
 
-char *translate_handler_error(int result) {
+char *translateHandlerError(int result) {
     switch (result) {
     case HANDLER_EPARSE:
         return MSG_HANDLER_EPARSE;

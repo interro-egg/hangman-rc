@@ -15,7 +15,8 @@
 #define MSG_NO_MEMORY "No memory available.\n"
 #define MSG_PARSE_ERROR "An error has occurred while parsing your command.\n"
 #define MSG_UNKNOWN_COMMAND "Unknown command.\n"
-#define MSG_UDP_CONNECTION_ERR "An error has occurred while connecting to the game server.\n"
+#define MSG_UDP_CONNECTION_ERR                                                 \
+    "An error has occurred while connecting to the game server.\n"
 
 // Handler error messages
 #define MSG_HANDLER_EUNKNOWN                                                   \
@@ -23,13 +24,11 @@
 #define MSG_HANDLER_EPARSE MSG_PARSE_ERROR
 #define MSG_HANDLER_ENOMEM MSG_NO_MEMORY
 
-typedef int (*CommandHandler)(char *args, PlayerState *state);
-
 // TODO: check if order here matches order in .c
 void readOpts(int argc, char *argv[], char **host, char **port);
-CommandHandler getHandler(char *cmd);
+const CommandDescriptor *getCommandDescriptor(char *cmd);
 void dispatch(char *cmd, char *line, PlayerState *state);
 char *findArgs(char *line, char *cmd);
-char *translate_handler_error(int result);
+char *translateHandlerError(int result);
 
 #endif // PLAYER_H

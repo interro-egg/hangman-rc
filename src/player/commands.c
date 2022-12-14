@@ -5,77 +5,49 @@
 #include <errno.h>
 #include <stdio.h>
 
-int startHandler(char *args, UNUSED PlayerState *state) {
-    // TODO: check return values
-    SNGMessage *sng = parseSNGArgs(args);
-    if (sng == NULL) {
+char *startCmdAliases[] = {"start", "sg"};
+const CommandDescriptor startCmd = {startCmdAliases,   2,
+                                    parseSNGArgs,      serializeSNGMessage,
+                                    destroySNGMessage, deserializeRSGMessage,
+                                    destroyRSGMessage, startCallback};
+
+const CommandDescriptor COMMANDS[] = {startCmd};
+const size_t COMMANDS_COUNT = 1;
+
+int handleCommand(const CommandDescriptor *cmd, char *args,
+                  PlayerState *state) {
+    void *parsed = cmd->argsParser(args);
+    if (parsed == NULL) {
         return (errno == ENOMEM) ? HANDLER_ENOMEM : HANDLER_EPARSE;
     }
-    ssize_t req = serializeSNGMessage(sng, state->out_buffer);
+    ssize_t req = cmd->requestSerializer(parsed, state->out_buffer);
     if (req < 0) {
+        cmd->requestDestroyer(parsed);
         return HANDLER_ESERIALIZE;
     }
     char *resp = sendUDPMessage(state, state->out_buffer);
     if (resp == NULL) {
+        cmd->requestDestroyer(parsed);
         return HANDLER_ECOMMS;
     }
-    RSGMessage *rsg = deserializeRSGMessage(resp);
-    if (rsg == NULL) {
+    void *deserialized = cmd->responseDeserializer(resp);
+    if (deserialized == NULL) {
+        cmd->requestDestroyer(parsed);
+        cmd->responseDestroyer(deserialized);
         return HANDLER_EDESERIALIZE;
     }
 
-    switch (rsg->status) {
-    case RSG_OK:
-        state->PLID = sng->PLID;
-        // state->n_letters = rsg->n_letters;
-        // state->max_errors = rsg->max_errors;
-        break;
-    case RSG_NOK:
-        // TODO
-        break;
-    default:
-        return HANDLER_EUNKNOWN;
-    }
+    int result = cmd->callback(parsed, deserialized, state);
 
-    return HANDLER_SUCCESS;
+    cmd->requestDestroyer(parsed);
+    cmd->responseDestroyer(deserialized);
+    return result == 0 ? HANDLER_SUCCESS : HANDLER_EUNKNOWN;
 }
 
-int playHandler(char *args, UNUSED PlayerState *state) {
-    printf("Play! Args = |%s|\n", args);
-    return true;
-}
-
-int guessHandler(char *args, UNUSED PlayerState *state) {
-    printf("Play! Args = |%s|\n", args);
-    return true;
-}
-
-int revealHandler(char *args, UNUSED PlayerState *state) {
-    printf("Play! Args = |%s|\n", args);
-    return true;
-}
-
-int scoreboardHandler(char *args, UNUSED PlayerState *state) {
-    printf("Play! Args = |%s|\n", args);
-    return true;
-}
-
-int hintHandler(char *args, UNUSED PlayerState *state) {
-    printf("Play! Args = |%s|\n", args);
-    return true;
-}
-
-int stateHandler(char *args, UNUSED PlayerState *state) {
-    printf("Play! Args = |%s|\n", args);
-    return true;
-}
-
-int quitHandler(char *args, UNUSED PlayerState *state) {
-    printf("Play! Args = |%s|\n", args);
-    return true;
-}
-
-int exitHandler(char *args, UNUSED PlayerState *state) {
-    printf("Play! Args = |%s|\n", args);
-    return true;
+int startCallback(void *req, void *resp, UNUSED PlayerState *state) {
+    UNUSED SNGMessage *sng = (SNGMessage *)req;
+    UNUSED RSGMessage *rsg = (RSGMessage *)resp;
+    // TODO: stuff
+    printf("test %s\n", RSGMessageStatusStrings[rsg->status]);
+    return 0;
 }

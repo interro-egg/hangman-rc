@@ -3,9 +3,8 @@
 
 #include "../common/messages.h"
 
-SNGMessage *parseSNGArgs(char *args);
-PLGMessage *parsePLGArgs(char *args);
-PWGMessage *parsePWGArgs(char *args);
-
+void *parseSNGArgs(char *args);
+void *parsePLGArgs(char *args);
+void *parsePWGArgs(char *args);
 
 #endif // PARSERS_H

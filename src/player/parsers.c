@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-SNGMessage *parseSNGArgs(char *args) {
+void *parseSNGArgs(char *args) {
     SNGMessage *sng = malloc(sizeof(SNGMessage));
     sng->PLID = malloc(7 * sizeof(char));
     if (sng == NULL || sng->PLID == NULL) {
@@ -18,7 +18,7 @@ SNGMessage *parseSNGArgs(char *args) {
     return sng;
 }
 
-PLGMessage *parsePLGArgs(char *args) {
+void *parsePLGArgs(char *args) {
     PLGMessage *plg = malloc(sizeof(PLGMessage));
     if (plg == NULL) {
         errno = ENOMEM;
@@ -31,7 +31,7 @@ PLGMessage *parsePLGArgs(char *args) {
     return plg;
 }
 
-PWGMessage *parsePWGArgs(char *args) {
+void *parsePWGArgs(char *args) {
     PWGMessage *pwg = malloc(sizeof(PWGMessage));
     pwg->word = malloc(31 * sizeof(char));
     if (pwg == NULL || pwg->word == NULL) {
@@ -39,7 +39,7 @@ PWGMessage *parsePWGArgs(char *args) {
         destroyPWGMessage(pwg);
         return NULL;
     }
-    if (sscanf(args, "%30s", &pwg->word) != 1) {
+    if (sscanf(args, "%30s", pwg->word) != 1) {
         destroyPWGMessage(pwg);
         return NULL;
     }
