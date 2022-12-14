@@ -15,6 +15,7 @@
 #define MSG_NO_MEMORY "No memory available.\n"
 #define MSG_PARSE_ERROR "An error has occurred while parsing your command.\n"
 #define MSG_UNKNOWN_COMMAND "Unknown command.\n"
+#define MSG_UDP_CONNECTION_ERR "An error has occurred while connecting to the game server.\n"
 
 // Handler error messages
 #define MSG_HANDLER_EUNKNOWN                                                   \

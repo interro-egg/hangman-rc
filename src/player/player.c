@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
 
     PlayerState state = {host, port, false, NULL, NULL, outBuf, NULL};
     if (initUDPInfo(&state) == -1) {
+        fprintf(stderr, "%s", MSG_UDP_CONNECTION_ERR);
         exit(EXIT_FAILURE);
     }
     while (printf(INPUT_PROMPT) >= 0 &&
