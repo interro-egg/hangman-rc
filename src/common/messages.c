@@ -59,8 +59,8 @@ void *deserializeRSGMessage(char *inBuffer) {
     msg->status = status;
     free(statusStr);
 
-    if (sscanf(inBuffer, "RSG %*s %2u %1u", &msg->n_letters, &msg->max_errors) !=
-        2) {
+    if (sscanf(inBuffer, "RSG %*s %2u %1u", &msg->n_letters,
+               &msg->max_errors) != 2) {
         destroyRSGMessage(msg);
         return NULL;
     }
@@ -86,8 +86,8 @@ void *deserializePLGMessage(char *inBuffer) {
         destroyPLGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "PLG %6s %1c %2u", msg->PLID, &msg->letter, &msg->trial) !=
-        3) {
+    if (sscanf(inBuffer, "PLG %6s %1c %2u", msg->PLID, &msg->letter,
+               &msg->trial) != 3) {
         destroyPLGMessage(msg);
         return NULL;
     }
@@ -193,8 +193,8 @@ void *deserializePWGMessage(char *inBuffer) {
         destroyPWGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "PWG %6s %30s %2u", msg->PLID, msg->word, &msg->trial) !=
-        3) {
+    if (sscanf(inBuffer, "PWG %6s %30s %2u", msg->PLID, msg->word,
+               &msg->trial) != 3) {
         destroyPWGMessage(msg);
         return NULL;
     }

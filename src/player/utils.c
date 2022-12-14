@@ -59,7 +59,7 @@ int initUDPInfo(PlayerState *state) {
     return 1;
 }
 
-int sendTCPMessage(PlayerState *state, char* req){
+int sendTCPMessage(PlayerState *state, char *req) {
     // struct pollfd fd;
     // fd.events = POLLIN;
     // int ret = 0;
@@ -69,7 +69,7 @@ int sendTCPMessage(PlayerState *state, char* req){
     char *cur = req;
 
     int sock = socket(AF_INET, SOCK_STREAM, 0); // TCP socket
-    if (sock == -1)                            /*error*/
+    if (sock == -1)                             /*error*/
         return -1;
     // fd.fd = sock;
 
