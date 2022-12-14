@@ -12,7 +12,8 @@ char *sendUDPMessage(PlayerState *state, char *req) {
     char *resp = malloc(128 * sizeof(char));
     struct pollfd fd;
     fd.events = POLLIN;
-    int ret, tries = 0;
+    int ret = 0;
+    int tries = 0;
 
     int sock = socket(AF_INET, SOCK_DGRAM, 0); // UDP socket
     if (sock == -1)                            /*error*/
@@ -46,7 +47,7 @@ char *sendUDPMessage(PlayerState *state, char *req) {
 }
 
 int initUDPInfo(PlayerState *state) {
-    struct addrinfo hints, *res;
+    struct addrinfo hints;
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;      // IPv4
     hints.ai_socktype = SOCK_DGRAM; // UDP socket
