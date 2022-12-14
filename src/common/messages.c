@@ -26,7 +26,7 @@ void *deserializeSNGMessage(char *inBuffer) {
         destroySNGMessage(msg);
         return NULL;
     }
-    return (void *)msg;
+    return msg;
 }
 
 const char *RSGMessageStatusStrings[] = {"OK", "NOK"};
@@ -68,7 +68,7 @@ void *deserializeRSGMessage(char *inBuffer) {
         destroyRSGMessage(msg);
         return NULL;
     }
-    return (void *)msg;
+    return msg;
 }
 
 void destroyPLGMessage(void *ptr) {
@@ -96,7 +96,7 @@ void *deserializePLGMessage(char *inBuffer) {
         destroyPLGMessage(msg);
         return NULL;
     }
-    return (void *)msg;
+    return msg;
 }
 
 const char *RLGMessageStatusStrings[] = {"OK",  "WIN", "DUP", "NOK",
@@ -174,7 +174,7 @@ void *deserializeRLGMessage(char *inBuffer) {
         cur = strtok(NULL, " ");
     }
 
-    return (void *)msg;
+    return msg;
 }
 
 void destroyPWGMessage(void *ptr) {
@@ -205,7 +205,7 @@ void *deserializePWGMessage(char *inBuffer) {
         destroyPWGMessage(msg);
         return NULL;
     }
-    return (void *)msg;
+    return msg;
 }
 
 const char *RWGMessageStatusStrings[] = {"WIN", "NOK", "OVR", "INV", "ERR"};
@@ -244,7 +244,7 @@ void *deserializeRWGMessage(char *inBuffer) {
         destroyRWGMessage(msg);
         return NULL;
     }
-    return (void *)msg;
+    return msg;
 }
 
 void destroyQUTMessage(void *ptr) {
@@ -270,7 +270,7 @@ void *deserializeQUTMessage(char *inBuffer) {
         destroyQUTMessage(msg);
         return NULL;
     }
-    return (void *)msg;
+    return msg;
 }
 
 const char *RQTMessageStatusStrings[] = {"OK", "ERR"};
@@ -304,7 +304,7 @@ void *deserializeRQTMessage(char *inBuffer) {
     }
     msg->status = status;
     free(statusStr);
-    return (void *)msg;
+    return msg;
 }
 
 void destroyREVMessage(void *ptr) {
@@ -328,7 +328,7 @@ void *deserializeREVMessage(char *inBuffer) {
         destroyREVMessage(msg);
         return NULL;
     }
-    return (void *)msg;
+    return msg;
 }
 
 const char *RRVMessageStatusStrings[] = {"OK", "ERR"};
@@ -366,5 +366,5 @@ void *deserializeRRVMessage(char *inBuffer) {
             return NULL;
         }
     }
-    return (void *)msg;
+    return msg;
 }
