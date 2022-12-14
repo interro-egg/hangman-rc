@@ -1,4 +1,5 @@
 #include "player.h"
+#include "utils.h"
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@ int main(int argc, char *argv[]) {
     }
 
     PlayerState state = {host, port, false, NULL, NULL, outBuf, NULL};
-    if (initUDPinfo(&state) == -1) {
+    if (initUDPInfo(&state) == -1) {
         exit(EXIT_FAILURE);
     }
     while (printf(INPUT_PROMPT) >= 0 &&
