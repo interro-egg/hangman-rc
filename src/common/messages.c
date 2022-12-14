@@ -15,11 +15,12 @@ ssize_t serializeSNGMessage(SNGMessage *msg, char *outBuffer) {
 
 SNGMessage *deserializeSNGMessage(char *inBuffer) {
     SNGMessage *msg = malloc(sizeof(SNGMessage));
-    if (msg == NULL) {
+    msg->PLID = malloc(7 * sizeof(char));
+    if (msg == NULL || msg->PLID == NULL) {
         destroySNGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%m6s", &msg->PLID) != 1) {
+    if (sscanf(inBuffer, "%6s", msg->PLID) != 1) {
         destroySNGMessage(msg);
         return NULL;
     }
@@ -32,18 +33,18 @@ void destroyRSGMessage(RSGMessage *msg) { free(msg); }
 
 ssize_t serializeRSGMessage(RSGMessage *msg, char *outBuffer) {
     return sprintf(outBuffer, "RSG %s %u %u\n",
-                   RSGMessageStatusStrings[msg->status], msg->n_letters,
-                   msg->max_errors);
+                   RSGMessageStatusStrings[msg->status], &msg->n_letters,
+                   &msg->max_errors);
 }
 
 RSGMessage *deserializeRSGMessage(char *inBuffer) {
     RSGMessage *msg = malloc(sizeof(RSGMessage));
-    if (msg == NULL) {
+    char *statusStr = malloc(4 * sizeof(char));
+    if (msg == NULL || statusStr == NULL) {
         destroyRSGMessage(msg);
         return NULL;
     }
-    char *statusStr = NULL;
-    if (sscanf(inBuffer, "%m3s", statusStr) != 1) {
+    if (sscanf(inBuffer, "%3s", statusStr) != 1) {
         destroyRSGMessage(msg);
         return NULL;
     }
@@ -71,17 +72,18 @@ void destroyPLGMessage(PLGMessage *msg) {
 }
 
 ssize_t serializePLGMessage(PLGMessage *msg, char *outBuffer) {
-    return sprintf(outBuffer, "PLG %s %c %u\n", msg->PLID, msg->letter,
-                   msg->trial);
+    return sprintf(outBuffer, "PLG %s %c %u\n", msg->PLID, &msg->letter,
+                   &msg->trial);
 }
 
 PLGMessage *deserializePLGMessage(char *inBuffer) {
     PLGMessage *msg = malloc(sizeof(PLGMessage));
-    if (msg == NULL) {
+    msg->PLID = malloc(7 * sizeof(char));
+    if (msg == NULL || msg->PLID == NULL) {
         destroyPLGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%m6s %1c %2u", &msg->PLID, &msg->letter,
+    if (sscanf(inBuffer, "%6s %1c %2u", msg->PLID, &msg->letter,
                &msg->trial) != 3) {
         destroyPLGMessage(msg);
         return NULL;
@@ -114,7 +116,7 @@ ssize_t serializeRLGMessage(RLGMessage *msg, char *outBuffer) {
     }
 
     if (sprintf(outBuffer, "RLG %s %u %u %s",
-                RLGMessageStatusStrings[msg->status], msg->trial, msg->n,
+                RLGMessageStatusStrings[msg->status], &msg->trial, &msg->n,
                 posBuf) < 0) {
         free(posBuf);
         return -1;
@@ -124,12 +126,12 @@ ssize_t serializeRLGMessage(RLGMessage *msg, char *outBuffer) {
 
 RLGMessage *deserializeRLGMessage(char *inBuffer) {
     RLGMessage *msg = malloc(sizeof(RLGMessage));
-    if (msg == NULL) {
+    char *statusStr = malloc(4 * sizeof(char));
+    if (msg == NULL || statusStr == NULL) {
         destroyRLGMessage(msg);
         return NULL;
     }
-    char *statusStr = NULL;
-    if (sscanf(inBuffer, "%m3s", statusStr) != 1) {
+    if (sscanf(inBuffer, "%3s", statusStr) != 1) {
         destroyRLGMessage(msg);
         return NULL;
     }
@@ -154,7 +156,7 @@ RLGMessage *deserializeRLGMessage(char *inBuffer) {
     char *cur = strtok(inBuffer, " ");
     for (unsigned int i = 0; cur != NULL; i++) {
         if (i > 1) {
-            if (sscanf(cur, "%2u", &msg->pos[i - 2]) != 1) {
+            if (sscanf(cur, "%2u", msg->pos[i - 2]) != 1) {
                 destroyRLGMessage(msg);
                 return NULL;
             }
@@ -175,16 +177,18 @@ void destroyPWGMessage(PWGMessage *msg) {
 
 ssize_t serializePWGMessage(PWGMessage *msg, char *outBuffer) {
     return sprintf(outBuffer, "PWG %s %s %u\n", msg->PLID, msg->word,
-                   msg->trial);
+                   &msg->trial);
 }
 
 PWGMessage *deserializePWGMessage(char *inBuffer) {
     PWGMessage *msg = malloc(sizeof(PWGMessage));
-    if (msg == NULL) {
+    msg->PLID = malloc(7 * sizeof(char));
+    msg->word = malloc(31 * sizeof(char));
+    if (msg == NULL || msg->PLID == NULL || msg->word == NULL) {
         destroyPWGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%m6s %m30s %2u", &msg->PLID, &msg->word,
+    if (sscanf(inBuffer, "%6s %30s %2u", msg->PLID, msg->word,
                &msg->trial) != 3) {
         destroyPWGMessage(msg);
         return NULL;
@@ -198,17 +202,17 @@ void destroyRWGMessage(RWGMessage *msg) { free(msg); }
 
 ssize_t serializeRWGMessage(RWGMessage *msg, char *outBuffer) {
     return sprintf(outBuffer, "RWG %s %u\n",
-                   RWGMessageStatusStrings[msg->status], msg->trials);
+                   RWGMessageStatusStrings[msg->status], &msg->trials);
 }
 
 RWGMessage *deserializeRWGMessage(char *inBuffer) {
     RWGMessage *msg = malloc(sizeof(RWGMessage));
-    if (msg == NULL) {
+    char *statusStr = malloc(4 * sizeof(char));
+    if (msg == NULL || statusStr == NULL) {
         destroyRWGMessage(msg);
         return NULL;
     }
-    char *statusStr = NULL;
-    if (sscanf(inBuffer, "%m3s", statusStr) != 1) {
+    if (sscanf(inBuffer, "%3s", statusStr) != 1) {
         destroyRWGMessage(msg);
         return NULL;
     }
@@ -239,11 +243,12 @@ ssize_t serializeQUTMessage(QUTMessage *msg, char *outBuffer) {
 
 QUTMessage *deserializeQUTMessage(char *inBuffer) {
     QUTMessage *msg = malloc(sizeof(QUTMessage));
-    if (msg == NULL) {
+    msg->PLID = malloc(7 * sizeof(char));
+    if (msg == NULL || msg->PLID == NULL) {
         destroyQUTMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%m6s", &msg->PLID) != 1) {
+    if (sscanf(inBuffer, "%6s", msg->PLID) != 1) {
         destroyQUTMessage(msg);
         return NULL;
     }
@@ -260,12 +265,12 @@ ssize_t serializeRQTMessage(RQTMessage *msg, char *outBuffer) {
 
 RQTMessage *deserializeRQTMessage(char *inBuffer) {
     RQTMessage *msg = malloc(sizeof(RQTMessage));
-    if (msg == NULL) {
+    char *statusStr = malloc(4 * sizeof(char));
+    if (msg == NULL || statusStr == NULL) {
         destroyRQTMessage(msg);
         return NULL;
     }
-    char *statusStr = NULL;
-    if (sscanf(inBuffer, "%m3s", statusStr) != 1) {
+    if (sscanf(inBuffer, "%3s", statusStr) != 1) {
         destroyRQTMessage(msg);
         return NULL;
     }
@@ -288,11 +293,12 @@ ssize_t serializeREVMessage(REVMessage *msg, char *outBuffer) {
 
 REVMessage *deserializeREVMessage(char *inBuffer) {
     REVMessage *msg = malloc(sizeof(REVMessage));
-    if (msg == NULL) {
+    msg->PLID = malloc(7 * sizeof(char));
+    if (msg == NULL || msg->PLID == NULL) {
         destroyREVMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%m6s", &msg->PLID) != 1) {
+    if (sscanf(inBuffer, "%6s", msg->PLID) != 1) {
         destroyREVMessage(msg);
         return NULL;
     }
@@ -316,7 +322,8 @@ ssize_t serializeRRVMessage(RRVMessage *msg, char *outBuffer) {
 
 RRVMessage *deserializeRRVMessage(char *inBuffer) {
     RRVMessage *msg = malloc(sizeof(RRVMessage));
-    if (msg == NULL) {
+    msg->word = malloc(31 * sizeof(char));
+    if (msg == NULL || msg->word == NULL) {
         return NULL;
     }
     int status = parseEnum(RRVMessageStatusStrings, inBuffer);
@@ -326,7 +333,7 @@ RRVMessage *deserializeRRVMessage(char *inBuffer) {
         msg->status = status;
     } else {
         msg->type = RRV_WORD;
-        if (sscanf("%m30s", msg->word) != 1) {
+        if (sscanf("%30s", msg->word) != 1) {
             destroyRRVMessage(msg);
             return NULL;
         }
