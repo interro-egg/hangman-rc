@@ -5,7 +5,7 @@
 
 SNGMessage *parseSNGArgs(char *args) {
     SNGMessage *sng = malloc(sizeof(SNGMessage));
-    sng-> PLID = malloc(7 * sizeof(char));
+    sng->PLID = malloc(7 * sizeof(char));
     if (sng == NULL || sng->PLID == NULL) {
         errno = ENOMEM;
         destroySNGMessage(sng);

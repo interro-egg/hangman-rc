@@ -83,8 +83,8 @@ PLGMessage *deserializePLGMessage(char *inBuffer) {
         destroyPLGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%6s %1c %2u", msg->PLID, &msg->letter,
-               &msg->trial) != 3) {
+    if (sscanf(inBuffer, "%6s %1c %2u", msg->PLID, &msg->letter, &msg->trial) !=
+        3) {
         destroyPLGMessage(msg);
         return NULL;
     }
@@ -188,8 +188,8 @@ PWGMessage *deserializePWGMessage(char *inBuffer) {
         destroyPWGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%6s %30s %2u", msg->PLID, msg->word,
-               &msg->trial) != 3) {
+    if (sscanf(inBuffer, "%6s %30s %2u", msg->PLID, msg->word, &msg->trial) !=
+        3) {
         destroyPWGMessage(msg);
         return NULL;
     }
