@@ -39,8 +39,8 @@ void destroyRSGMessage(void *ptr) {
 ssize_t serializeRSGMessage(void *ptr, char *outBuffer) {
     RSGMessage *msg = (RSGMessage *)ptr;
     return sprintf(outBuffer, "RSG %s %u %u\n",
-                   RSGMessageStatusStrings[msg->status], &msg->n_letters,
-                   &msg->max_errors);
+                   RSGMessageStatusStrings[msg->status], msg->n_letters,
+                   msg->max_errors);
 }
 
 void *deserializeRSGMessage(char *inBuffer) {
@@ -80,8 +80,8 @@ void destroyPLGMessage(void *ptr) {
 
 ssize_t serializePLGMessage(void *ptr, char *outBuffer) {
     PLGMessage *msg = (PLGMessage *)ptr;
-    return sprintf(outBuffer, "PLG %s %c %u\n", msg->PLID, &msg->letter,
-                   &msg->trial);
+    return sprintf(outBuffer, "PLG %s %c %u\n", msg->PLID, msg->letter,
+                   msg->trial);
 }
 
 void *deserializePLGMessage(char *inBuffer) {
@@ -126,7 +126,7 @@ ssize_t serializeRLGMessage(void *ptr, char *outBuffer) {
     }
 
     if (sprintf(outBuffer, "RLG %s %u %u %s",
-                RLGMessageStatusStrings[msg->status], &msg->trial, &msg->n,
+                RLGMessageStatusStrings[msg->status], msg->trial, msg->n,
                 posBuf) < 0) {
         free(posBuf);
         return -1;
@@ -166,7 +166,7 @@ void *deserializeRLGMessage(char *inBuffer) {
     char *cur = strtok(inBuffer, " ");
     for (unsigned int i = 0; cur != NULL; i++) {
         if (i > 1) {
-            if (sscanf(cur, "%2u", msg->pos[i - 2]) != 1) {
+            if (sscanf(cur, "%2u", &msg->pos[i - 2]) != 1) {
                 destroyRLGMessage(msg);
                 return NULL;
             }
@@ -189,7 +189,7 @@ void destroyPWGMessage(void *ptr) {
 ssize_t serializePWGMessage(void *ptr, char *outBuffer) {
     PWGMessage *msg = (PWGMessage *)ptr;
     return sprintf(outBuffer, "PWG %s %s %u\n", msg->PLID, msg->word,
-                   &msg->trial);
+                   msg->trial);
 }
 
 void *deserializePWGMessage(char *inBuffer) {
@@ -218,7 +218,7 @@ void destroyRWGMessage(void *ptr) {
 ssize_t serializeRWGMessage(void *ptr, char *outBuffer) {
     RWGMessage *msg = (RWGMessage *)ptr;
     return sprintf(outBuffer, "RWG %s %u\n",
-                   RWGMessageStatusStrings[msg->status], &msg->trials);
+                   RWGMessageStatusStrings[msg->status], msg->trials);
 }
 
 void *deserializeRWGMessage(char *inBuffer) {
@@ -361,7 +361,7 @@ void *deserializeRRVMessage(char *inBuffer) {
         msg->status = status;
     } else {
         msg->type = RRV_WORD;
-        if (sscanf("RRV %30s", msg->word) != 1) {
+        if (sscanf(inBuffer, "RRV %30s", msg->word) != 1) {
             destroyRRVMessage(msg);
             return NULL;
         }
