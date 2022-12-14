@@ -66,8 +66,15 @@ void dispatch(char *line, char *cmd, PlayerState *state) {
         printf(MSG_PARSE_ERROR);
     } else if ((handler = getHandler(cmd)) == NULL) {
         printf(MSG_UNKNOWN_COMMAND);
-    } else if (!handler(findArgs(line, cmd), state)) {
-        printf(MSG_EXEC_ERROR);
+    } else {
+        int result;
+        if ((result = handler(findArgs(line, cmd), state)) != HANDLER_SUCCESS) {
+            fprintf(stderr, translate_handler_error(result));
+
+            if (result == HANDLER_ENOMEM) {
+                exitNoMem();
+            }
+        }
     }
 }
 
@@ -103,4 +110,15 @@ char *findArgs(char *line, char *cmd) {
     }
     // this intentionally counts "cmd " as having no args
     // FIXME: report no args if there are only spaces after cmd
+}
+
+char *translate_handler_error(int result) {
+    switch (result) {
+    case HANDLER_EUNKNOWN:
+        return MSG_HANDLER_EUNKNOWN;
+    case HANDLER_EPARSE:
+        return MSG_HANDLER_EPARSE;
+    case HANDLER_ENOMEM:
+        return MSG_HANDLER_ENOMEM;
+    }
 }

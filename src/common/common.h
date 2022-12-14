@@ -9,7 +9,6 @@
 
 #define UNUSED __attribute__((unused))
 
-void exitNoMem();
 void lowercase(char *str);
 int parseEnum(const char *strings[], char *toParse);
 

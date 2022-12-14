@@ -13,15 +13,21 @@
 #define OUT_BUFFER_SIZE 128 + 1
 
 #define MSG_PARSE_ERROR "An error has occurred while parsing your command.\n"
-#define MSG_EXEC_ERROR "An error has occurred while executing your command.\n"
 #define MSG_UNKNOWN_COMMAND "Unknown command.\n"
 
-typedef bool (*CommandHandler)(char *args, PlayerState *state);
+// Handler error messages
+#define MSG_HANDLER_EUNKNOWN                                                   \
+    "An error has occurred while executing your command.\n"
+#define MSG_HANDLER_EPARSE MSG_PARSE_ERROR
+#define MSG_HANDLER_ENOMEM "No memory available.\n"
+
+typedef int (*CommandHandler)(char *args, PlayerState *state);
 
 // TODO: check if order here matches order in .c
 void readOpts(int argc, char *argv[], char **host, char **port);
 CommandHandler getHandler(char *cmd);
 void dispatch(char *cmd, char *line, PlayerState *state);
 char *findArgs(char *line, char *cmd);
+char *translate_handler_error(int result);
 
 #endif // PLAYER_H
