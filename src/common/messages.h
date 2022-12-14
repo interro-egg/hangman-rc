@@ -9,6 +9,7 @@ typedef struct SNGMessage {
     char *PLID;
 } SNGMessage;
 
+void destroySNGMessage(SNGMessage *msg);
 ssize_t serializeSNGMessage(SNGMessage *msg, char *outBuffer);
 SNGMessage *deserializeSNGMessage(char *inBuffer);
 
@@ -23,6 +24,7 @@ typedef struct RSGMessage {
     unsigned int max_errors;
 } RSGMessage;
 
+void destroyRSGMessage(RSGMessage *msg);
 ssize_t serializeRSGMessage(RSGMessage *msg, char *outBuffer);
 RSGMessage *deserializeRSGMessage(char *inBuffer);
 
@@ -34,6 +36,7 @@ typedef struct PLGMessage {
     unsigned int trial;
 } PLGMessage;
 
+void destroyPLGMessage(PLGMessage *msg);
 ssize_t serializePLGMessage(PLGMessage *msg, char *outBuffer);
 PLGMessage *deserializePLGMessage(char *inBuffer);
 
@@ -57,6 +60,7 @@ typedef struct RLGMessage {
     unsigned int *pos;
 } RLGMessage;
 
+void destroyRLGMessage(RLGMessage *msg);
 ssize_t serializeRLGMessage(RLGMessage *msg, char *outBuffer);
 RLGMessage *deserializeRLGMessage(char *inBuffer);
 
@@ -68,6 +72,7 @@ typedef struct PWGMessage {
     unsigned int trial;
 } PWGMessage;
 
+void destroyPWGMessage(PWGMessage *msg);
 ssize_t serializePWGMessage(PWGMessage *msg, char *outBuffer);
 PWGMessage *deserializePWGMessage(char *inBuffer);
 
@@ -81,6 +86,7 @@ typedef struct RWGMessage {
     unsigned int trials;
 } RWGMessage;
 
+void destroyRWGMessage(RWGMessage *msg);
 ssize_t serializeRWGMessage(RWGMessage *msg, char *outBuffer);
 RWGMessage *deserializeRWGMessage(char *inBuffer);
 
@@ -90,6 +96,7 @@ typedef struct QUTMessage {
     char *PLID;
 } QUTMessage;
 
+void destroyQUTMessage(QUTMessage *msg);
 ssize_t serializeQUTMessage(QUTMessage *msg, char *outBuffer);
 QUTMessage *deserializeQUTMessage(char *inBuffer);
 
@@ -102,6 +109,7 @@ typedef struct RQTMessage {
     enum RQTMessageStatus status;
 } RQTMessage;
 
+void destroyRQTMessage(RQTMessage *msg);
 ssize_t serializeRQTMessage(RQTMessage *msg, char *outBuffer);
 RQTMessage *deserializeRQTMessage(char *inBuffer);
 
@@ -111,6 +119,7 @@ typedef struct REVMessage {
     char *PLID;
 } REVMessage;
 
+void destroyREVMessage(REVMessage *msg);
 ssize_t serializeREVMessage(REVMessage *msg, char *outBuffer);
 REVMessage *deserializeREVMessage(char *inBuffer);
 
@@ -126,6 +135,7 @@ typedef struct RRVMessage {
     enum RRVMessageStatus status;
 } RRVMessage;
 
+void destroyRRVMessage(RRVMessage *msg);
 ssize_t serializeRRVMessage(RRVMessage *msg, char *outBuffer);
 RRVMessage *deserializeRRVMessage(char *inBuffer);
 
