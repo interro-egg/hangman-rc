@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-void destroySNGMessage(SNGMessage *msg) {
+void destroySNGMessage(void *ptr) {
+    SNGMessage *msg = (SNGMessage *)ptr;
     if (msg != NULL)
         free(msg->PLID);
     free(msg);
@@ -30,7 +31,10 @@ void *deserializeSNGMessage(char *inBuffer) {
 
 const char *RSGMessageStatusStrings[] = {"OK", "NOK"};
 
-void destroyRSGMessage(RSGMessage *msg) { free(msg); }
+void destroyRSGMessage(void *ptr) {
+    RSGMessage *msg = (RSGMessage *)ptr;
+    free(msg);
+}
 
 ssize_t serializeRSGMessage(void *ptr, char *outBuffer) {
     RSGMessage *msg = (RSGMessage *)ptr;
@@ -67,7 +71,8 @@ void *deserializeRSGMessage(char *inBuffer) {
     return (void *)msg;
 }
 
-void destroyPLGMessage(PLGMessage *msg) {
+void destroyPLGMessage(void *ptr) {
+    PLGMessage *msg = (PLGMessage *)ptr;
     if (msg != NULL)
         free(msg->PLID);
     free(msg);
@@ -97,7 +102,8 @@ void *deserializePLGMessage(char *inBuffer) {
 const char *RLGMessageStatusStrings[] = {"OK",  "WIN", "DUP", "NOK",
                                          "OVR", "INV", "ERR"};
 
-void destroyRLGMessage(RLGMessage *msg) {
+void destroyRLGMessage(void *ptr) {
+    RLGMessage *msg = (RLGMessage *)ptr;
     if (msg != NULL)
         free(msg->pos);
     free(msg);
@@ -171,7 +177,8 @@ void *deserializeRLGMessage(char *inBuffer) {
     return (void *)msg;
 }
 
-void destroyPWGMessage(PWGMessage *msg) {
+void destroyPWGMessage(void *ptr) {
+    PWGMessage *msg = (PWGMessage *)ptr;
     if (msg != NULL) {
         free(msg->PLID);
         free(msg->word);
@@ -203,7 +210,10 @@ void *deserializePWGMessage(char *inBuffer) {
 
 const char *RWGMessageStatusStrings[] = {"WIN", "NOK", "OVR", "INV", "ERR"};
 
-void destroyRWGMessage(RWGMessage *msg) { free(msg); }
+void destroyRWGMessage(void *ptr) {
+    RWGMessage *msg = (RWGMessage *)ptr;
+    free(msg);
+}
 
 ssize_t serializeRWGMessage(void *ptr, char *outBuffer) {
     RWGMessage *msg = (RWGMessage *)ptr;
@@ -237,7 +247,8 @@ void *deserializeRWGMessage(char *inBuffer) {
     return (void *)msg;
 }
 
-void destroyQUTMessage(QUTMessage *msg) {
+void destroyQUTMessage(void *ptr) {
+    QUTMessage *msg = (QUTMessage *)ptr;
     if (msg != NULL)
         free(msg->PLID);
     free(msg);
@@ -264,7 +275,10 @@ void *deserializeQUTMessage(char *inBuffer) {
 
 const char *RQTMessageStatusStrings[] = {"OK", "ERR"};
 
-void destroyRQTMessage(RQTMessage *msg) { free(msg); }
+void destroyRQTMessage(void *ptr) {
+    RQTMessage *msg = (RQTMessage *)ptr;
+    free(msg);
+}
 
 ssize_t serializeRQTMessage(void *ptr, char *outBuffer) {
     RQTMessage *msg = (RQTMessage *)ptr;
@@ -293,7 +307,10 @@ void *deserializeRQTMessage(char *inBuffer) {
     return (void *)msg;
 }
 
-void destroyREVMessage(REVMessage *msg) { free(msg); }
+void destroyREVMessage(void *ptr) {
+    REVMessage *msg = (REVMessage *)ptr;
+    free(msg);
+}
 
 ssize_t serializeREVMessage(void *ptr, char *outBuffer) {
     REVMessage *msg = (REVMessage *)ptr;
@@ -316,7 +333,8 @@ void *deserializeREVMessage(char *inBuffer) {
 
 const char *RRVMessageStatusStrings[] = {"OK", "ERR"};
 
-void destroyRRVMessage(RRVMessage *msg) {
+void destroyRRVMessage(void *ptr) {
+    RRVMessage *msg = (RRVMessage *)ptr;
     if (msg != NULL)
         free(msg->word);
     free(msg);
