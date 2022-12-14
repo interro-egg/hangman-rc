@@ -10,8 +10,8 @@ typedef struct SNGMessage {
 } SNGMessage;
 
 void destroySNGMessage(SNGMessage *msg);
-ssize_t serializeSNGMessage(SNGMessage *msg, char *outBuffer);
-SNGMessage *deserializeSNGMessage(char *inBuffer);
+ssize_t serializeSNGMessage(void *ptr, char *outBuffer);
+void *deserializeSNGMessage(char *inBuffer);
 
 // Response: Start Game
 
@@ -25,8 +25,8 @@ typedef struct RSGMessage {
 } RSGMessage;
 
 void destroyRSGMessage(RSGMessage *msg);
-ssize_t serializeRSGMessage(RSGMessage *msg, char *outBuffer);
-RSGMessage *deserializeRSGMessage(char *inBuffer);
+ssize_t serializeRSGMessage(void *ptr, char *outBuffer);
+void *deserializeRSGMessage(char *inBuffer);
 
 // Letter Guess
 
@@ -37,8 +37,8 @@ typedef struct PLGMessage {
 } PLGMessage;
 
 void destroyPLGMessage(PLGMessage *msg);
-ssize_t serializePLGMessage(PLGMessage *msg, char *outBuffer);
-PLGMessage *deserializePLGMessage(char *inBuffer);
+ssize_t serializePLGMessage(void *ptr, char *outBuffer);
+void *deserializePLGMessage(char *inBuffer);
 
 // Response: Letter Guess
 
@@ -61,8 +61,8 @@ typedef struct RLGMessage {
 } RLGMessage;
 
 void destroyRLGMessage(RLGMessage *msg);
-ssize_t serializeRLGMessage(RLGMessage *msg, char *outBuffer);
-RLGMessage *deserializeRLGMessage(char *inBuffer);
+ssize_t serializeRLGMessage(void *ptr, char *outBuffer);
+void *deserializeRLGMessage(char *inBuffer);
 
 // Word Guess
 
@@ -73,8 +73,8 @@ typedef struct PWGMessage {
 } PWGMessage;
 
 void destroyPWGMessage(PWGMessage *msg);
-ssize_t serializePWGMessage(PWGMessage *msg, char *outBuffer);
-PWGMessage *deserializePWGMessage(char *inBuffer);
+ssize_t serializePWGMessage(void *ptr, char *outBuffer);
+void *deserializePWGMessage(char *inBuffer);
 
 // Response: Word Guess
 
@@ -87,8 +87,8 @@ typedef struct RWGMessage {
 } RWGMessage;
 
 void destroyRWGMessage(RWGMessage *msg);
-ssize_t serializeRWGMessage(RWGMessage *msg, char *outBuffer);
-RWGMessage *deserializeRWGMessage(char *inBuffer);
+ssize_t serializeRWGMessage(void *ptr, char *outBuffer);
+void *deserializeRWGMessage(char *inBuffer);
 
 // Quit
 
@@ -97,8 +97,8 @@ typedef struct QUTMessage {
 } QUTMessage;
 
 void destroyQUTMessage(QUTMessage *msg);
-ssize_t serializeQUTMessage(QUTMessage *msg, char *outBuffer);
-QUTMessage *deserializeQUTMessage(char *inBuffer);
+ssize_t serializeQUTMessage(void *ptr, char *outBuffer);
+void *deserializeQUTMessage(char *inBuffer);
 
 // Response: Quit
 
@@ -110,8 +110,8 @@ typedef struct RQTMessage {
 } RQTMessage;
 
 void destroyRQTMessage(RQTMessage *msg);
-ssize_t serializeRQTMessage(RQTMessage *msg, char *outBuffer);
-RQTMessage *deserializeRQTMessage(char *inBuffer);
+ssize_t serializeRQTMessage(void *ptr, char *outBuffer);
+void *deserializeRQTMessage(char *inBuffer);
 
 // Reveal
 
@@ -120,8 +120,8 @@ typedef struct REVMessage {
 } REVMessage;
 
 void destroyREVMessage(REVMessage *msg);
-ssize_t serializeREVMessage(REVMessage *msg, char *outBuffer);
-REVMessage *deserializeREVMessage(char *inBuffer);
+ssize_t serializeREVMessage(void *ptr, char *outBuffer);
+void *deserializeREVMessage(char *inBuffer);
 
 // Response: Reveal
 
@@ -136,7 +136,7 @@ typedef struct RRVMessage {
 } RRVMessage;
 
 void destroyRRVMessage(RRVMessage *msg);
-ssize_t serializeRRVMessage(RRVMessage *msg, char *outBuffer);
-RRVMessage *deserializeRRVMessage(char *inBuffer);
+ssize_t serializeRRVMessage(void *ptr, char *outBuffer);
+void *deserializeRRVMessage(char *inBuffer);
 
 #endif // MESSAGES_H

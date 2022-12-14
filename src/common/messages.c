@@ -9,11 +9,12 @@ void destroySNGMessage(SNGMessage *msg) {
     free(msg);
 }
 
-ssize_t serializeSNGMessage(SNGMessage *msg, char *outBuffer) {
+ssize_t serializeSNGMessage(void *ptr, char *outBuffer) {
+    SNGMessage *msg = (SNGMessage *)ptr;
     return sprintf(outBuffer, "SNG %s\n", msg->PLID);
 }
 
-SNGMessage *deserializeSNGMessage(char *inBuffer) {
+void *deserializeSNGMessage(char *inBuffer) {
     SNGMessage *msg = malloc(sizeof(SNGMessage));
     msg->PLID = malloc(7 * sizeof(char));
     if (msg == NULL || msg->PLID == NULL) {
@@ -24,20 +25,21 @@ SNGMessage *deserializeSNGMessage(char *inBuffer) {
         destroySNGMessage(msg);
         return NULL;
     }
-    return msg;
+    return (void *)msg;
 }
 
 const char *RSGMessageStatusStrings[] = {"OK", "NOK"};
 
 void destroyRSGMessage(RSGMessage *msg) { free(msg); }
 
-ssize_t serializeRSGMessage(RSGMessage *msg, char *outBuffer) {
+ssize_t serializeRSGMessage(void *ptr, char *outBuffer) {
+    RSGMessage *msg = (RSGMessage *)ptr;
     return sprintf(outBuffer, "RSG %s %u %u\n",
                    RSGMessageStatusStrings[msg->status], &msg->n_letters,
                    &msg->max_errors);
 }
 
-RSGMessage *deserializeRSGMessage(char *inBuffer) {
+void *deserializeRSGMessage(char *inBuffer) {
     RSGMessage *msg = malloc(sizeof(RSGMessage));
     char *statusStr = malloc(4 * sizeof(char));
     if (msg == NULL || statusStr == NULL) {
@@ -62,7 +64,7 @@ RSGMessage *deserializeRSGMessage(char *inBuffer) {
         destroyRSGMessage(msg);
         return NULL;
     }
-    return msg;
+    return (void *)msg;
 }
 
 void destroyPLGMessage(PLGMessage *msg) {
@@ -71,12 +73,13 @@ void destroyPLGMessage(PLGMessage *msg) {
     free(msg);
 }
 
-ssize_t serializePLGMessage(PLGMessage *msg, char *outBuffer) {
+ssize_t serializePLGMessage(void *ptr, char *outBuffer) {
+    PLGMessage *msg = (PLGMessage *)ptr;
     return sprintf(outBuffer, "PLG %s %c %u\n", msg->PLID, &msg->letter,
                    &msg->trial);
 }
 
-PLGMessage *deserializePLGMessage(char *inBuffer) {
+void *deserializePLGMessage(char *inBuffer) {
     PLGMessage *msg = malloc(sizeof(PLGMessage));
     msg->PLID = malloc(7 * sizeof(char));
     if (msg == NULL || msg->PLID == NULL) {
@@ -88,7 +91,7 @@ PLGMessage *deserializePLGMessage(char *inBuffer) {
         destroyPLGMessage(msg);
         return NULL;
     }
-    return msg;
+    return (void *)msg;
 }
 
 const char *RLGMessageStatusStrings[] = {"OK",  "WIN", "DUP", "NOK",
@@ -100,7 +103,8 @@ void destroyRLGMessage(RLGMessage *msg) {
     free(msg);
 }
 
-ssize_t serializeRLGMessage(RLGMessage *msg, char *outBuffer) {
+ssize_t serializeRLGMessage(void *ptr, char *outBuffer) {
+    RLGMessage *msg = (RLGMessage *)ptr;
     char *posBuf = malloc((msg->n * 3 + 1) * sizeof(char));
     char *cur = posBuf;
     if (posBuf == NULL)
@@ -124,7 +128,7 @@ ssize_t serializeRLGMessage(RLGMessage *msg, char *outBuffer) {
     return 0;
 }
 
-RLGMessage *deserializeRLGMessage(char *inBuffer) {
+void *deserializeRLGMessage(char *inBuffer) {
     RLGMessage *msg = malloc(sizeof(RLGMessage));
     char *statusStr = malloc(4 * sizeof(char));
     if (msg == NULL || statusStr == NULL) {
@@ -164,7 +168,7 @@ RLGMessage *deserializeRLGMessage(char *inBuffer) {
         cur = strtok(NULL, " ");
     }
 
-    return msg;
+    return (void *)msg;
 }
 
 void destroyPWGMessage(PWGMessage *msg) {
@@ -175,12 +179,13 @@ void destroyPWGMessage(PWGMessage *msg) {
     free(msg);
 }
 
-ssize_t serializePWGMessage(PWGMessage *msg, char *outBuffer) {
+ssize_t serializePWGMessage(void *ptr, char *outBuffer) {
+    PWGMessage *msg = (PWGMessage *)ptr;
     return sprintf(outBuffer, "PWG %s %s %u\n", msg->PLID, msg->word,
                    &msg->trial);
 }
 
-PWGMessage *deserializePWGMessage(char *inBuffer) {
+void *deserializePWGMessage(char *inBuffer) {
     PWGMessage *msg = malloc(sizeof(PWGMessage));
     msg->PLID = malloc(7 * sizeof(char));
     msg->word = malloc(31 * sizeof(char));
@@ -193,19 +198,20 @@ PWGMessage *deserializePWGMessage(char *inBuffer) {
         destroyPWGMessage(msg);
         return NULL;
     }
-    return msg;
+    return (void *)msg;
 }
 
 const char *RWGMessageStatusStrings[] = {"WIN", "NOK", "OVR", "INV", "ERR"};
 
 void destroyRWGMessage(RWGMessage *msg) { free(msg); }
 
-ssize_t serializeRWGMessage(RWGMessage *msg, char *outBuffer) {
+ssize_t serializeRWGMessage(void *ptr, char *outBuffer) {
+    RWGMessage *msg = (RWGMessage *)ptr;
     return sprintf(outBuffer, "RWG %s %u\n",
                    RWGMessageStatusStrings[msg->status], &msg->trials);
 }
 
-RWGMessage *deserializeRWGMessage(char *inBuffer) {
+void *deserializeRWGMessage(char *inBuffer) {
     RWGMessage *msg = malloc(sizeof(RWGMessage));
     char *statusStr = malloc(4 * sizeof(char));
     if (msg == NULL || statusStr == NULL) {
@@ -228,7 +234,7 @@ RWGMessage *deserializeRWGMessage(char *inBuffer) {
         destroyRWGMessage(msg);
         return NULL;
     }
-    return msg;
+    return (void *)msg;
 }
 
 void destroyQUTMessage(QUTMessage *msg) {
@@ -237,11 +243,12 @@ void destroyQUTMessage(QUTMessage *msg) {
     free(msg);
 }
 
-ssize_t serializeQUTMessage(QUTMessage *msg, char *outBuffer) {
+ssize_t serializeQUTMessage(void *ptr, char *outBuffer) {
+    QUTMessage *msg = (QUTMessage *)ptr;
     return sprintf(outBuffer, "QUT %s\n", msg->PLID);
 }
 
-QUTMessage *deserializeQUTMessage(char *inBuffer) {
+void *deserializeQUTMessage(char *inBuffer) {
     QUTMessage *msg = malloc(sizeof(QUTMessage));
     msg->PLID = malloc(7 * sizeof(char));
     if (msg == NULL || msg->PLID == NULL) {
@@ -252,18 +259,19 @@ QUTMessage *deserializeQUTMessage(char *inBuffer) {
         destroyQUTMessage(msg);
         return NULL;
     }
-    return msg;
+    return (void *)msg;
 }
 
 const char *RQTMessageStatusStrings[] = {"OK", "ERR"};
 
 void destroyRQTMessage(RQTMessage *msg) { free(msg); }
 
-ssize_t serializeRQTMessage(RQTMessage *msg, char *outBuffer) {
+ssize_t serializeRQTMessage(void *ptr, char *outBuffer) {
+    RQTMessage *msg = (RQTMessage *)ptr;
     return sprintf(outBuffer, "RQT %s\n", RQTMessageStatusStrings[msg->status]);
 }
 
-RQTMessage *deserializeRQTMessage(char *inBuffer) {
+void *deserializeRQTMessage(char *inBuffer) {
     RQTMessage *msg = malloc(sizeof(RQTMessage));
     char *statusStr = malloc(4 * sizeof(char));
     if (msg == NULL || statusStr == NULL) {
@@ -282,16 +290,17 @@ RQTMessage *deserializeRQTMessage(char *inBuffer) {
     }
     msg->status = status;
     free(statusStr);
-    return msg;
+    return (void *)msg;
 }
 
 void destroyREVMessage(REVMessage *msg) { free(msg); }
 
-ssize_t serializeREVMessage(REVMessage *msg, char *outBuffer) {
+ssize_t serializeREVMessage(void *ptr, char *outBuffer) {
+    REVMessage *msg = (REVMessage *)ptr;
     return sprintf(outBuffer, "REV %s\n", msg->PLID);
 }
 
-REVMessage *deserializeREVMessage(char *inBuffer) {
+void *deserializeREVMessage(char *inBuffer) {
     REVMessage *msg = malloc(sizeof(REVMessage));
     msg->PLID = malloc(7 * sizeof(char));
     if (msg == NULL || msg->PLID == NULL) {
@@ -302,7 +311,7 @@ REVMessage *deserializeREVMessage(char *inBuffer) {
         destroyREVMessage(msg);
         return NULL;
     }
-    return msg;
+    return (void *)msg;
 }
 
 const char *RRVMessageStatusStrings[] = {"OK", "ERR"};
@@ -313,14 +322,15 @@ void destroyRRVMessage(RRVMessage *msg) {
     free(msg);
 }
 
-ssize_t serializeRRVMessage(RRVMessage *msg, char *outBuffer) {
+ssize_t serializeRRVMessage(void *ptr, char *outBuffer) {
+    RRVMessage *msg = (RRVMessage *)ptr;
     return sprintf(outBuffer, "RRV %s",
                    msg->type == RRV_STATUS
                        ? RRVMessageStatusStrings[msg->status]
                        : msg->word);
 }
 
-RRVMessage *deserializeRRVMessage(char *inBuffer) {
+void *deserializeRRVMessage(char *inBuffer) {
     RRVMessage *msg = malloc(sizeof(RRVMessage));
     msg->word = malloc(31 * sizeof(char));
     if (msg == NULL || msg->word == NULL) {
@@ -338,5 +348,5 @@ RRVMessage *deserializeRRVMessage(char *inBuffer) {
             return NULL;
         }
     }
-    return msg;
+    return (void *)msg;
 }
