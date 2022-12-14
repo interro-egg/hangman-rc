@@ -19,7 +19,8 @@ int main(int argc, char *argv[]) {
     if (cmd == NULL || outBuf == NULL) {
         free(cmd);
         free(outBuf);
-        exitNoMem();
+        fprintf(stderr, "%s", MSG_NO_MEMORY);
+        exit(EXIT_FAILURE);
     }
 
     PlayerState state = {host, port, false, NULL, NULL, outBuf, NULL};
@@ -73,7 +74,7 @@ void dispatch(char *line, char *cmd, PlayerState *state) {
             fprintf(stderr, translate_handler_error(result));
 
             if (result == HANDLER_ENOMEM) {
-                exitNoMem();
+                exit(EXIT_FAILURE);
             }
         }
     }
@@ -115,11 +116,11 @@ char *findArgs(char *line, char *cmd) {
 
 char *translate_handler_error(int result) {
     switch (result) {
-    case HANDLER_EUNKNOWN:
-        return MSG_HANDLER_EUNKNOWN;
     case HANDLER_EPARSE:
         return MSG_HANDLER_EPARSE;
     case HANDLER_ENOMEM:
         return MSG_HANDLER_ENOMEM;
+    default:
+        return MSG_HANDLER_EUNKNOWN;
     }
 }

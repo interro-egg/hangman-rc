@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+// Sends a message and waits for the response
 char *sendUDPMessage(PlayerState *state, char *req) {
     char *resp = malloc(128 * sizeof(char));
     struct pollfd fd;

@@ -78,7 +78,7 @@ PWGMessage *deserializePWGMessage(char *inBuffer);
 
 // Response: Word Guess
 
-enum RWGMessageStatus { RWG_WIN, RWG_NOK, RWG_OVR, RWG_INV, RWG_ERR };
+enum RWGMessageStatus { RWG_WIN, RWG_DUP, RWG_NOK, RWG_OVR, RWG_INV, RWG_ERR };
 extern const char *RWGstaticMessageStatusStrings[];
 
 typedef struct RWGMessage {

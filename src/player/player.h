@@ -12,6 +12,7 @@
 #define MAX_COMMAND_NAME_SIZE_FMT "%11s"
 #define OUT_BUFFER_SIZE 128 + 1
 
+#define MSG_NO_MEMORY "No memory available.\n"
 #define MSG_PARSE_ERROR "An error has occurred while parsing your command.\n"
 #define MSG_UNKNOWN_COMMAND "Unknown command.\n"
 
@@ -19,7 +20,7 @@
 #define MSG_HANDLER_EUNKNOWN                                                   \
     "An error has occurred while executing your command.\n"
 #define MSG_HANDLER_EPARSE MSG_PARSE_ERROR
-#define MSG_HANDLER_ENOMEM "No memory available.\n"
+#define MSG_HANDLER_ENOMEM MSG_NO_MEMORY
 
 typedef int (*CommandHandler)(char *args, PlayerState *state);
 
