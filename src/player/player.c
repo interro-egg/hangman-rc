@@ -1,5 +1,5 @@
 #include "player.h"
-#include "utils.h"
+#include "network.h"
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>

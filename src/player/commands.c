@@ -1,7 +1,7 @@
 #include "commands.h"
 #include "../common/messages.h"
+#include "network.h"
 #include "parsers.h"
-#include "utils.h"
 #include <errno.h>
 #include <stdio.h>
 
