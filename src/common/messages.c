@@ -21,7 +21,7 @@ void *deserializeSNGMessage(char *inBuffer) {
         destroySNGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%6s", msg->PLID) != 1) {
+    if (sscanf(inBuffer, "SNG %6s", msg->PLID) != 1) {
         destroySNGMessage(msg);
         return NULL;
     }
@@ -46,7 +46,7 @@ void *deserializeRSGMessage(char *inBuffer) {
         destroyRSGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%3s", statusStr) != 1) {
+    if (sscanf(inBuffer, "RSG %3s", statusStr) != 1) {
         destroyRSGMessage(msg);
         return NULL;
     }
@@ -59,7 +59,7 @@ void *deserializeRSGMessage(char *inBuffer) {
     msg->status = status;
     free(statusStr);
 
-    if (sscanf(inBuffer, "%*s %2u %1u", &msg->n_letters, &msg->max_errors) !=
+    if (sscanf(inBuffer, "RSG %*s %2u %1u", &msg->n_letters, &msg->max_errors) !=
         2) {
         destroyRSGMessage(msg);
         return NULL;
@@ -86,7 +86,7 @@ void *deserializePLGMessage(char *inBuffer) {
         destroyPLGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%6s %1c %2u", msg->PLID, &msg->letter, &msg->trial) !=
+    if (sscanf(inBuffer, "PLG %6s %1c %2u", msg->PLID, &msg->letter, &msg->trial) !=
         3) {
         destroyPLGMessage(msg);
         return NULL;
@@ -135,7 +135,7 @@ void *deserializeRLGMessage(char *inBuffer) {
         destroyRLGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%3s", statusStr) != 1) {
+    if (sscanf(inBuffer, "RLG %3s", statusStr) != 1) {
         destroyRLGMessage(msg);
         return NULL;
     }
@@ -147,7 +147,7 @@ void *deserializeRLGMessage(char *inBuffer) {
     }
     msg->status = status;
     free(statusStr);
-    if (sscanf(inBuffer, "%*s %2u %2u", &msg->trial, &msg->n) != 2) {
+    if (sscanf(inBuffer, "RLG %*s %2u %2u", &msg->trial, &msg->n) != 2) {
         destroyRLGMessage(msg);
         return NULL;
     }
@@ -193,7 +193,7 @@ void *deserializePWGMessage(char *inBuffer) {
         destroyPWGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%6s %30s %2u", msg->PLID, msg->word, &msg->trial) !=
+    if (sscanf(inBuffer, "PWG %6s %30s %2u", msg->PLID, msg->word, &msg->trial) !=
         3) {
         destroyPWGMessage(msg);
         return NULL;
@@ -218,7 +218,7 @@ void *deserializeRWGMessage(char *inBuffer) {
         destroyRWGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%3s", statusStr) != 1) {
+    if (sscanf(inBuffer, "RWG %3s", statusStr) != 1) {
         destroyRWGMessage(msg);
         return NULL;
     }
@@ -230,7 +230,7 @@ void *deserializeRWGMessage(char *inBuffer) {
     }
     msg->status = status;
     free(statusStr);
-    if (sscanf(inBuffer, "%*s %2u", &msg->trials) != 1) {
+    if (sscanf(inBuffer, "RWG %*s %2u", &msg->trials) != 1) {
         destroyRWGMessage(msg);
         return NULL;
     }
@@ -255,7 +255,7 @@ void *deserializeQUTMessage(char *inBuffer) {
         destroyQUTMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%6s", msg->PLID) != 1) {
+    if (sscanf(inBuffer, "QUT %6s", msg->PLID) != 1) {
         destroyQUTMessage(msg);
         return NULL;
     }
@@ -278,7 +278,7 @@ void *deserializeRQTMessage(char *inBuffer) {
         destroyRQTMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%3s", statusStr) != 1) {
+    if (sscanf(inBuffer, "RQT %3s", statusStr) != 1) {
         destroyRQTMessage(msg);
         return NULL;
     }
@@ -307,7 +307,7 @@ void *deserializeREVMessage(char *inBuffer) {
         destroyREVMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "%6s", msg->PLID) != 1) {
+    if (sscanf(inBuffer, "REV %6s", msg->PLID) != 1) {
         destroyREVMessage(msg);
         return NULL;
     }
@@ -343,7 +343,7 @@ void *deserializeRRVMessage(char *inBuffer) {
         msg->status = status;
     } else {
         msg->type = RRV_WORD;
-        if (sscanf("%30s", msg->word) != 1) {
+        if (sscanf("RRV %30s", msg->word) != 1) {
             destroyRRVMessage(msg);
             return NULL;
         }
