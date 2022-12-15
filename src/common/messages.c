@@ -350,11 +350,16 @@ ssize_t serializeRRVMessage(void *ptr, char *outBuffer) {
 
 void *deserializeRRVMessage(char *inBuffer) {
     RRVMessage *msg = malloc(sizeof(RRVMessage));
+    char *statusStr = malloc(4 * sizeof(char));
     msg->word = malloc(31 * sizeof(char));
-    if (msg == NULL || msg->word == NULL) {
+    if (msg == NULL || statusStr == NULL || msg->word == NULL) {
         return NULL;
     }
-    int status = parseEnum(RRVMessageStatusStrings, inBuffer);
+    if (sscanf(inBuffer, "RRV %3s", statusStr) != 1) {
+        destroyRRVMessage(msg);
+        return NULL;
+    }
+    int status = parseEnum(RRVMessageStatusStrings, statusStr);
     if (status != -1) {
         msg->type = RRV_STATUS;
         msg->word = NULL;
