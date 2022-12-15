@@ -18,3 +18,16 @@ int parseEnum(const char *strings[], char *toParse) {
     };
     return -1;
 }
+
+int getAddrInfoSockType(char *host, char *port, struct addrinfo **addr,
+                        int sockType, bool passive) {
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET; // IPv4
+    hints.ai_socktype = sockType;
+    if (passive) {
+        hints.ai_flags = AI_PASSIVE;
+    }
+
+    return getaddrinfo(host, port, &hints, addr);
+}

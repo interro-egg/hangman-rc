@@ -10,15 +10,24 @@
 #define INPUT_PROMPT "> "
 #define MAX_COMMAND_NAME_SIZE 10 + 1
 #define MAX_COMMAND_NAME_SIZE_FMT "%11s"
-#define OUT_BUFFER_SIZE 128 + 1
 
 #define MSG_NO_MEMORY "No memory available.\n"
 #define MSG_PARSE_ERROR                                                        \
     "An error has occurred while parsing your command. Please make sure it "   \
     "is correctly formatted.\n"
 #define MSG_UNKNOWN_COMMAND "Unknown command.\n"
-#define MSG_UDP_CONNECTION_ERR                                                 \
+
+// Network init error messages
+#define MSG_NINIT_EUNKNOWN                                                     \
     "An error has occurred while connecting to the game server.\n"
+#define MSG_NINIT_ENOMEM MSG_NO_MEMORY
+#define MSG_NINIT_EADDRINFO_UDP "Error: Could not resolve UDP address.\n"
+#define MSG_NINIT_EADDRINFO_TCP "Error: Could not resolve TCP address.\n"
+#define MSG_NINIT_ESOCKET_UDP "Error: Could not create UDP socket.\n"
+#define MSG_NINIT_ERCVTIMEO_UDP                                                \
+    "An error occurred while setting UDP receive timeout value.\n"
+#define MSG_NINIT_ESNDTIMEO_UDP                                                \
+    "An error occurred while setting UDP send timeout value.\n"
 
 // Handler error messages
 #define MSG_HANDLER_EUNKNOWN                                                   \
@@ -31,6 +40,7 @@ void readOpts(int argc, char *argv[], char **host, char **port);
 const CommandDescriptor *getCommandDescriptor(char *cmd);
 void dispatch(char *cmd, char *line, PlayerState *state);
 char *findArgs(char *line, char *cmd);
+char *translateNetworkInitError(int result);
 char *translateHandlerError(int result);
 
 #endif // PLAYER_H

@@ -14,20 +14,19 @@ int main(int argc, char *argv[]) {
 
     char *line = NULL;
     size_t bufSize;
-    char *cmd = malloc(sizeof(char) * MAX_COMMAND_NAME_SIZE);
-    char *outBuf = malloc(sizeof(char) * OUT_BUFFER_SIZE);
-    if (cmd == NULL || outBuf == NULL) {
-        free(cmd);
-        free(outBuf);
-        fprintf(stderr, "%s", MSG_NO_MEMORY);
+    char cmd[MAX_COMMAND_NAME_SIZE] = {0};
+    char inBuf[IN_BUFFER_SIZE] = {0};
+    char outBuf[OUT_BUFFER_SIZE] = {0};
+
+    PlayerState state = {host,   port,  NULL, NULL, NULL, 0, inBuf,
+                         outBuf, false, NULL, NULL, 0,    0};
+
+    int result;
+    if ((result = initNetwork(&state)) == NINIT_SUCCESS) {
+        fprintf(stderr, "%s", translateNetworkInitError(result));
         exit(EXIT_FAILURE);
     }
 
-    PlayerState state = {host, port, false, NULL, NULL, outBuf, NULL};
-    if (initUDPInfo(&state) == -1) {
-        fprintf(stderr, "%s", MSG_UDP_CONNECTION_ERR);
-        exit(EXIT_FAILURE);
-    }
     while (printf(INPUT_PROMPT) >= 0 &&
            (getline(&line, &bufSize, stdin) != -1)) {
         size_t len = strlen(line);
@@ -41,7 +40,9 @@ int main(int argc, char *argv[]) {
 
         putchar('\n');
     }
+
     free(line);
+    destroyStateComponents(&state);
 }
 
 void readOpts(int argc, char *argv[], char **host, char **port) {
@@ -102,6 +103,25 @@ char *findArgs(char *line, char *cmd) {
     }
     // this intentionally counts "cmd " as having no args
     // FIXME: report no args if there are only spaces after cmd
+}
+
+char *translateNetworkInitError(int result) {
+    switch (result) {
+    case NINIT_ENOMEM:
+        return MSG_NINIT_ENOMEM;
+    case NINIT_EADDRINFO_UDP:
+        return MSG_NINIT_EADDRINFO_UDP;
+    case NINIT_EADDRINFO_TCP:
+        return MSG_NINIT_EADDRINFO_TCP;
+    case NINIT_ESOCKET_UDP:
+        return MSG_NINIT_ESOCKET_UDP;
+    case NINIT_ERCVTIMEO_UDP:
+        return MSG_NINIT_ERCVTIMEO_UDP;
+    case NINIT_ESNDTIMEO_UDP:
+        return MSG_NINIT_ESNDTIMEO_UDP;
+    default:
+        return MSG_NINIT_EUNKNOWN;
+    }
 }
 
 char *translateHandlerError(int result) {

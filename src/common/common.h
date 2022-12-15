@@ -1,6 +1,9 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <netdb.h>
+#include <stdbool.h>
+
 #define GN "043" // pad with zeros until 3 digits
 #define GS_DEFAULT_PORT "58" GN
 
@@ -11,5 +14,7 @@
 
 void lowercase(char *str);
 int parseEnum(const char *strings[], char *toParse);
+int getAddrInfoSockType(char *host, char *port, struct addrinfo **addr,
+                        int sockType, bool passive);
 
 #endif // COMMON_H

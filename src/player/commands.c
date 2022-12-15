@@ -25,12 +25,11 @@ int handleCommand(const CommandDescriptor *cmd, char *args,
         cmd->requestDestroyer(parsed);
         return HANDLER_ESERIALIZE;
     }
-    char *resp = sendUDPMessage(state, state->out_buffer);
-    if (resp == NULL) {
+    if (sendUDPMessage(state) == -1) {
         cmd->requestDestroyer(parsed);
         return HANDLER_ECOMMS;
     }
-    void *deserialized = cmd->responseDeserializer(resp);
+    void *deserialized = cmd->responseDeserializer(state->in_buffer);
     if (deserialized == NULL) {
         cmd->requestDestroyer(parsed);
         cmd->responseDestroyer(deserialized);
