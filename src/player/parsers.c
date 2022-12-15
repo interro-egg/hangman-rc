@@ -1,9 +1,15 @@
 #include "parsers.h"
 #include "../common/messages.h"
+#include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 void *parseSNGArgs(char *args) {
+    if (args == NULL || strlen(args) != 6) {
+        return NULL;
+    }
+
     SNGMessage *sng = malloc(sizeof(SNGMessage));
     sng->PLID = malloc(7 * sizeof(char));
     if (sng == NULL || sng->PLID == NULL) {
@@ -11,20 +17,34 @@ void *parseSNGArgs(char *args) {
         destroySNGMessage(sng);
         return NULL;
     }
+
     if (sscanf(args, "%6s", sng->PLID) != 1) {
         destroySNGMessage(sng);
         return NULL;
+    }
+
+    size_t len = strlen(sng->PLID);
+    for (size_t i = 0; i < len; i++) {
+        if (!isdigit(sng->PLID[i])) {
+            destroySNGMessage(sng);
+            return NULL;
+        }
     }
     return sng;
 }
 
 void *parsePLGArgs(char *args) {
+    if (args == NULL || strlen(args) != 1) {
+        return NULL;
+    }
+
     PLGMessage *plg = malloc(sizeof(PLGMessage));
     if (plg == NULL) {
         errno = ENOMEM;
         return NULL;
     }
-    if (sscanf(args, "%1c", &plg->letter) != 1) {
+
+    if (sscanf(args, "%1c", &plg->letter) != 1 || !isalpha(plg->letter)) {
         destroyPLGMessage(plg);
         return NULL;
     }
@@ -32,6 +52,10 @@ void *parsePLGArgs(char *args) {
 }
 
 void *parsePWGArgs(char *args) {
+    if (args == NULL) {
+        return NULL;
+    }
+
     PWGMessage *pwg = malloc(sizeof(PWGMessage));
     pwg->word = malloc(31 * sizeof(char));
     if (pwg == NULL || pwg->word == NULL) {
@@ -39,9 +63,26 @@ void *parsePWGArgs(char *args) {
         destroyPWGMessage(pwg);
         return NULL;
     }
+
     if (sscanf(args, "%30s", pwg->word) != 1) {
         destroyPWGMessage(pwg);
         return NULL;
     }
+
+    size_t len = strlen(pwg->word);
+    if (len < strlen(args)) {
+        destroyPWGMessage(pwg);
+        return NULL;
+    }
+
+    for (size_t i = 0; i < len; i++) {
+        if (!isalpha(pwg->word[i])) {
+            destroyPWGMessage(pwg);
+            return NULL;
+        }
+    }
+
     return pwg;
 }
+
+// other parsers should return NULL if args is *not* NULL
