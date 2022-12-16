@@ -39,7 +39,8 @@ void destroyRSGMessage(void *ptr) {
 ssize_t serializeRSGMessage(void *ptr, char *outBuffer) {
     RSGMessage *msg = (RSGMessage *)ptr;
     if (msg->status == RSG_NOK)
-        return sprintf(outBuffer, "RSG %s", RSGMessageStatusStrings[msg->status]);
+        return sprintf(outBuffer, "RSG %s",
+                       RSGMessageStatusStrings[msg->status]);
     return sprintf(outBuffer, "RSG %s %u %u\n",
                    RSGMessageStatusStrings[msg->status], msg->n_letters,
                    msg->remaining_errors);
@@ -226,7 +227,8 @@ void *deserializePWGMessage(char *inBuffer) {
     return msg;
 }
 
-const char *RWGMessageStatusStrings[] = {"WIN", "NOK", "OVR", "INV", "ERR", NULL};
+const char *RWGMessageStatusStrings[] = {"WIN", "NOK", "OVR",
+                                         "INV", "ERR", NULL};
 
 void destroyRWGMessage(void *ptr) {
     RWGMessage *msg = (RWGMessage *)ptr;
