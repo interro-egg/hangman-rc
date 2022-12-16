@@ -158,7 +158,7 @@ char *readFileTCP(int fd) {
     strncpy(fnameAlloc, fname, alreadyReadName - 1);
     fnameAlloc[alreadyReadName] = '\0';
 
-    int fileFd = open(fnameAlloc, O_WRONLY | O_CREAT | O_TRUNC);
+    int fileFd = open(fnameAlloc, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fileFd == -1) {
         errno = TCP_RCV_EFOPEN;
         return NULL;
