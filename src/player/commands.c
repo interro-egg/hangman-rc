@@ -59,21 +59,20 @@ int handleCommand(const CommandDescriptor *cmd, char *args,
         cmd->requestDestroyer(parsed);
         return HANDLER_ESERIALIZE;
     }
-    printf("Sending message: %s", state->out_buffer);
+    printf("Sending message: |%s|", state->out_buffer);
     errno = 0;
     if (sendUDPMessage(state) == -1) {
         int r = errno == ETIMEDOUT ? HANDLER_ECOMMS_TIMEO : HANDLER_ECOMMS;
         cmd->requestDestroyer(parsed);
         return r;
     }
-    printf("Received message: %s", state->in_buffer);
+    printf("Received message: |%s|", state->in_buffer);
     void *deserialized = cmd->responseDeserializer(state->in_buffer);
     if (deserialized == NULL) {
         cmd->requestDestroyer(parsed);
         cmd->responseDestroyer(deserialized);
         return HANDLER_EDESERIALIZE;
     }
-
     if (cmd->callback != NULL) {
         cmd->callback(parsed, deserialized, state);
     }
@@ -128,7 +127,7 @@ int playPreHook(void *req, PlayerState *state) {
     }
     PLGMessage *plg = (PLGMessage *)req;
     strcpy(plg->PLID, state->PLID);
-    plg->trial = ++state->trial; // TODO: does this work?
+    plg->trial = ++state->trial;
     return 0;
 }
 
@@ -136,15 +135,10 @@ void playCallback(void *req, void *resp, PlayerState *state) {
     PLGMessage *plg = (PLGMessage *)req;
     RLGMessage *rlg = (RLGMessage *)resp;
     if (rlg->status == RLG_OK) {
-        printf("Letter %c is in the word.\n", plg->letter);
-        printf("Number of letters: %u\n", rlg->n);
         for (unsigned int i = 0; i < rlg->n; i++) {
-            printf("Position: %u\n", rlg->pos[i]);
-            state->word[rlg->pos[i] - 1] =
-                plg->letter; // FIXME: this doesn't seem to work
+            state->word[rlg->pos[i] - 1] = plg->letter;
         }
         printf("Correct!\n");
-        displayWord(state->word);
     } else if (rlg->status == RLG_WIN) {
         printf("You won! Congratulations!\n");
         state->in_game = false;
@@ -153,12 +147,10 @@ void playCallback(void *req, void *resp, PlayerState *state) {
         return;
     } else if (rlg->status == RLG_DUP) {
         printf("You have already guessed this letter. Please try again.\n");
-        displayWord(state->word);
         state->trial--;
     } else if (rlg->status == RLG_NOK) {
         state->remaining_errors--;
         printf("Wrong letter. Please try again.\n");
-        displayWord(state->word);
     } else if (rlg->status == RLG_OVR) {
         printf("You have exceeded the maximum number of errors. You lost!\n");
         state->in_game = false;
@@ -167,14 +159,13 @@ void playCallback(void *req, void *resp, PlayerState *state) {
         return;
     } else if (rlg->status == RLG_INV) {
         printf("An error occurred. Please try again.\n");
-        displayWord(state->word);
     } else if (rlg->status == RLG_ERR) {
         printf("An error occurred. Please try again.\n");
-        displayWord(state->word);
         state->trial--;
     }
+    displayWord(state->word);
     printf("\n");
-    printf("You have %u guesses left.\n", state->remaining_errors);
+    printf("You have %u errors left.\n", state->remaining_errors);
 }
 
 int guessPreHook(void *req, PlayerState *state) {
@@ -184,7 +175,7 @@ int guessPreHook(void *req, PlayerState *state) {
     }
     PWGMessage *pwg = (PWGMessage *)req;
     strcpy(pwg->PLID, state->PLID);
-    pwg->trial = ++state->trial; // TODO: does this work?
+    pwg->trial = ++state->trial;
     return 0;
 }
 
@@ -198,25 +189,29 @@ void guessCallback(UNUSED void *req, void *resp, PlayerState *state) {
         state->in_game = false;
         free(state->word);
         state->word = NULL;
+        return;
+    } else if (rwg->status == RWG_DUP) {
+        printf("You have already guessed this word. Please try again.\n");
+        state->trial--;
     } else if (rwg->status == RWG_NOK) {
+        state->remaining_errors--;
         printf("Wrong word. Please try again.\n");
-        displayWord(state->word);
-        printf("\n");
     } else if (rwg->status == RWG_OVR) {
-        printf("You have exceeded the maximum number of errors. You lost!\n");
+        printf("Wrong word. You have exceeded the maximum number of errors. "
+               "You lost!\n");
         state->in_game = false;
         free(state->word);
         state->word = NULL;
+        return;
     } else if (rwg->status == RWG_INV) {
         printf("An error occurred. Please try again.\n");
-        displayWord(state->word);
-        printf("\n");
     } else if (rwg->status == RWG_ERR) {
         printf("An error occurred. Please try again.\n");
-        displayWord(state->word);
-        printf("\n");
         state->trial--;
     }
+    displayWord(state->word);
+    printf("\n");
+    printf("You have %u errors left.\n", state->remaining_errors);
 }
 
 int quitPreHook(void *req, PlayerState *state) {
