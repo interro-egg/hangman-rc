@@ -39,7 +39,8 @@ void *parsePLGArgs(char *args) {
     }
 
     PLGMessage *plg = malloc(sizeof(PLGMessage));
-    if (plg == NULL) {
+    plg->PLID = malloc(7 * sizeof(char));
+    if (plg == NULL || plg->PLID == NULL) {
         errno = ENOMEM;
         return NULL;
     }
@@ -57,8 +58,9 @@ void *parsePWGArgs(char *args) {
     }
 
     PWGMessage *pwg = malloc(sizeof(PWGMessage));
+    pwg->PLID = malloc(7 * sizeof(char));
     pwg->word = malloc(31 * sizeof(char));
-    if (pwg == NULL || pwg->word == NULL) {
+    if (pwg == NULL || pwg->PLID == NULL || pwg->word == NULL) {
         errno = ENOMEM;
         destroyPWGMessage(pwg);
         return NULL;
