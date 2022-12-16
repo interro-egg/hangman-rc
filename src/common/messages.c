@@ -227,7 +227,7 @@ void *deserializePWGMessage(char *inBuffer) {
     return msg;
 }
 
-const char *RWGMessageStatusStrings[] = {"WIN", "NOK", "OVR",
+const char *RWGMessageStatusStrings[] = {"WIN", "DUP", "NOK", "OVR",
                                          "INV", "ERR", NULL};
 
 void destroyRWGMessage(void *ptr) {
@@ -250,6 +250,7 @@ void *deserializeRWGMessage(char *inBuffer) {
     }
     if (sscanf(inBuffer, "RWG %3s", statusStr) != 1) {
         destroyRWGMessage(msg);
+        free(statusStr);
         return NULL;
     }
     int status = parseEnum(RWGMessageStatusStrings, statusStr);
