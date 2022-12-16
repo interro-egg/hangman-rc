@@ -100,4 +100,15 @@ void *parseQUTArgs(char *args) {
     return qut;
 }
 
-// other parsers should return NULL if args is *not* NULL
+void *parseREVArgs(char *args) {
+    if (args != NULL) {
+        return NULL;
+    }
+    REVMessage *rev = malloc(sizeof(REVMessage));
+    rev->PLID = malloc(7 * sizeof(char));
+    if (rev == NULL || rev->PLID == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    return rev;
+}

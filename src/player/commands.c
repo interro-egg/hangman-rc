@@ -2,6 +2,7 @@
 #include "../common/messages.h"
 #include "network.h"
 #include "parsers.h"
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,16 +39,23 @@ const UDPCommandDescriptor exitCmd = {exitCmdAliases,        1,
                                       deserializeRQTMessage, destroyRQTMessage,
                                       exitCallback};
 
+char *revealCmdAliases[] = {"reveal", "rev"};
+const UDPCommandDescriptor revealCmd = {
+    revealCmdAliases,      2,
+    parseREVArgs,          revealPreHook,
+    serializeREVMessage,   destroyREVMessage,
+    deserializeRRVMessage, destroyRRVMessage,
+    revealCallback};
+
 const UDPCommandDescriptor UDP_COMMANDS[] = {startCmd, playCmd, guessCmd,
-                                             quitCmd, exitCmd};
-const size_t UDP_COMMANDS_COUNT = 5;
+                                             quitCmd,  exitCmd, revealCmd};
+const size_t UDP_COMMANDS_COUNT = 6;
 
 int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
                      PlayerState *state) {
     printf("Handling command %s\n", cmd->aliases[0]);
     void *parsed = cmd->argsParser(args);
     if (parsed == NULL) {
-
         return (errno == ENOMEM) ? HANDLER_ENOMEM : HANDLER_EPARSE;
     }
     if (cmd->preHook != NULL && cmd->preHook(parsed, state) != 0) {
@@ -117,7 +125,7 @@ int playPreHook(void *req, PlayerState *state) {
         return -1;
     }
     PLGMessage *plg = (PLGMessage *)req;
-    strcpy(plg->PLID, state->PLID);
+    strncpy(plg->PLID, state->PLID, 6 + 1);
     plg->trial = ++state->trial;
     return 0;
 }
@@ -127,7 +135,7 @@ void playCallback(void *req, void *resp, PlayerState *state) {
     RLGMessage *rlg = (RLGMessage *)resp;
     if (rlg->status == RLG_OK) {
         for (size_t i = 0; i < rlg->n; i++) {
-            state->word[rlg->pos[i] - 1] = toupper(plg->letter);
+            state->word[rlg->pos[i] - 1] = (char)toupper(plg->letter);
         }
         printf("Correct!\n");
     } else if (rlg->status == RLG_WIN) {
@@ -161,7 +169,7 @@ int guessPreHook(void *req, PlayerState *state) {
         return -1;
     }
     PWGMessage *pwg = (PWGMessage *)req;
-    strcpy(pwg->PLID, state->PLID);
+    strncpy(pwg->PLID, state->PLID, 6 + 1);
     pwg->trial = ++state->trial;
     return 0;
 }
@@ -170,7 +178,7 @@ void guessCallback(UNUSED void *req, void *resp, PlayerState *state) {
     PWGMessage *pwg = (PWGMessage *)req;
     RWGMessage *rwg = (RWGMessage *)resp;
     if (rwg->status == RWG_WIN) {
-        strcpy(state->word, pwg->word);
+        strncpy(state->word, pwg->word, strlen(state->word) + 1);
         displayWord(state->word);
         printf("\nYou won! Congratulations!\n");
         endGame(state);
@@ -203,7 +211,7 @@ int quitPreHook(void *req, PlayerState *state) {
         return -1;
     }
     QUTMessage *qut = (QUTMessage *)req;
-    strcpy(qut->PLID, state->PLID);
+    strncpy(qut->PLID, state->PLID, 6 + 1);
     return 0;
 }
 
@@ -231,4 +239,29 @@ int exitPreHook(void *req, PlayerState *state) {
 void exitCallback(UNUSED void *req, UNUSED void *resp,
                   UNUSED PlayerState *state) {
     exit(0); // FIXME: this is not a good way to do this
+}
+
+int revealPreHook(void *req, PlayerState *state) {
+    if (!state->in_game) {
+        printf("You are not in a game. Please start a new one.\n");
+        return -1;
+    }
+    REVMessage *rev = (REVMessage *)req;
+    strncpy(rev->PLID, state->PLID, 6 + 1);
+    return 0;
+}
+
+void revealCallback(UNUSED void *req, void *resp, UNUSED PlayerState *state) {
+    RRVMessage *rrv = (RRVMessage *)resp;
+    if (rrv->type == RRV_WORD) {
+        printf("The word is: ");
+        displayWord(rrv->word);
+        putchar('\n');
+    } else if (rrv->type == RRV_STATUS) {
+        if (rrv->status == RRV_OK) {
+            printf("This feature is not currently enabled.\n");
+        } else if (rrv->status == RRV_ERR) {
+            printf("An error occurred. Please try again.\n");
+        }
+    }
 }

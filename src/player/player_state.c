@@ -1,6 +1,8 @@
 #include "player_state.h"
 #include <netdb.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 // Only destroys State components; does not free(state).
@@ -30,7 +32,8 @@ int startGame(PlayerState *state, unsigned int n_letters,
     if (state->word == NULL) {
         return -1;
     }
-    strncpy(state->PLID, PLID, 6 + 1);
+    strncpy(state->PLID, PLID, 6);
+    state->PLID[6] = '\0';
     state->in_game = true;
     return 0;
 }

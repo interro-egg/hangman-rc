@@ -30,4 +30,6 @@ int startGame(PlayerState *state, unsigned int n_letters,
               unsigned int max_errors, char *PLID);
 void endGame(PlayerState *state);
 
+void displayWord(char *word);
+
 #endif // PLAYER_STATE_H

@@ -54,5 +54,7 @@ int quitPreHook(void *parsed, PlayerState *state);
 void quitCallback(void *req, void *resp, PlayerState *state);
 int exitPreHook(void *parsed, PlayerState *state);
 void exitCallback(void *req, void *resp, PlayerState *state);
+int revealPreHook(void *req, PlayerState *state);
+void revealCallback(void *req, void *resp, PlayerState *state);
 
 #endif // COMMANDS_H
