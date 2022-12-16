@@ -85,4 +85,17 @@ void *parsePWGArgs(char *args) {
     return pwg;
 }
 
+void *parseQUTArgs(char *args) {
+    if (args != NULL) {
+        return NULL;
+    }
+    QUTMessage *qut = malloc(sizeof(QUTMessage));
+    qut->PLID = malloc(7 * sizeof(char));
+    if (qut == NULL || qut->PLID == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    return qut;
+}
+
 // other parsers should return NULL if args is *not* NULL

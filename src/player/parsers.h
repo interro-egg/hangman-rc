@@ -6,5 +6,6 @@
 void *parseSNGArgs(char *args);
 void *parsePLGArgs(char *args);
 void *parsePWGArgs(char *args);
+void *parseQUTArgs(char *args);
 
 #endif // PARSERS_H
