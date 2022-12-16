@@ -17,8 +17,8 @@ int main(int argc, char *argv[]) {
     char inBuf[IN_BUFFER_SIZE] = {0};
     char outBuf[OUT_BUFFER_SIZE] = {0};
 
-    PlayerState state = {host,   port,  NULL, NULL, NULL, 0, inBuf,
-                         outBuf, false, NULL, NULL, 0,    0, false};
+    PlayerState state = {host,   port, NULL,  NULL, NULL, -1, -1, inBuf,
+                         outBuf, NULL, false, NULL, NULL, 0,  0,  false};
 
     int result;
     if ((result = initNetwork(&state)) == NINIT_SUCCESS) {
@@ -27,8 +27,8 @@ int main(int argc, char *argv[]) {
     }
 
     while (!(state.shutdown) && printf(INPUT_PROMPT) >= 0 &&
-           (getline(&line, &bufSize, stdin) != -1)) {
-        size_t len = strlen(line);
+           (getline(&state.line, &bufSize, stdin) != -1)) {
+        size_t len = strlen(state.line);
         if (len <= 1) {
             continue;
         }
