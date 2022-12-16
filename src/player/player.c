@@ -12,14 +12,13 @@ int main(int argc, char *argv[]) {
 
     readOpts(argc, argv, &host, &port);
 
-    char *line = NULL;
     size_t bufSize;
     char cmd[MAX_COMMAND_NAME_SIZE] = {0};
     char inBuf[IN_BUFFER_SIZE] = {0};
     char outBuf[OUT_BUFFER_SIZE] = {0};
 
-    PlayerState state = {host,  port,   NULL,  NULL, NULL, -1, -1,
-                         inBuf, outBuf, false, NULL, NULL, 0,  0};
+    PlayerState state = {host,   port, NULL,  NULL, NULL, -1, -1, inBuf,
+                         outBuf, NULL, false, NULL, NULL, 0,  0};
 
     int result;
     if ((result = initNetwork(&state)) == NINIT_SUCCESS) {
@@ -28,20 +27,19 @@ int main(int argc, char *argv[]) {
     }
 
     while (printf(INPUT_PROMPT) >= 0 &&
-           (getline(&line, &bufSize, stdin) != -1)) {
-        size_t len = strlen(line);
+           (getline(&state.line, &bufSize, stdin) != -1)) {
+        size_t len = strlen(state.line);
         if (len <= 1) {
             continue;
         }
-        line[len - 1] = '\0'; // remove trailing newline
-        lowercase(line);      // playing is case insensitive
+        state.line[len - 1] = '\0'; // remove trailing newline
+        lowercase(state.line);      // playing is case insensitive
 
-        dispatch(line, cmd, &state);
+        dispatch(state.line, cmd, &state);
 
         putchar('\n');
     }
 
-    free(line);
     destroyStateComponents(&state);
 }
 

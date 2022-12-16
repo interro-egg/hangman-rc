@@ -17,6 +17,7 @@ void destroyStateComponents(PlayerState *state) {
     if (state->tcp_socket != -1) {
         close(state->tcp_socket);
     }
+    free(state->line);
     free(state->PLID);
     free(state->word);
 }

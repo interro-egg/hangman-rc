@@ -18,6 +18,7 @@ typedef struct {
 
     char *in_buffer;
     char *out_buffer;
+    char *line;
 
     bool in_game;
     char *PLID;
