@@ -394,3 +394,7 @@ void *deserializeRRVMessage(char *inBuffer) {
     }
     return msg;
 }
+
+const char *GSBMessageStatusStrings[] = {"OK", "EMPTY", NULL};
+const char *RHLMessageStatusStrings[] = {"OK", "NOK", NULL};
+const char *RSTMessageStatusStrings[] = {"ACT", "FIN", "NOK", NULL};

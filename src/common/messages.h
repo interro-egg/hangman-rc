@@ -139,4 +139,46 @@ void destroyRRVMessage(void *ptr);
 ssize_t serializeRRVMessage(void *ptr, char *outBuffer);
 void *deserializeRRVMessage(char *inBuffer);
 
+// Scoreboard
+
+typedef void GSBMessage;
+
+// Response: Scoreboard
+
+enum RSBMessageStatus { RSB_OK, RSB_EMPTY };
+extern const char *RSBMessageStatusStrings[];
+typedef struct RSBMessage {
+    enum RQTMessageStatus status;
+} RSBMessage;
+
+// Hint
+
+typedef struct GHLMessage {
+    char *PLID;
+} GHLMessage;
+
+// Response: Hint
+
+enum RHLMessageStatus { RHL_OK, RHL_NOK };
+extern const char *RHLMessageStatusStrings[];
+
+typedef struct RHLMessage {
+    enum RHLMessageStatus status;
+} RHLMessage;
+
+// State
+
+typedef struct GSTMessage {
+    char *PLID;
+} GSTMessage;
+
+// Response: State
+
+enum RSTMessageStatus { RST_ACT, RST_FIN, RST_NOK };
+extern const char *RSTMessageStatusStrings[];
+
+typedef struct RSTMessage {
+    enum RSTMessageStatus status;
+} RSTMessage;
+
 #endif // MESSAGES_H
