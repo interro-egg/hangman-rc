@@ -8,42 +8,42 @@
 #include <string.h>
 
 char *startCmdAliases[] = {"start", "sg"};
-const CommandDescriptor startCmd = {startCmdAliases,       2,
-                                    parseSNGArgs,          startPreHook,
-                                    serializeSNGMessage,   destroySNGMessage,
-                                    deserializeRSGMessage, destroyRSGMessage,
-                                    startCallback};
+const UDPCommandDescriptor startCmd = {startCmdAliases,       2,
+                                       parseSNGArgs,          startPreHook,
+                                       serializeSNGMessage,   destroySNGMessage,
+                                       deserializeRSGMessage, destroyRSGMessage,
+                                       startCallback};
 char *playCmdAliases[] = {"play", "pl"};
-const CommandDescriptor playCmd = {playCmdAliases,        2,
-                                   parsePLGArgs,          playPreHook,
-                                   serializePLGMessage,   destroyPLGMessage,
-                                   deserializeRLGMessage, destroyRLGMessage,
-                                   playCallback};
+const UDPCommandDescriptor playCmd = {playCmdAliases,        2,
+                                      parsePLGArgs,          playPreHook,
+                                      serializePLGMessage,   destroyPLGMessage,
+                                      deserializeRLGMessage, destroyRLGMessage,
+                                      playCallback};
 char *guessCmdAliases[] = {"guess", "gw"};
-const CommandDescriptor guessCmd = {guessCmdAliases,       2,
-                                    parsePWGArgs,          guessPreHook,
-                                    serializePWGMessage,   destroyPWGMessage,
-                                    deserializeRWGMessage, destroyRWGMessage,
-                                    guessCallback};
+const UDPCommandDescriptor guessCmd = {guessCmdAliases,       2,
+                                       parsePWGArgs,          guessPreHook,
+                                       serializePWGMessage,   destroyPWGMessage,
+                                       deserializeRWGMessage, destroyRWGMessage,
+                                       guessCallback};
 char *quitCmdAliases[] = {"quit"};
-const CommandDescriptor quitCmd = {quitCmdAliases,        1,
-                                   parseQUTArgs,          quitPreHook,
-                                   serializeQUTMessage,   destroyQUTMessage,
-                                   deserializeRQTMessage, destroyRQTMessage,
-                                   quitCallback};
+const UDPCommandDescriptor quitCmd = {quitCmdAliases,        1,
+                                      parseQUTArgs,          quitPreHook,
+                                      serializeQUTMessage,   destroyQUTMessage,
+                                      deserializeRQTMessage, destroyRQTMessage,
+                                      quitCallback};
 char *exitCmdAliases[] = {"exit"};
-const CommandDescriptor exitCmd = {exitCmdAliases,        1,
-                                   parseQUTArgs,          exitPreHook,
-                                   serializeQUTMessage,   destroyQUTMessage,
-                                   deserializeRQTMessage, destroyRQTMessage,
-                                   exitCallback};
+const UDPCommandDescriptor exitCmd = {exitCmdAliases,        1,
+                                      parseQUTArgs,          exitPreHook,
+                                      serializeQUTMessage,   destroyQUTMessage,
+                                      deserializeRQTMessage, destroyRQTMessage,
+                                      exitCallback};
 
-const CommandDescriptor COMMANDS[] = {startCmd, playCmd, guessCmd, quitCmd,
-                                      exitCmd};
-const size_t COMMANDS_COUNT = 5;
+const UDPCommandDescriptor UDP_COMMANDS[] = {startCmd, playCmd, guessCmd,
+                                             quitCmd, exitCmd};
+const size_t UDP_COMMANDS_COUNT = 5;
 
-int handleCommand(const CommandDescriptor *cmd, char *args,
-                  PlayerState *state) {
+int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
+                     PlayerState *state) {
     printf("Handling command %s\n", cmd->aliases[0]);
     void *parsed = cmd->argsParser(args);
     if (parsed == NULL) {
@@ -165,7 +165,7 @@ void playCallback(void *req, void *resp, PlayerState *state) {
     }
     displayWord(state->word);
     printf("\n");
-    printf("You have %u errors left.\n", state->remaining_errors);
+    printf("You can guess %u more wrong letters.\n", state->remaining_errors);
 }
 
 int guessPreHook(void *req, PlayerState *state) {
@@ -211,7 +211,7 @@ void guessCallback(UNUSED void *req, void *resp, PlayerState *state) {
     }
     displayWord(state->word);
     printf("\n");
-    printf("You have %u errors left.\n", state->remaining_errors);
+    printf("You can guess %u more wrong letters.\n", state->remaining_errors);
 }
 
 int quitPreHook(void *req, PlayerState *state) {

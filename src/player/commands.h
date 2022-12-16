@@ -15,29 +15,30 @@
 #define HANDLER_ECOMMS_TIMEO -6
 #define HANDLER_EDESERIALIZE -7
 
-typedef void *(*CommandParser)(char *args);
-typedef int (*CommandPreHook)(void *parsed, PlayerState *state);
-typedef ssize_t (*CommandSerializer)(void *ptr, char *outBuffer);
-typedef void *(*CommandDeserializer)(char *inBuffer);
-typedef void (*CommandDestroyer)(void *ptr);
-typedef void (*CommandCallback)(void *req, void *resp, PlayerState *state);
+typedef void *(*UDPCommandParser)(char *args);
+typedef int (*UDPCommandPreHook)(void *parsed, PlayerState *state);
+typedef ssize_t (*UDPCommandSerializer)(void *ptr, char *outBuffer);
+typedef void *(*UDPCommandDeserializer)(char *inBuffer);
+typedef void (*UDPCommandDestroyer)(void *ptr);
+typedef void (*UDPCommandCallback)(void *req, void *resp, PlayerState *state);
 
 typedef struct {
     char **aliases;
     size_t aliasesCount;
-    CommandParser argsParser;
-    CommandPreHook preHook;
-    CommandSerializer requestSerializer;
-    CommandDestroyer requestDestroyer;
-    CommandDeserializer responseDeserializer;
-    CommandDestroyer responseDestroyer;
-    CommandCallback callback;
-} CommandDescriptor;
+    UDPCommandParser argsParser;
+    UDPCommandPreHook preHook;
+    UDPCommandSerializer requestSerializer;
+    UDPCommandDestroyer requestDestroyer;
+    UDPCommandDeserializer responseDeserializer;
+    UDPCommandDestroyer responseDestroyer;
+    UDPCommandCallback callback;
+} UDPCommandDescriptor;
 
-extern const CommandDescriptor COMMANDS[];
-extern const size_t COMMANDS_COUNT;
+extern const UDPCommandDescriptor UDP_COMMANDS[];
+extern const size_t UDP_COMMANDS_COUNT;
 
-int handleCommand(const CommandDescriptor *cmd, char *args, PlayerState *state);
+int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
+                     PlayerState *state);
 
 int startPreHook(void *parsed, PlayerState *state);
 void startCallback(void *req, void *resp, PlayerState *state);

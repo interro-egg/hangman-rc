@@ -64,15 +64,15 @@ void readOpts(int argc, char *argv[], char **host, char **port) {
 }
 
 void dispatch(char *line, char *cmd, PlayerState *state) {
-    const CommandDescriptor *desc;
+    const UDPCommandDescriptor *desc;
 
     if (sscanf(line, MAX_COMMAND_NAME_SIZE_FMT, cmd) != 1) {
         printf(MSG_PARSE_ERROR);
-    } else if ((desc = getCommandDescriptor(cmd)) == NULL) {
+    } else if ((desc = getUDPCommandDescriptor(cmd)) == NULL) {
         printf(MSG_UNKNOWN_COMMAND);
     } else {
         int result;
-        if ((result = handleCommand(desc, findArgs(line, cmd), state)) !=
+        if ((result = handleUDPCommand(desc, findArgs(line, cmd), state)) !=
             HANDLER_SUCCESS) {
             fprintf(stderr, "%s", translateHandlerError(result));
 
@@ -83,11 +83,11 @@ void dispatch(char *line, char *cmd, PlayerState *state) {
     }
 }
 
-const CommandDescriptor *getCommandDescriptor(char *cmd) {
-    for (size_t i = 0; i < COMMANDS_COUNT; i++) {
-        for (size_t j = 0; j < COMMANDS[i].aliasesCount; j++) {
-            if (strcmp(cmd, COMMANDS[i].aliases[j]) == 0) {
-                return &COMMANDS[i];
+const UDPCommandDescriptor *getUDPCommandDescriptor(char *cmd) {
+    for (size_t i = 0; i < UDP_COMMANDS_COUNT; i++) {
+        for (size_t j = 0; j < UDP_COMMANDS[i].aliasesCount; j++) {
+            if (strcmp(cmd, UDP_COMMANDS[i].aliases[j]) == 0) {
+                return &UDP_COMMANDS[i];
             }
         }
     }
