@@ -51,14 +51,12 @@ int initNetwork(PlayerState *state) {
 
 // Sends a message and waits for the response
 int sendUDPMessage(PlayerState *state) {
-    for (int try = 0; try < UDP_MAX_TRIES; try++) {
-        if (sendto(state->udp_socket, state->out_buffer,
-                   strlen(state->out_buffer), 0, state->udp_addr->ai_addr,
-                   state->udp_addr->ai_addrlen) != -1 &&
-            recvfrom(state->udp_socket, state->in_buffer, IN_BUFFER_SIZE, 0,
-                     NULL, NULL) > 0) {
-            return 0;
-        }
+    if (sendto(state->udp_socket, state->out_buffer, strlen(state->out_buffer),
+               0, state->udp_addr->ai_addr,
+               state->udp_addr->ai_addrlen) != -1 &&
+        recvfrom(state->udp_socket, state->in_buffer, IN_BUFFER_SIZE, 0, NULL,
+                 NULL) > 0) {
+        return 0;
     }
 
     return -1;

@@ -15,7 +15,6 @@
 
 #define TIMEOUT_SECS 3
 #define TIMEOUT_MICROSECS 0
-#define UDP_MAX_TRIES 5
 
 #define NINIT_SUCCESS 0
 #define NINIT_ENOMEM -1
