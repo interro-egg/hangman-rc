@@ -229,7 +229,8 @@ void quitCallback(UNUSED void *req, void *resp, PlayerState *state) {
 
 int exitPreHook(void *req, PlayerState *state) {
     if (!state->in_game) {
-        exit(0); // FIXME: this is not a good way to do this
+        state->shutdown = true;
+        return -1;
     }
     QUTMessage *qut = (QUTMessage *)req;
     strncpy(qut->PLID, state->PLID, 6 + 1);
@@ -238,7 +239,7 @@ int exitPreHook(void *req, PlayerState *state) {
 
 void exitCallback(UNUSED void *req, UNUSED void *resp,
                   UNUSED PlayerState *state) {
-    exit(0); // FIXME: this is not a good way to do this
+    state->shutdown = true;
 }
 
 int revealPreHook(void *req, PlayerState *state) {

@@ -25,6 +25,8 @@ typedef struct {
     char *word;
     unsigned int remaining_errors;
     unsigned int trial;
+
+    bool shutdown;
 } PlayerState;
 
 void destroyStateComponents(PlayerState *state);
