@@ -24,6 +24,18 @@
 #define NINIT_ERCVTIMEO_UDP -5
 #define NINIT_ESNDTIMEO_UDP -6
 
+#define TCP_SND_ESOCKET -1
+#define TCP_SND_ERCVTIMEO -2
+#define TCP_SND_ESNDTIMEO -3
+#define TCP_SND_ECONNECT -4
+#define TCP_SND_EWRITE -5
+
+#define TCP_RCV_EINV -1
+#define TCP_RCV_EREAD -2
+#define TCP_RCV_EFOPEN -3
+#define TCP_RCV_EFTRANSF -4
+#define TCP_RCV_ENOMEM -5
+
 int initNetwork(PlayerState *state);
 
 int sendUDPMessage(PlayerState *state);

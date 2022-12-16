@@ -12,7 +12,8 @@
 #define HANDLER_EPARSE -3
 #define HANDLER_ESERIALIZE -4
 #define HANDLER_ECOMMS -5
-#define HANDLER_EDESERIALIZE -6
+#define HANDLER_ECOMMS_TIMEO -6
+#define HANDLER_EDESERIALIZE -7
 
 typedef void *(*CommandParser)(char *args);
 typedef ssize_t (*CommandSerializer)(void *ptr, char *outBuffer);

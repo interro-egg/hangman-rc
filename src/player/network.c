@@ -67,22 +67,31 @@ int sendUDPMessage(PlayerState *state) {
 int sendTCPMessage(PlayerState *state) {
     int fd = socket(AF_INET, SOCK_STREAM, 0); // TCP socket
     if (fd == -1) {
-        return -1;
+        return TCP_SND_ESOCKET;
+    }
+
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
+                   sizeof(state->timeout)) != 0) {
+        return TCP_SND_ERCVTIMEO;
+    }
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, state->timeout,
+                   sizeof(state->timeout)) != 0) {
+        return TCP_SND_ESNDTIMEO;
     }
 
     if (connect(fd, state->tcp_addr->ai_addr, state->tcp_addr->ai_addrlen) ==
         -1) {
         close(fd);
-        return -1;
+        return TCP_SND_ECONNECT;
     }
 
     size_t toWrite = strlen(state->out_buffer);
     size_t written = 0;
     while (written < toWrite) {
         ssize_t n = write(fd, state->out_buffer + written, toWrite - written);
-        if (n == -1) {
+        if (n <= 0) {
             close(fd);
-            return -1;
+            return TCP_SND_EWRITE;
         }
         written += (size_t)n;
     }
@@ -99,6 +108,7 @@ char *readFileTCP(int fd) {
     while (1) {
         ssize_t n = read(fd, fname + alreadyReadName, 1 * sizeof(char));
         if (n <= 0) {
+            errno = TCP_RCV_EREAD;
             return NULL;
         }
         alreadyReadName += (size_t)n;
@@ -106,6 +116,7 @@ char *readFileTCP(int fd) {
         if (fname[alreadyReadName - 1] == ' ') {
             break;
         } else if (alreadyReadName >= MAX_FNAME_LEN + 1) {
+            errno = TCP_RCV_EINV;
             return NULL;
         }
     }
@@ -115,6 +126,7 @@ char *readFileTCP(int fd) {
     while (1) {
         ssize_t n = read(fd, fsize + alreadyReadSize, 1 * sizeof(char));
         if (n <= 0) {
+            errno = TCP_RCV_EREAD;
             return NULL;
         }
         alreadyReadSize += (size_t)n;
@@ -123,6 +135,7 @@ char *readFileTCP(int fd) {
             break;
         } else if (!isdigit(fsize[alreadyReadSize - 1]) ||
                    alreadyReadSize >= MAX_FSIZE_LEN + 1) {
+            errno = TCP_RCV_EINV;
             return NULL;
         }
     }
@@ -132,12 +145,13 @@ char *readFileTCP(int fd) {
     errno = 0;
     size_t fsizeNum = (size_t)strtoul(fsize, &end, 10);
     if (errno != 0 || *end != '\0' || fsizeNum > MAX_FSIZE_NUM) {
+        errno = TCP_RCV_EINV;
         return NULL;
     }
 
     char *fnameAlloc = malloc(alreadyReadName * sizeof(char));
     if (fnameAlloc == NULL) {
-        errno = ENOMEM;
+        errno = TCP_RCV_ENOMEM;
         return NULL;
     }
 
@@ -146,6 +160,7 @@ char *readFileTCP(int fd) {
 
     int fileFd = open(fnameAlloc, O_WRONLY | O_CREAT | O_TRUNC);
     if (fileFd == -1) {
+        errno = TCP_RCV_EFOPEN;
         return NULL;
     }
 
@@ -156,6 +171,7 @@ char *readFileTCP(int fd) {
                                 remaining > n ? SPLICE_F_MORE : 0);
 
         if (result <= 0) {
+            errno = TCP_RCV_EFTRANSF;
             return NULL;
         }
 
@@ -169,6 +185,7 @@ char *readFileTCP(int fd) {
         // no need to check for error as we're already returning error;
         // this is a best-effort attempt
         free(fnameAlloc);
+        errno = TCP_RCV_EINV;
         return NULL;
     }
 

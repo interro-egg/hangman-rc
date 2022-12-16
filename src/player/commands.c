@@ -25,9 +25,11 @@ int handleCommand(const CommandDescriptor *cmd, char *args,
         cmd->requestDestroyer(parsed);
         return HANDLER_ESERIALIZE;
     }
+    errno = 0;
     if (sendUDPMessage(state) == -1) {
+        int r = errno == ETIMEDOUT ? HANDLER_ECOMMS_TIMEO : HANDLER_ECOMMS;
         cmd->requestDestroyer(parsed);
-        return HANDLER_ECOMMS;
+        return r;
     }
     void *deserialized = cmd->responseDeserializer(state->in_buffer);
     if (deserialized == NULL) {

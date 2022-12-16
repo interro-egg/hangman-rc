@@ -13,8 +13,8 @@
 
 #define MSG_NO_MEMORY "No memory available.\n"
 #define MSG_PARSE_ERROR                                                        \
-    "An error has occurred while parsing your command. Please make sure it "   \
-    "is correctly formatted.\n"
+    "An error has occurred while parsing your command. Please make sure your " \
+    "input is valid and is correctly formatted.\n"
 #define MSG_UNKNOWN_COMMAND "Unknown command.\n"
 
 // Network init error messages
@@ -32,8 +32,19 @@
 // Handler error messages
 #define MSG_HANDLER_EUNKNOWN                                                   \
     "An error has occurred while executing your command.\n"
-#define MSG_HANDLER_EPARSE MSG_PARSE_ERROR
 #define MSG_HANDLER_ENOMEM MSG_NO_MEMORY
+#define MSG_HANDLER_EPARSE MSG_PARSE_ERROR
+#define MSG_HANDLER_ESERIALIZE                                                 \
+    "An error has occurred while serializing your command.\n"
+#define MSG_HANDLER_ECOMMS                                                     \
+    "An error has occurred while communicating to the game server. Please "    \
+    "try again.\n"
+#define MSG_HANDLER_ECOMMS_TIMEO                                               \
+    "Connection timed out while communicating with the game server. Please "   \
+    "try again.\n"
+#define MSG_HANDLER_EDESERIALIZE                                               \
+    "An invalid response was received from the game server. Please try "       \
+    "again.\n"
 
 // TODO: check if order here matches order in .c
 void readOpts(int argc, char *argv[], char **host, char **port);

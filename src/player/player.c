@@ -126,10 +126,18 @@ char *translateNetworkInitError(int result) {
 
 char *translateHandlerError(int result) {
     switch (result) {
-    case HANDLER_EPARSE:
-        return MSG_HANDLER_EPARSE;
     case HANDLER_ENOMEM:
         return MSG_HANDLER_ENOMEM;
+    case HANDLER_EPARSE:
+        return MSG_HANDLER_EPARSE;
+    case HANDLER_ESERIALIZE:
+        return MSG_HANDLER_ESERIALIZE;
+    case HANDLER_ECOMMS:
+        return MSG_HANDLER_ECOMMS;
+    case HANDLER_ECOMMS_TIMEO:
+        return MSG_HANDLER_ECOMMS_TIMEO;
+    case HANDLER_EDESERIALIZE:
+        return MSG_HANDLER_EDESERIALIZE;
     default:
         return MSG_HANDLER_EUNKNOWN;
     }
