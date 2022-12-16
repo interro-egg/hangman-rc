@@ -82,12 +82,6 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
     return HANDLER_SUCCESS;
 }
 
-void displayWord(char *word) {
-    for (size_t i = 0; word[i] != '\0'; i++) {
-        printf("%s%c", i != 0 ? " " : "", word[i]);
-    }
-}
-
 int startPreHook(UNUSED void *req, PlayerState *state) {
     if (state->in_game) {
         printf("You are in a game already. Please finish the game before "
@@ -97,27 +91,24 @@ int startPreHook(UNUSED void *req, PlayerState *state) {
     return 0;
 }
 
-void startCallback(void *req, void *resp, UNUSED PlayerState *state) {
-    RSGMessage *rsg = (RSGMessage *)resp;
+void startCallback(void *req, void *resp, PlayerState *state) {
     SNGMessage *sng = (SNGMessage *)req;
+    RSGMessage *rsg = (RSGMessage *)resp;
     if (rsg->status == RSG_NOK) {
-        printf("Game could not be started. Please try again.");
+        printf("A game could not be started. A game might already be on-course "
+               "for this PLID.\n");
+        return;
+    } else if (rsg->status == RSG_ERR) {
+        printf("A game could not be started. You might have specified an "
+               "invalid PLID; please try again.\n");
         return;
     }
-    state->word = malloc(rsg->n_letters * sizeof(char) + 1);
-    for (size_t i = 0; i < rsg->n_letters; i++) {
-        state->word[i] = '_';
+    if (startGame(state, rsg->n_letters, rsg->max_errors, sng->PLID) == -1) {
+        printf("Failed to start game. Please try again.");
     }
-    state->word[rsg->n_letters] = '\0';
-    state->remaining_errors = rsg->remaining_errors;
-    state->in_game = true;
-    state->trial = 0;
-    state->PLID = malloc(7 * sizeof(char));
-    strcpy(state->PLID, sng->PLID);
     printf("New game started. Guess %u letter word: ", rsg->n_letters);
     displayWord(state->word);
-    printf("\n");
-    printf("You have %u guesses left.\n", state->remaining_errors);
+    printf("\nYou have %u wrong guesses left.\n", state->remaining_errors);
 }
 
 int playPreHook(void *req, PlayerState *state) {
@@ -135,27 +126,24 @@ void playCallback(void *req, void *resp, PlayerState *state) {
     PLGMessage *plg = (PLGMessage *)req;
     RLGMessage *rlg = (RLGMessage *)resp;
     if (rlg->status == RLG_OK) {
-        for (unsigned int i = 0; i < rlg->n; i++) {
-            state->word[rlg->pos[i] - 1] = plg->letter;
+        for (size_t i = 0; i < rlg->n; i++) {
+            state->word[rlg->pos[i] - 1] = toupper(plg->letter);
         }
         printf("Correct!\n");
     } else if (rlg->status == RLG_WIN) {
         printf("You won! Congratulations!\n");
-        state->in_game = false;
-        free(state->word);
-        state->word = NULL;
+        endGame(state);
         return;
     } else if (rlg->status == RLG_DUP) {
         printf("You have already guessed this letter. Please try again.\n");
         state->trial--;
     } else if (rlg->status == RLG_NOK) {
-        state->remaining_errors--;
         printf("Wrong letter. Please try again.\n");
+        state->remaining_errors--;
     } else if (rlg->status == RLG_OVR) {
-        printf("You have exceeded the maximum number of errors. You lost!\n");
-        state->in_game = false;
-        free(state->word);
-        state->word = NULL;
+        printf("Wrong letter. You have exceeded the maximum number of errors. "
+               "You lost!\n");
+        endGame(state);
         return;
     } else if (rlg->status == RLG_INV) {
         printf("An error occurred. Please try again.\n");
@@ -164,8 +152,7 @@ void playCallback(void *req, void *resp, PlayerState *state) {
         state->trial--;
     }
     displayWord(state->word);
-    printf("\n");
-    printf("You can guess %u more wrong letters.\n", state->remaining_errors);
+    printf("\nYou have %u wrong guesses left.\n", state->remaining_errors);
 }
 
 int guessPreHook(void *req, PlayerState *state) {
@@ -186,22 +173,18 @@ void guessCallback(UNUSED void *req, void *resp, PlayerState *state) {
         strcpy(state->word, pwg->word);
         displayWord(state->word);
         printf("\nYou won! Congratulations!\n");
-        state->in_game = false;
-        free(state->word);
-        state->word = NULL;
+        endGame(state);
         return;
     } else if (rwg->status == RWG_DUP) {
         printf("You have already guessed this word. Please try again.\n");
         state->trial--;
     } else if (rwg->status == RWG_NOK) {
-        state->remaining_errors--;
         printf("Wrong word. Please try again.\n");
+        state->remaining_errors--;
     } else if (rwg->status == RWG_OVR) {
         printf("Wrong word. You have exceeded the maximum number of errors. "
                "You lost!\n");
-        state->in_game = false;
-        free(state->word);
-        state->word = NULL;
+        endGame(state);
         return;
     } else if (rwg->status == RWG_INV) {
         printf("An error occurred. Please try again.\n");
@@ -211,7 +194,7 @@ void guessCallback(UNUSED void *req, void *resp, PlayerState *state) {
     }
     displayWord(state->word);
     printf("\n");
-    printf("You can guess %u more wrong letters.\n", state->remaining_errors);
+    printf("\nYou have %u wrong guesses left.\n", state->remaining_errors);
 }
 
 int quitPreHook(void *req, PlayerState *state) {
@@ -228,9 +211,9 @@ void quitCallback(UNUSED void *req, void *resp, PlayerState *state) {
     RQTMessage *rqt = (RQTMessage *)resp;
     if (rqt->status == RQT_OK) {
         printf("You have quit the game. Please start a new one.\n");
-        state->in_game = false;
-        free(state->word);
-        state->word = NULL;
+        endGame(state);
+    } else if (rqt->status == RQT_NOK) {
+        printf("You do not have a game to quit. Please start a new one.\n");
     } else if (rqt->status == RQT_ERR) {
         printf("An error occurred. Please try again.\n");
     }
@@ -241,7 +224,7 @@ int exitPreHook(void *req, PlayerState *state) {
         exit(0); // FIXME: this is not a good way to do this
     }
     QUTMessage *qut = (QUTMessage *)req;
-    strcpy(qut->PLID, state->PLID);
+    strncpy(qut->PLID, state->PLID, 6 + 1);
     return 0;
 }
 

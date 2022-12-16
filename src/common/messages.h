@@ -15,13 +15,13 @@ void *deserializeSNGMessage(char *inBuffer);
 
 // Response: Start Game
 
-enum RSGMessageStatus { RSG_OK, RSG_NOK };
+enum RSGMessageStatus { RSG_OK, RSG_NOK, RSG_ERR };
 extern const char *RSGMessageStatusStrings[];
 
 typedef struct RSGMessage {
     enum RSGMessageStatus status;
     unsigned int n_letters;
-    unsigned int remaining_errors;
+    unsigned int max_errors;
 } RSGMessage;
 
 void destroyRSGMessage(void *ptr);
@@ -102,7 +102,7 @@ void *deserializeQUTMessage(char *inBuffer);
 
 // Response: Quit
 
-enum RQTMessageStatus { RQT_OK, RQT_ERR };
+enum RQTMessageStatus { RQT_OK, RQT_NOK, RQT_ERR };
 extern const char *RQTMessageStatusStrings[];
 
 typedef struct RQTMessage {

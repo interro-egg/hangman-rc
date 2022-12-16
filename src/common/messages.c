@@ -29,7 +29,7 @@ void *deserializeSNGMessage(char *inBuffer) {
     return msg;
 }
 
-const char *RSGMessageStatusStrings[] = {"OK", "NOK", NULL};
+const char *RSGMessageStatusStrings[] = {"OK", "NOK", "ERR", NULL};
 
 void destroyRSGMessage(void *ptr) {
     RSGMessage *msg = (RSGMessage *)ptr;
@@ -43,7 +43,7 @@ ssize_t serializeRSGMessage(void *ptr, char *outBuffer) {
                        RSGMessageStatusStrings[msg->status]);
     return sprintf(outBuffer, "RSG %s %u %u\n",
                    RSGMessageStatusStrings[msg->status], msg->n_letters,
-                   msg->remaining_errors);
+                   msg->max_errors);
 }
 
 void *deserializeRSGMessage(char *inBuffer) {
@@ -67,7 +67,7 @@ void *deserializeRSGMessage(char *inBuffer) {
     free(statusStr);
     if (msg->status == RSG_OK) {
         if (sscanf(inBuffer, "RSG %*s %2u %1u", &msg->n_letters,
-                   &msg->remaining_errors) != 2) {
+                   &msg->max_errors) != 2) {
             destroyRSGMessage(msg);
             return NULL;
         }
@@ -294,7 +294,7 @@ void *deserializeQUTMessage(char *inBuffer) {
     return msg;
 }
 
-const char *RQTMessageStatusStrings[] = {"OK", "ERR", NULL};
+const char *RQTMessageStatusStrings[] = {"OK", "NOK", "ERR", NULL};
 
 void destroyRQTMessage(void *ptr) {
     RQTMessage *msg = (RQTMessage *)ptr;
