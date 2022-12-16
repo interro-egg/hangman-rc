@@ -21,7 +21,7 @@ typedef struct {
     bool in_game;
     char *PLID;
     char *word;
-    unsigned int max_errors;
+    unsigned int remaining_errors;
     unsigned int trial;
 } PlayerState;
 

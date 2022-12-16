@@ -16,15 +16,17 @@
 #define HANDLER_EDESERIALIZE -7
 
 typedef void *(*CommandParser)(char *args);
+typedef int (*CommandPreHook)(void *parsed, PlayerState *state);
 typedef ssize_t (*CommandSerializer)(void *ptr, char *outBuffer);
 typedef void *(*CommandDeserializer)(char *inBuffer);
 typedef void (*CommandDestroyer)(void *ptr);
-typedef int (*CommandCallback)(void *req, void *resp, PlayerState *state);
+typedef void (*CommandCallback)(void *req, void *resp, PlayerState *state);
 
 typedef struct {
     char **aliases;
     size_t aliasesCount;
     CommandParser argsParser;
+    CommandPreHook preHook;
     CommandSerializer requestSerializer;
     CommandDestroyer requestDestroyer;
     CommandDeserializer responseDeserializer;
@@ -37,14 +39,19 @@ extern const size_t COMMANDS_COUNT;
 
 int handleCommand(const CommandDescriptor *cmd, char *args, PlayerState *state);
 
-int startCallback(void *req, void *resp, PlayerState *state);
-int playCallback(void *req, void *resp, PlayerState *state);
-int guessCallback(void *req, void *resp, PlayerState *state);
-int revealCallback(void *req, void *resp, PlayerState *state);
-int scoreboardCallback(void *req, void *resp, PlayerState *state);
-int hintCallback(void *req, void *resp, PlayerState *state);
-int stateCallback(void *req, void *resp, PlayerState *state);
-int quitCallback(void *req, void *resp, PlayerState *state);
-int exitCallback(void *req, void *resp, PlayerState *state);
+int startPreHook(void *parsed, PlayerState *state);
+void startCallback(void *req, void *resp, PlayerState *state);
+int playPreHook(void *parsed, PlayerState *state);
+void playCallback(void *req, void *resp, PlayerState *state);
+int guessPreHook(void *parsed, PlayerState *state);
+void guessCallback(void *req, void *resp, PlayerState *state);
+void revealCallback(void *req, void *resp, PlayerState *state);
+void scoreboardCallback(void *req, void *resp, PlayerState *state);
+void hintCallback(void *req, void *resp, PlayerState *state);
+void stateCallback(void *req, void *resp, PlayerState *state);
+int quitPreHook(void *parsed, PlayerState *state);
+void quitCallback(void *req, void *resp, PlayerState *state);
+int exitPreHook(void *parsed, PlayerState *state);
+void exitCallback(void *req, void *resp, PlayerState *state);
 
 #endif // COMMANDS_H

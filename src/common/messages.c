@@ -40,7 +40,7 @@ ssize_t serializeRSGMessage(void *ptr, char *outBuffer) {
     RSGMessage *msg = (RSGMessage *)ptr;
     return sprintf(outBuffer, "RSG %s %u %u\n",
                    RSGMessageStatusStrings[msg->status], msg->n_letters,
-                   msg->max_errors);
+                   msg->remaining_errors);
 }
 
 void *deserializeRSGMessage(char *inBuffer) {
@@ -64,7 +64,7 @@ void *deserializeRSGMessage(char *inBuffer) {
     free(statusStr);
 
     if (sscanf(inBuffer, "RSG %*s %2u %1u", &msg->n_letters,
-               &msg->max_errors) != 2) {
+               &msg->remaining_errors) != 2) {
         destroyRSGMessage(msg);
         return NULL;
     }

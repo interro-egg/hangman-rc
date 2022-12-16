@@ -21,7 +21,7 @@ extern const char *RSGMessageStatusStrings[];
 typedef struct RSGMessage {
     enum RSGMessageStatus status;
     unsigned int n_letters;
-    unsigned int max_errors;
+    unsigned int remaining_errors;
 } RSGMessage;
 
 void destroyRSGMessage(void *ptr);
