@@ -11,7 +11,7 @@ void lowercase(char *str) {
 }
 
 int parseEnum(const char *strings[], char *toParse) {
-    for (unsigned int i = 0; i < sizeof(&strings) / sizeof(char *); i++) {
+    for (unsigned int i = 0; strings[i] != NULL; i++) {
         if (strcmp(strings[i], toParse) == 0) {
             return (int)i;
         }

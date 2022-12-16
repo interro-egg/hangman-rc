@@ -29,7 +29,7 @@ void *deserializeSNGMessage(char *inBuffer) {
     return msg;
 }
 
-const char *RSGMessageStatusStrings[] = {"OK", "NOK"};
+const char *RSGMessageStatusStrings[] = {"OK", "NOK", NULL};
 
 void destroyRSGMessage(void *ptr) {
     RSGMessage *msg = (RSGMessage *)ptr;
@@ -100,7 +100,7 @@ void *deserializePLGMessage(char *inBuffer) {
 }
 
 const char *RLGMessageStatusStrings[] = {"OK",  "WIN", "DUP", "NOK",
-                                         "OVR", "INV", "ERR"};
+                                         "OVR", "INV", "ERR", NULL};
 
 void destroyRLGMessage(void *ptr) {
     RLGMessage *msg = (RLGMessage *)ptr;
@@ -208,7 +208,7 @@ void *deserializePWGMessage(char *inBuffer) {
     return msg;
 }
 
-const char *RWGMessageStatusStrings[] = {"WIN", "NOK", "OVR", "INV", "ERR"};
+const char *RWGMessageStatusStrings[] = {"WIN", "NOK", "OVR", "INV", "ERR", NULL};
 
 void destroyRWGMessage(void *ptr) {
     RWGMessage *msg = (RWGMessage *)ptr;
@@ -273,7 +273,7 @@ void *deserializeQUTMessage(char *inBuffer) {
     return msg;
 }
 
-const char *RQTMessageStatusStrings[] = {"OK", "ERR"};
+const char *RQTMessageStatusStrings[] = {"OK", "ERR", NULL};
 
 void destroyRQTMessage(void *ptr) {
     RQTMessage *msg = (RQTMessage *)ptr;
@@ -331,7 +331,7 @@ void *deserializeREVMessage(char *inBuffer) {
     return msg;
 }
 
-const char *RRVMessageStatusStrings[] = {"OK", "ERR"};
+const char *RRVMessageStatusStrings[] = {"OK", "ERR", NULL};
 
 void destroyRRVMessage(void *ptr) {
     RRVMessage *msg = (RRVMessage *)ptr;
