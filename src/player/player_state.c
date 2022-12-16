@@ -11,7 +11,12 @@ void destroyStateComponents(PlayerState *state) {
     freeaddrinfo(state->udp_addr);
     freeaddrinfo(state->tcp_addr);
     free(state->timeout);
-    close(state->udp_socket);
+    if (state->udp_socket != -1) {
+        close(state->udp_socket);
+    }
+    if (state->tcp_socket != -1) {
+        close(state->tcp_socket);
+    }
     free(state->PLID);
     free(state->word);
 }

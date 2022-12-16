@@ -174,7 +174,7 @@ int guessPreHook(void *req, PlayerState *state) {
     return 0;
 }
 
-void guessCallback(UNUSED void *req, void *resp, PlayerState *state) {
+void guessCallback(void *req, void *resp, PlayerState *state) {
     PWGMessage *pwg = (PWGMessage *)req;
     RWGMessage *rwg = (RWGMessage *)resp;
     if (rwg->status == RWG_WIN) {

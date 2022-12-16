@@ -18,8 +18,8 @@ int main(int argc, char *argv[]) {
     char inBuf[IN_BUFFER_SIZE] = {0};
     char outBuf[OUT_BUFFER_SIZE] = {0};
 
-    PlayerState state = {host,   port,  NULL, NULL, NULL, 0, inBuf,
-                         outBuf, false, NULL, NULL, 0,    0};
+    PlayerState state = {host,  port,   NULL,  NULL, NULL, -1, -1,
+                         inBuf, outBuf, false, NULL, NULL, 0,  0};
 
     int result;
     if ((result = initNetwork(&state)) == NINIT_SUCCESS) {

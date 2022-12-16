@@ -14,6 +14,7 @@ typedef struct {
     struct addrinfo *tcp_addr;
     struct timeval *timeout;
     int udp_socket;
+    int tcp_socket; // current, if any
 
     char *in_buffer;
     char *out_buffer;

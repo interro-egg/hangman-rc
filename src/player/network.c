@@ -69,6 +69,7 @@ int sendTCPMessage(PlayerState *state) {
     if (fd == -1) {
         return TCP_SND_ESOCKET;
     }
+    state->tcp_socket = fd;
 
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
                    sizeof(state->timeout)) != 0) {
