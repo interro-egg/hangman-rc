@@ -38,6 +38,8 @@ void destroyRSGMessage(void *ptr) {
 
 ssize_t serializeRSGMessage(void *ptr, char *outBuffer) {
     RSGMessage *msg = (RSGMessage *)ptr;
+    if (msg->status == RSG_NOK)
+        return sprintf(outBuffer, "RSG %s", RSGMessageStatusStrings[msg->status]);
     return sprintf(outBuffer, "RSG %s %u %u\n",
                    RSGMessageStatusStrings[msg->status], msg->n_letters,
                    msg->remaining_errors);
@@ -62,11 +64,12 @@ void *deserializeRSGMessage(char *inBuffer) {
     }
     msg->status = status;
     free(statusStr);
-
-    if (sscanf(inBuffer, "RSG %*s %2u %1u", &msg->n_letters,
-               &msg->remaining_errors) != 2) {
-        destroyRSGMessage(msg);
-        return NULL;
+    if (msg->status == RSG_OK) {
+        if (sscanf(inBuffer, "RSG %*s %2u %1u", &msg->n_letters,
+                   &msg->remaining_errors) != 2) {
+            destroyRSGMessage(msg);
+            return NULL;
+        }
     }
     return msg;
 }
@@ -104,7 +107,7 @@ const char *RLGMessageStatusStrings[] = {"OK",  "WIN", "DUP", "NOK",
 
 void destroyRLGMessage(void *ptr) {
     RLGMessage *msg = (RLGMessage *)ptr;
-    if (msg != NULL)
+    if (msg != NULL && msg->pos != NULL)
         free(msg->pos);
     free(msg);
 }
@@ -115,21 +118,28 @@ ssize_t serializeRLGMessage(void *ptr, char *outBuffer) {
     char *cur = posBuf;
     if (posBuf == NULL)
         return -1;
+    if (msg->status == RLG_OK) {
+        for (unsigned int i = 0; i < msg->n; i++) {
+            int r = sprintf(cur, " %u", msg->pos[i]);
+            if (r < 0) {
+                free(posBuf);
+                return -1;
+            }
+            cur += r;
+        }
 
-    for (unsigned int i = 0; i < msg->n; i++) {
-        int r = sprintf(cur, " %u", msg->pos[i]);
-        if (r < 0) {
+        if (sprintf(outBuffer, "RLG %s %u %u %s",
+                    RLGMessageStatusStrings[msg->status], msg->trial, msg->n,
+                    posBuf) < 0) {
             free(posBuf);
             return -1;
         }
-        cur += r;
-    }
-
-    if (sprintf(outBuffer, "RLG %s %u %u %s",
-                RLGMessageStatusStrings[msg->status], msg->trial, msg->n,
-                posBuf) < 0) {
-        free(posBuf);
-        return -1;
+    } else {
+        if (sprintf(outBuffer, "RLG %s %u",
+                    RLGMessageStatusStrings[msg->status], msg->trial) < 0) {
+            free(posBuf);
+            return -1;
+        }
     }
     return 0;
 }
@@ -153,25 +163,33 @@ void *deserializeRLGMessage(char *inBuffer) {
     }
     msg->status = status;
     free(statusStr);
-    if (sscanf(inBuffer, "RLG %*s %2u %2u", &msg->trial, &msg->n) != 2) {
-        destroyRLGMessage(msg);
-        return NULL;
-    }
-    msg->pos = malloc(msg->n * sizeof(unsigned int));
-    if (msg->pos == NULL) {
-        destroyRLGMessage(msg);
-        return NULL;
-    }
-
-    char *cur = strtok(inBuffer, " ");
-    for (unsigned int i = 0; cur != NULL; i++) {
-        if (i > 1) {
-            if (sscanf(cur, "%2u", &msg->pos[i - 2]) != 1) {
-                destroyRLGMessage(msg);
-                return NULL;
-            }
+    msg->pos = NULL;
+    if (msg->status == RLG_OK) {
+        if (sscanf(inBuffer, "RLG %*s %2u %2u", &msg->trial, &msg->n) != 2) {
+            destroyRLGMessage(msg);
+            return NULL;
         }
-        cur = strtok(NULL, " ");
+        msg->pos = malloc(msg->n * sizeof(unsigned int));
+        if (msg->pos == NULL) {
+            destroyRLGMessage(msg);
+            return NULL;
+        }
+
+        char *cur = strtok(inBuffer, " ");
+        for (unsigned int i = 0; cur != NULL; i++) {
+            if (i > 3) {
+                if (sscanf(cur, "%2u", &msg->pos[i - 4]) != 1) {
+                    destroyRLGMessage(msg);
+                    return NULL;
+                }
+            }
+            cur = strtok(NULL, " ");
+        }
+    } else {
+        if (sscanf(inBuffer, "RLG %*s %2u", &msg->trial) != 1) {
+            destroyRLGMessage(msg);
+            return NULL;
+        }
     }
 
     return msg;
