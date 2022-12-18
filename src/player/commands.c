@@ -334,6 +334,13 @@ int guessPreHook(void *req, PlayerState *state) {
         return -1;
     }
     PWGMessage *pwg = (PWGMessage *)req;
+    size_t len = strlen(state->word);
+    if (strlen(pwg->word) != len) {
+        printf(
+            "The specified word is invalid: the target word has %ld letters.\n",
+            len);
+        return -1;
+    }
     strncpy(pwg->PLID, state->PLID, 6 + 1);
     pwg->trial = ++state->trial;
     return 0;
