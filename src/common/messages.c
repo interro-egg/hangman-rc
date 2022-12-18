@@ -363,7 +363,7 @@ void destroyRRVMessage(void *ptr) {
 
 ssize_t serializeRRVMessage(void *ptr, char *outBuffer) {
     RRVMessage *msg = (RRVMessage *)ptr;
-    return sprintf(outBuffer, "RRV %s",
+    return sprintf(outBuffer, "RRV %s\n",
                    msg->type == RRV_STATUS
                        ? RRVMessageStatusStrings[msg->status]
                        : msg->word);
@@ -391,6 +391,75 @@ void *deserializeRRVMessage(char *inBuffer) {
             destroyRRVMessage(msg);
             return NULL;
         }
+    }
+    return msg;
+}
+
+void destroyGSBMessage(void *ptr) { free(ptr); }
+
+ssize_t serializeGSBMessage(UNUSED void *ptr, char *outBuffer) {
+    return sprintf(outBuffer, "GSB\n");
+}
+
+void *deserializeGSBMessage(char *inBuffer) {
+    GSBMessage *msg = malloc(sizeof(GSBMessage));
+    if (msg == NULL || strcmp(inBuffer, "GSB\n") != 0) {
+        destroyGSBMessage(msg);
+        return NULL;
+    }
+    return msg;
+}
+
+void destroyGHLMessage(void *ptr) {
+    GHLMessage *msg = (GHLMessage *)ptr;
+    if (msg != NULL) {
+        free(msg->PLID);
+    }
+    free(msg);
+}
+
+ssize_t serializeGHLMessage(void *ptr, char *outBuffer) {
+    GHLMessage *msg = (GHLMessage *)ptr;
+    return sprintf(outBuffer, "GHL %6s\n", msg->PLID);
+}
+
+void *deserializeGHLMessage(char *inBuffer) {
+    GHLMessage *msg = malloc(sizeof(GHLMessage));
+    msg->PLID = malloc(7 * sizeof(char));
+    if (msg == NULL || msg->PLID == NULL) {
+        destroyGHLMessage(msg);
+        return NULL;
+    }
+    if (sscanf(inBuffer, "GHL %6s", msg->PLID) != 1) {
+        destroyGHLMessage(msg);
+        return NULL;
+    }
+    return msg;
+}
+
+void destroySTAMessage(void *ptr) {
+    STAMessage *msg = (STAMessage *)ptr;
+    if (msg != NULL) {
+        free(msg->PLID);
+    }
+    free(msg);
+}
+
+ssize_t serializeSTAMessage(void *ptr, char *outBuffer) {
+    STAMessage *msg = (STAMessage *)ptr;
+    return sprintf(outBuffer, "STA %6s\n", msg->PLID);
+}
+
+void *deserializeSTAMessage(char *inBuffer) {
+    STAMessage *msg = malloc(sizeof(STAMessage));
+    msg->PLID = malloc(7 * sizeof(char));
+    if (msg == NULL || msg->PLID == NULL) {
+        destroySTAMessage(msg);
+        return NULL;
+    }
+    if (sscanf(inBuffer, "STA %6s", msg->PLID) != 1) {
+        destroySTAMessage(msg);
+        return NULL;
     }
     return msg;
 }

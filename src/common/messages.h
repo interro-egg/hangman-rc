@@ -144,6 +144,10 @@ void *deserializeRRVMessage(char *inBuffer);
 
 typedef void GSBMessage;
 
+void destroyGSBMessage(void *ptr);
+ssize_t serializeGSBMessage(void *ptr, char *outBuffer);
+void *deserializeGSBMessage(char *inBuffer);
+
 // Response: Scoreboard
 
 enum RSBMessageStatus { RSB_OK, RSB_EMPTY };
@@ -160,6 +164,10 @@ typedef struct GHLMessage {
     char *PLID;
 } GHLMessage;
 
+void destroyGHLMessage(void *ptr);
+ssize_t serializeGHLMessage(void *ptr, char *outBuffer);
+void *deserializeGHLMessage(char *inBuffer);
+
 // Response: Hint
 
 enum RHLMessageStatus { RHL_OK, RHL_NOK };
@@ -175,6 +183,10 @@ typedef struct RHLMessage {
 typedef struct STAMessage {
     char *PLID;
 } STAMessage;
+
+void destroySTAMessage(void *ptr);
+ssize_t serializeSTAMessage(void *ptr, char *outBuffer);
+void *deserializeSTAMessage(char *inBuffer);
 
 // Response: State
 
