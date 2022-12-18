@@ -112,3 +112,37 @@ void *parseREVArgs(char *args) {
     }
     return rev;
 }
+
+void *parseGSBArgs(char *args) {
+    if (args != NULL) {
+        return NULL;
+    }
+    GSBMessage *gsb = malloc(sizeof(GSBMessage));
+    return gsb;
+}
+
+void *parseGHLArgs(char *args) {
+    if (args != NULL) {
+        return NULL;
+    }
+    GHLMessage *ghl = malloc(sizeof(GHLMessage));
+    ghl->PLID = malloc(7 * sizeof(char));
+    if (ghl == NULL || ghl->PLID == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    return ghl;
+}
+
+void *parseSTAArgs(char *args) {
+    if (args != NULL) {
+        return NULL;
+    }
+    STAMessage *sta = malloc(sizeof(STAMessage));
+    sta->PLID = malloc(7 * sizeof(char));
+    if (sta == NULL || sta->PLID == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    return sta;
+}

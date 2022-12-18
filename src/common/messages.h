@@ -172,9 +172,9 @@ typedef struct RHLMessage {
 
 // State
 
-typedef struct GSTMessage {
+typedef struct STAMessage {
     char *PLID;
-} GSTMessage;
+} STAMessage;
 
 // Response: State
 

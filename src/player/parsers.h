@@ -9,4 +9,8 @@ void *parsePWGArgs(char *args);
 void *parseQUTArgs(char *args);
 void *parseREVArgs(char *args);
 
+void *parseGSBArgs(char *args);
+void *parseGHLArgs(char *args);
+void *parseSTAArgs(char *args);
+
 #endif // PARSERS_H

@@ -13,8 +13,8 @@
 
 #define MSG_NO_MEMORY "No memory available.\n"
 #define MSG_PARSE_ERROR                                                        \
-    "An error has occurred while parsing your command. Please make sure your " \
-    "input is valid and is correctly formatted.\n"
+    "Could not parse your command: please make sure your input is valid and "  \
+    "correctly formatted.\n"
 #define MSG_UNKNOWN_COMMAND "Unknown command.\n"
 
 // Network init error messages
