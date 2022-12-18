@@ -81,6 +81,7 @@ void revealCallback(void *req, void *resp, PlayerState *state);
 
 void scoreboardCallback(void *req, int status, ReceivedFile *file,
                         PlayerState *state);
+int hintPreHook(void *parsed, PlayerState *state);
 void hintCallback(void *req, int status, ReceivedFile *file,
                   PlayerState *state);
 void stateCallback(void *req, int status, ReceivedFile *file,

@@ -65,8 +65,21 @@ const TCPCommandDescriptor scoreboardCmd = {scoreboardCmdAliases,
                                             RSBMessageFileReceiveStatuses,
                                             scoreboardCallback};
 
-const TCPCommandDescriptor TCP_COMMANDS[] = {scoreboardCmd};
-const size_t TCP_COMMANDS_COUNT = 1;
+char *hintCmdAliases[] = {"hint", "h"};
+const TCPCommandDescriptor hintCmd = {hintCmdAliases,
+                                      2,
+                                      parseGHLArgs,
+                                      hintPreHook,
+                                      serializeGHLMessage,
+                                      destroyGHLMessage,
+                                      "RHL",
+                                      RHLMessageStatusStrings,
+                                      3,
+                                      RHLMessageFileReceiveStatuses,
+                                      hintCallback};
+
+const TCPCommandDescriptor TCP_COMMANDS[] = {scoreboardCmd, hintCmd};
+const size_t TCP_COMMANDS_COUNT = 2;
 
 int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
                      PlayerState *state) {
@@ -431,13 +444,38 @@ void scoreboardCallback(UNUSED void *req, int status, ReceivedFile *file,
             };
             fclose(f);
         }
-        printf("\nA copy of this scoreboard has been saved at %s.\n",
-               file->fname);
+        printf("\nA copy of this scoreboard has been saved at %s (%ld B).\n",
+               file->fname, file->fsize);
         return;
     case RSB_EMPTY:
     default:
         printf("The scoreboard is currently empty (no game was yet won by any "
                "player).\n");
+    }
+}
+
+int hintPreHook(void *req, PlayerState *state) {
+    if (!state->in_game) {
+        printf("You are not in a game. Please start a new one.\n");
+        return -1;
+    }
+    GHLMessage *ghl = (GHLMessage *)req;
+    strncpy(ghl->PLID, state->PLID, 6 + 1);
+    return 0;
+}
+
+void hintCallback(UNUSED void *req, int status, ReceivedFile *file,
+                  UNUSED PlayerState *state) {
+    switch (status) {
+    case RHL_OK:
+        printf("A hint image illustrating the class to which the word belongs "
+               "has been saved at %s (%ld B).\n",
+               file->fname, file->fsize);
+        break;
+    case RHL_NOK:
+    default:
+        printf("A problem has occurred or there is no hint image available for "
+               "this word.\n");
     }
 }
 
