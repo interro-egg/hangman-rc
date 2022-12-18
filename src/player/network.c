@@ -196,9 +196,7 @@ char *readFileTCP(int fd) {
 
     fclose(fileFd);
 
-    char last;
-    ssize_t n = read(fd, &last, 1 * sizeof(char));
-    if (n <= 0 || last != '\n') {
+    if (checkEndOfStream(fd) != 0) {
         unlink(fnameAlloc);
         // no need to check for error as we're already returning error;
         // this is a best-effort attempt
@@ -206,6 +204,14 @@ char *readFileTCP(int fd) {
         errno = TCP_RCV_EINV;
         return NULL;
     }
-
     return fnameAlloc;
+}
+
+int checkEndOfStream(int fd) {
+    char buf[1];
+    ssize_t n = read(fd, buf, 1 * sizeof(char));
+    if (n <= 0 || buf[0] != '\n') {
+        return -1;
+    }
+    return 0;
 }
