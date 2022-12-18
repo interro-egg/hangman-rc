@@ -222,7 +222,14 @@ void playCallback(void *req, void *resp, PlayerState *state) {
         }
         printf("Correct!\n");
     } else if (rlg->status == RLG_WIN) {
-        printf("You won! Congratulations!\n");
+        for (size_t i = 0; i < strlen(state->word); i++) {
+            if (state->word[i] == '_') {
+                state->word[i] = (char)toupper(plg->letter);
+            }
+        }
+        printf("Correct!\n");
+        displayWord(state->word);
+        printf("\nYou won! Congratulations!\n");
         endGame(state);
         return;
     } else if (rlg->status == RLG_DUP) {
@@ -262,6 +269,9 @@ void guessCallback(void *req, void *resp, PlayerState *state) {
     RWGMessage *rwg = (RWGMessage *)resp;
     if (rwg->status == RWG_WIN) {
         strncpy(state->word, pwg->word, strlen(state->word) + 1);
+        for (size_t i = 0; i < strlen(state->word); i++) {
+            state->word[i] = (char)toupper(state->word[i]);
+        }
         displayWord(state->word);
         printf("\nYou won! Congratulations!\n");
         endGame(state);
