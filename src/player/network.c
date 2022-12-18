@@ -71,14 +71,16 @@ int sendTCPMessage(PlayerState *state) {
     }
     state->tcp_socket = fd;
 
-    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
-                   sizeof(state->timeout)) != 0) {
-        return TCP_SND_ERCVTIMEO;
-    }
-    if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, state->timeout,
-                   sizeof(state->timeout)) != 0) {
-        return TCP_SND_ESNDTIMEO;
-    }
+    // FIXME: not working, error EINVAL (see manpage)
+    // if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
+    //                sizeof(state->timeout)) != 0) {
+    //     printf(">>>> %d\n", errno);
+    //     return TCP_SND_ERCVTIMEO;
+    // }
+    // if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, state->timeout,
+    //                sizeof(state->timeout)) != 0) {
+    //     return TCP_SND_ESNDTIMEO;
+    // }
 
     if (connect(fd, state->tcp_addr->ai_addr, state->tcp_addr->ai_addrlen) ==
         -1) {
@@ -127,6 +129,7 @@ ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits) {
 char *readFileTCP(int fd) {
     char fname[MAX_FNAME_LEN + 1];
     char fsize[MAX_FSIZE_LEN + 1];
+    char transfBuf[FILE_TRANSFER_BLOCK_SIZE];
 
     ssize_t r = readWordTCP(fd, fname, MAX_FNAME_LEN, false);
     if (r <= 0) {
@@ -156,25 +159,44 @@ char *readFileTCP(int fd) {
     }
     strncpy(fnameAlloc, fname, fnameLen + 1);
 
-    int fileFd = open(fnameAlloc, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (fileFd == -1) {
+    FILE *fileFd = fopen(fnameAlloc, "w");
+    if (fileFd == NULL) {
         errno = TCP_RCV_EFOPEN;
         return NULL;
     }
 
     size_t remaining = fsizeNum;
     while (remaining > 0) {
-        size_t n = MIN(FILE_TRANSFER_BLOCK_SIZE, remaining);
-        ssize_t result = splice(fd, NULL, fileFd, NULL, n,
-                                remaining > n ? SPLICE_F_MORE : 0);
+        size_t amt = MIN(FILE_TRANSFER_BLOCK_SIZE, remaining);
 
-        if (result <= 0) {
-            errno = TCP_RCV_EFTRANSF;
-            return NULL;
+        size_t already_read = 0;
+        while (already_read < amt) {
+            ssize_t result = read(fd, transfBuf, amt - already_read);
+            if (result <= 0) {
+                free(fnameAlloc);
+                fclose(fileFd);
+                errno = TCP_RCV_EFTRANSF;
+                return NULL;
+            }
+            already_read += (size_t)result;
         }
 
-        remaining -= (size_t)result;
+        size_t already_written = 0;
+        while (already_written < already_read) {
+            size_t result = fwrite(transfBuf, amt, 1, fileFd);
+            if (result == 0) {
+                free(fnameAlloc);
+                fclose(fileFd);
+                errno = TCP_RCV_EFTRANSF;
+                return NULL;
+            }
+            already_written += result;
+        }
+
+        remaining -= already_written;
     }
+
+    fclose(fileFd);
 
     char last;
     ssize_t n = read(fd, &last, 1 * sizeof(char));

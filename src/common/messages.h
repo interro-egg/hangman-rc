@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#define MESSAGE_COMMAND_SIZE 3
+
 // Start New Game
 
 typedef struct SNGMessage {

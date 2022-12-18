@@ -2,11 +2,13 @@
 #include "../common/messages.h"
 #include "network.h"
 #include "parsers.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 char *startCmdAliases[] = {"start", "sg"};
 const UDPCommandDescriptor startCmd = {startCmdAliases,       2,
@@ -51,8 +53,21 @@ const UDPCommandDescriptor UDP_COMMANDS[] = {startCmd, playCmd, guessCmd,
                                              quitCmd,  exitCmd, revealCmd};
 const size_t UDP_COMMANDS_COUNT = 6;
 
-const TCPCommandDescriptor TCP_COMMANDS[] = {};
-const size_t TCP_COMMANDS_COUNT = 0;
+char *scoreboardCmdAliases[] = {"scoreboard", "sb"};
+const TCPCommandDescriptor scoreboardCmd = {scoreboardCmdAliases,
+                                            2,
+                                            parseGSBArgs,
+                                            NULL,
+                                            serializeGSBMessage,
+                                            destroyGSBMessage,
+                                            "RSB",
+                                            RSBMessageStatusStrings,
+                                            5,
+                                            RSBMessageFileReceiveStatuses,
+                                            scoreboardCallback};
+
+const TCPCommandDescriptor TCP_COMMANDS[] = {scoreboardCmd};
+const size_t TCP_COMMANDS_COUNT = 1;
 
 int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
                      PlayerState *state) {
@@ -115,7 +130,18 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
         return HANDLER_ECOMMS_TCP;
     }
 
-    ssize_t r = readWordTCP(fd, state->in_buffer, cmd->maxStatusEnumLen, false);
+    ssize_t r = readWordTCP(fd, state->in_buffer, MESSAGE_COMMAND_SIZE, false);
+    if (r <= 0) {
+        errno = (int)r;
+        cmd->requestDestroyer(parsed);
+        return HANDLER_ECOMMS_TCP;
+    }
+    if (strcmp(state->in_buffer, cmd->expectedResponse) != 0) {
+        cmd->requestDestroyer(parsed);
+        return HANDLER_EDESERIALIZE;
+    }
+
+    r = readWordTCP(fd, state->in_buffer, cmd->maxStatusEnumLen, false);
     if (r <= 0) {
         errno = (int)r;
         cmd->requestDestroyer(parsed);
@@ -321,6 +347,27 @@ void revealCallback(UNUSED void *req, void *resp, UNUSED PlayerState *state) {
         } else if (rrv->status == RRV_ERR) {
             printf("An error occurred. Please try again.\n");
         }
+    }
+}
+
+void scoreboardCallback(UNUSED void *req, int status, char *fname,
+                        UNUSED PlayerState *state) {
+    if (status == RSB_OK) {
+        FILE *f = fopen(fname, "r");
+        if (f == NULL) {
+            printf("Failed to display scoreboard.\n");
+        } else {
+            char buf[FILE_TRANSFER_BLOCK_SIZE];
+
+            while (fread(buf, FILE_TRANSFER_BLOCK_SIZE, 1, f) > 0) {
+                printf("%s", buf);
+            };
+            fclose(f);
+        }
+        printf("\n\nA copy of this scoreboard has been saved at %s.\n", fname);
+    } else if (status == RSB_EMPTY) {
+        printf("The scoreboard is currently empty (no game was yet won by any "
+               "player).\n");
     }
 }
 

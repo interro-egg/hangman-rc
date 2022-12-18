@@ -420,7 +420,7 @@ void destroyGHLMessage(void *ptr) {
 
 ssize_t serializeGHLMessage(void *ptr, char *outBuffer) {
     GHLMessage *msg = (GHLMessage *)ptr;
-    return sprintf(outBuffer, "GHL %6s\n", msg->PLID);
+    return sprintf(outBuffer, "GHL %s\n", msg->PLID);
 }
 
 void *deserializeGHLMessage(char *inBuffer) {
@@ -447,7 +447,7 @@ void destroySTAMessage(void *ptr) {
 
 ssize_t serializeSTAMessage(void *ptr, char *outBuffer) {
     STAMessage *msg = (STAMessage *)ptr;
-    return sprintf(outBuffer, "STA %6s\n", msg->PLID);
+    return sprintf(outBuffer, "STA %s\n", msg->PLID);
 }
 
 void *deserializeSTAMessage(char *inBuffer) {
@@ -457,7 +457,7 @@ void *deserializeSTAMessage(char *inBuffer) {
         destroySTAMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "STA %6s", msg->PLID) != 1) {
+    if (sscanf(inBuffer, "STA %s", msg->PLID) != 1) {
         destroySTAMessage(msg);
         return NULL;
     }

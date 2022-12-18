@@ -150,7 +150,9 @@ char *translateHandlerError(int result) {
     case HANDLER_ESERIALIZE:
         return MSG_HANDLER_ESERIALIZE;
     case HANDLER_ECOMMS_UDP:
-        return MSG_HANDLER_ECOMMS;
+        return MSG_HANDLER_ECOMMS_UDP;
+    case HANDLER_ECOMMS_TCP:
+        return MSG_HANDLER_ECOMMS_TCP;
     case HANDLER_ECOMMS_TIMEO:
         return MSG_HANDLER_ECOMMS_TIMEO;
     case HANDLER_EDESERIALIZE:

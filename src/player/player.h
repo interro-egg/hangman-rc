@@ -12,10 +12,13 @@
 #define MAX_COMMAND_NAME_SIZE_FMT "%11s"
 
 #define MSG_NO_MEMORY "No memory available.\n"
+#define MSG_UNKNOWN_COMMAND "Unknown command.\n"
 #define MSG_PARSE_ERROR                                                        \
     "Could not parse your command: please make sure your input is valid and "  \
     "correctly formatted.\n"
-#define MSG_UNKNOWN_COMMAND "Unknown command.\n"
+#define MSG_COMMS_ERROR                                                        \
+    "An error has occurred while communicating with the game server. Please "  \
+    "try again.\n"
 
 // Network init error messages
 #define MSG_NINIT_EUNKNOWN                                                     \
@@ -36,9 +39,8 @@
 #define MSG_HANDLER_EPARSE MSG_PARSE_ERROR
 #define MSG_HANDLER_ESERIALIZE                                                 \
     "An error has occurred while serializing your command.\n"
-#define MSG_HANDLER_ECOMMS                                                     \
-    "An error has occurred while communicating to the game server. Please "    \
-    "try again.\n"
+#define MSG_HANDLER_ECOMMS_UDP MSG_COMMS_ERROR
+#define MSG_HANDLER_ECOMMS_TCP MSG_COMMS_ERROR
 #define MSG_HANDLER_ECOMMS_TIMEO                                               \
     "Connection timed out while communicating with the game server. Please "   \
     "try again.\n"

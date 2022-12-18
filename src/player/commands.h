@@ -46,6 +46,7 @@ typedef struct {
     CommandPreHook preHook;
     CommandSerializer requestSerializer;
     CommandDestroyer requestDestroyer;
+    char *expectedResponse;
     const char **statusEnumStrings;
     size_t maxStatusEnumLen;
     const bool *fileReceiveStatuses;
@@ -70,15 +71,16 @@ void playCallback(void *req, void *resp, PlayerState *state);
 int guessPreHook(void *parsed, PlayerState *state);
 void guessCallback(void *req, void *resp, PlayerState *state);
 void revealCallback(void *req, void *resp, PlayerState *state);
-void scoreboardCallback(void *req, void *resp, PlayerState *state);
-void hintCallback(void *req, void *resp, PlayerState *state);
-void stateCallback(void *req, void *resp, PlayerState *state);
 int quitPreHook(void *parsed, PlayerState *state);
 void quitCallback(void *req, void *resp, PlayerState *state);
 int exitPreHook(void *parsed, PlayerState *state);
 void exitCallback(void *req, void *resp, PlayerState *state);
 int revealPreHook(void *req, PlayerState *state);
 void revealCallback(void *req, void *resp, PlayerState *state);
+
+void scoreboardCallback(void *req, int status, char *fname, PlayerState *state);
+void hintCallback(void *req, void *resp, PlayerState *state);
+void stateCallback(void *req, void *resp, PlayerState *state);
 
 typedef const void *(*CommandDescriptorsIndexer)(const void *arr, size_t i);
 typedef char **(*CommandAliasesGetter)(const void *cmd);
