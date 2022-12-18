@@ -51,12 +51,14 @@ LDFLAGS += $(EXTRA_LDFLAGS)
 %: src/%/$$@.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
 
+.PHONY: all clean fmt fmt-check
+
+# must be the first target in the Makefile
+# (the name "all" is not special, just a convention)
+all: $(TARGET_EXECS)
+
 $(PLAYER_EXEC): $(PLAYER_OBJECTS) $(COMMON_OBJECTS)
 $(GS_EXEC): $(GS_OBJECTS) $(COMMON_OBJECTS)
-
-.PHONY: all clean fmt
-
-all: $(TARGET_EXECS)
 
 clean: 
 	rm -f $(TARGET_EXECS) $(OBJECTS)
