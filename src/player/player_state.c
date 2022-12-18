@@ -5,11 +5,14 @@
 #include <string.h>
 #include <unistd.h>
 
-// Only destroys State components; does not free(state).
-// This must not be called before successful network init
+// Only destroys State components; does not free(state)
 void destroyStateComponents(PlayerState *state) {
-    freeaddrinfo(state->udp_addr);
-    freeaddrinfo(state->tcp_addr);
+    if (state->udp_addr != NULL) {
+        freeaddrinfo(state->udp_addr);
+    }
+    if (state->tcp_addr != NULL) {
+        freeaddrinfo(state->tcp_addr);
+    }
     free(state->timeout);
     if (state->udp_socket != -1) {
         close(state->udp_socket);

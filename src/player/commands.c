@@ -394,7 +394,7 @@ void quitCallback(UNUSED void *req, void *resp, PlayerState *state) {
     RQTMessage *rqt = (RQTMessage *)resp;
     switch (rqt->status) {
     case RQT_OK:
-        printf("You have quit the game. Please start a new one.\n");
+        printf("You have quit the game.\n");
         endGame(state);
         return;
     case RQT_NOK:
@@ -418,6 +418,7 @@ int exitPreHook(void *req, PlayerState *state) {
 
 void exitCallback(UNUSED void *req, UNUSED void *resp,
                   UNUSED PlayerState *state) {
+    endGame(state);
     state->shutdown = true;
 }
 

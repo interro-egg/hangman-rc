@@ -1,47 +1,54 @@
 #include "player.h"
 #include "network.h"
 #include <getopt.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+PlayerState playerState = {NULL, NULL, NULL,  NULL, NULL, -1, -1, NULL,
+                           NULL, NULL, false, NULL, NULL, 0,  0,  false};
+
 int main(int argc, char *argv[]) {
+    signal(SIGINT, handleGracefulShutdownSignal);
+
     char *host = GS_DEFAULT_HOST;
     char *port = GS_DEFAULT_PORT;
 
     readOpts(argc, argv, &host, &port);
 
     size_t bufSize;
-    char cmd[MAX_COMMAND_NAME_SIZE] = {0};
     char inBuf[IN_BUFFER_SIZE] = {0};
     char outBuf[OUT_BUFFER_SIZE] = {0};
 
-    PlayerState state = {host,   port, NULL,  NULL, NULL, -1, -1, inBuf,
-                         outBuf, NULL, false, NULL, NULL, 0,  0,  false};
+    playerState.host = host;
+    playerState.port = port;
+    playerState.in_buffer = inBuf;
+    playerState.out_buffer = outBuf;
 
     int result;
-    if ((result = initNetwork(&state)) != NINIT_SUCCESS) {
+    if ((result = initNetwork(&playerState)) != NINIT_SUCCESS) {
         fprintf(stderr, "%s", translateNetworkInitError(result));
+        destroyStateComponents(&playerState);
         exit(EXIT_FAILURE);
     }
 
-    while (!(state.shutdown) && printf(INPUT_PROMPT) >= 0 &&
-           (getline(&state.line, &bufSize, stdin) != -1)) {
-        size_t len = strlen(state.line);
+    while (!(playerState.shutdown) && printf(INPUT_PROMPT) >= 0 &&
+           (getline(&playerState.line, &bufSize, stdin) != -1)) {
+        size_t len = strlen(playerState.line);
         if (len <= 1) {
             continue;
         }
-        state.line[len - 1] = '\0'; // remove trailing newline
-        lowercase(state.line);      // playing is case insensitive
+        playerState.line[len - 1] = '\0'; // remove trailing newline
+        lowercase(playerState.line);      // playing is case insensitive
 
-        dispatch(state.line, cmd, &state);
+        dispatch(playerState.line, &playerState);
 
         putchar('\n');
     }
 
-    destroyStateComponents(&state);
-    exit(EXIT_SUCCESS);
+    gracefulShutdown(EXIT_SUCCESS);
 }
 
 void readOpts(int argc, char *argv[], char **host, char **port) {
@@ -62,7 +69,8 @@ void readOpts(int argc, char *argv[], char **host, char **port) {
     }
 }
 
-void dispatch(char *line, char *cmd, PlayerState *state) {
+void dispatch(char *line, PlayerState *state) {
+    char cmd[MAX_COMMAND_NAME_SIZE] = {0};
     const UDPCommandDescriptor *descUDP = NULL;
     const TCPCommandDescriptor *descTCP = NULL;
     int result = HANDLER_EUNKNOWN;
@@ -158,4 +166,17 @@ char *translateHandlerError(int result) {
     default:
         return MSG_HANDLER_EUNKNOWN;
     }
+}
+
+void gracefulShutdown(int retcode) {
+    if (playerState.in_game) {
+        dispatch(EXIT_COMMAND, &playerState);
+    }
+    destroyStateComponents(&playerState);
+    exit(retcode);
+}
+
+void handleGracefulShutdownSignal(int sig) {
+    signal(sig, handleGracefulShutdownSignal);
+    gracefulShutdown(EXIT_FAILURE);
 }

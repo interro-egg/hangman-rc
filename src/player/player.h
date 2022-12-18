@@ -11,6 +11,8 @@
 #define MAX_COMMAND_NAME_SIZE 10 + 1
 #define MAX_COMMAND_NAME_SIZE_FMT "%11s"
 
+#define EXIT_COMMAND "exit\n"
+
 #define MSG_NO_MEMORY "No memory available.\n"
 #define MSG_UNKNOWN_COMMAND "Unknown command.\n"
 #define MSG_PARSE_ERROR                                                        \
@@ -55,9 +57,11 @@ const void *getCommandDescriptor(char *cmd, const void *commandsArr,
                                  CommandDescriptorsIndexer indexer,
                                  CommandAliasesGetter aliasesGetter,
                                  CommandAliasesCountGetter aliasesCountGetter);
-void dispatch(char *cmd, char *line, PlayerState *state);
+void dispatch(char *line, PlayerState *state);
 char *findArgs(char *line, char *cmd);
 char *translateNetworkInitError(int result);
 char *translateHandlerError(int result);
+void gracefulShutdown(int retcode);
+void handleGracefulShutdownSignal(int sig);
 
 #endif // PLAYER_H
