@@ -11,8 +11,13 @@ void *parseSNGArgs(char *args) {
     }
 
     SNGMessage *sng = malloc(sizeof(SNGMessage));
+    if (sng == NULL) {
+        errno = ENOMEM;
+        destroySNGMessage(sng);
+        return NULL;
+    }
     sng->PLID = malloc(7 * sizeof(char));
-    if (sng == NULL || sng->PLID == NULL) {
+    if (sng->PLID == NULL) {
         errno = ENOMEM;
         destroySNGMessage(sng);
         return NULL;
@@ -39,8 +44,12 @@ void *parsePLGArgs(char *args) {
     }
 
     PLGMessage *plg = malloc(sizeof(PLGMessage));
+    if (plg == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
     plg->PLID = malloc(7 * sizeof(char));
-    if (plg == NULL || plg->PLID == NULL) {
+    if (plg->PLID == NULL) {
         errno = ENOMEM;
         return NULL;
     }
@@ -58,9 +67,14 @@ void *parsePWGArgs(char *args) {
     }
 
     PWGMessage *pwg = malloc(sizeof(PWGMessage));
+    if (pwg == NULL) {
+        errno = ENOMEM;
+        destroyPWGMessage(pwg);
+        return NULL;
+    }
     pwg->PLID = malloc(7 * sizeof(char));
     pwg->word = malloc(31 * sizeof(char));
-    if (pwg == NULL || pwg->PLID == NULL || pwg->word == NULL) {
+    if (pwg->PLID == NULL || pwg->word == NULL) {
         errno = ENOMEM;
         destroyPWGMessage(pwg);
         return NULL;
@@ -92,8 +106,12 @@ void *parseQUTArgs(char *args) {
         return NULL;
     }
     QUTMessage *qut = malloc(sizeof(QUTMessage));
+    if (qut == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
     qut->PLID = malloc(7 * sizeof(char));
-    if (qut == NULL || qut->PLID == NULL) {
+    if (qut->PLID == NULL) {
         errno = ENOMEM;
         return NULL;
     }
@@ -105,8 +123,12 @@ void *parseREVArgs(char *args) {
         return NULL;
     }
     REVMessage *rev = malloc(sizeof(REVMessage));
+    if (rev == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
     rev->PLID = malloc(7 * sizeof(char));
-    if (rev == NULL || rev->PLID == NULL) {
+    if (rev->PLID == NULL) {
         errno = ENOMEM;
         return NULL;
     }
@@ -126,8 +148,12 @@ void *parseGHLArgs(char *args) {
         return NULL;
     }
     GHLMessage *ghl = malloc(sizeof(GHLMessage));
+    if (ghl == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
     ghl->PLID = malloc(7 * sizeof(char));
-    if (ghl == NULL || ghl->PLID == NULL) {
+    if (ghl->PLID == NULL) {
         errno = ENOMEM;
         return NULL;
     }
@@ -139,8 +165,12 @@ void *parseSTAArgs(char *args) {
         return NULL;
     }
     STAMessage *sta = malloc(sizeof(STAMessage));
+    if (sta == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
     sta->PLID = malloc(7 * sizeof(char));
-    if (sta == NULL || sta->PLID == NULL) {
+    if (sta->PLID == NULL) {
         errno = ENOMEM;
         return NULL;
     }

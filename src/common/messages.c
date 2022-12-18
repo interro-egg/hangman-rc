@@ -17,8 +17,12 @@ ssize_t serializeSNGMessage(void *ptr, char *outBuffer) {
 
 void *deserializeSNGMessage(char *inBuffer) {
     SNGMessage *msg = malloc(sizeof(SNGMessage));
+    if (msg == NULL) {
+        destroySNGMessage(msg);
+        return NULL;
+    }
     msg->PLID = malloc(7 * sizeof(char));
-    if (msg == NULL || msg->PLID == NULL) {
+    if (msg->PLID == NULL) {
         destroySNGMessage(msg);
         return NULL;
     }
@@ -90,8 +94,12 @@ ssize_t serializePLGMessage(void *ptr, char *outBuffer) {
 
 void *deserializePLGMessage(char *inBuffer) {
     PLGMessage *msg = malloc(sizeof(PLGMessage));
+    if (msg == NULL) {
+        destroyPLGMessage(msg);
+        return NULL;
+    }
     msg->PLID = malloc(7 * sizeof(char));
-    if (msg == NULL || msg->PLID == NULL) {
+    if (msg->PLID == NULL) {
         destroyPLGMessage(msg);
         return NULL;
     }
@@ -213,9 +221,13 @@ ssize_t serializePWGMessage(void *ptr, char *outBuffer) {
 
 void *deserializePWGMessage(char *inBuffer) {
     PWGMessage *msg = malloc(sizeof(PWGMessage));
+    if (msg == NULL) {
+        destroyPWGMessage(msg);
+        return NULL;
+    }
     msg->PLID = malloc(7 * sizeof(char));
     msg->word = malloc(31 * sizeof(char));
-    if (msg == NULL || msg->PLID == NULL || msg->word == NULL) {
+    if (msg->PLID == NULL || msg->word == NULL) {
         destroyPWGMessage(msg);
         return NULL;
     }
@@ -282,8 +294,12 @@ ssize_t serializeQUTMessage(void *ptr, char *outBuffer) {
 
 void *deserializeQUTMessage(char *inBuffer) {
     QUTMessage *msg = malloc(sizeof(QUTMessage));
+    if (msg == NULL) {
+        destroyQUTMessage(msg);
+        return NULL;
+    }
     msg->PLID = malloc(7 * sizeof(char));
-    if (msg == NULL || msg->PLID == NULL) {
+    if (msg->PLID == NULL) {
         destroyQUTMessage(msg);
         return NULL;
     }
@@ -340,8 +356,12 @@ ssize_t serializeREVMessage(void *ptr, char *outBuffer) {
 
 void *deserializeREVMessage(char *inBuffer) {
     REVMessage *msg = malloc(sizeof(REVMessage));
+    if (msg == NULL) {
+        destroyREVMessage(msg);
+        return NULL;
+    }
     msg->PLID = malloc(7 * sizeof(char));
-    if (msg == NULL || msg->PLID == NULL) {
+    if (msg->PLID == NULL) {
         destroyREVMessage(msg);
         return NULL;
     }
@@ -372,8 +392,11 @@ ssize_t serializeRRVMessage(void *ptr, char *outBuffer) {
 void *deserializeRRVMessage(char *inBuffer) {
     RRVMessage *msg = malloc(sizeof(RRVMessage));
     char *statusStr = malloc(4 * sizeof(char));
+    if (msg == NULL || statusStr == NULL) {
+        return NULL;
+    }
     msg->word = malloc(31 * sizeof(char));
-    if (msg == NULL || statusStr == NULL || msg->word == NULL) {
+    if (msg->word == NULL) {
         return NULL;
     }
     if (sscanf(inBuffer, "RRV %3s", statusStr) != 1) {
@@ -425,8 +448,12 @@ ssize_t serializeGHLMessage(void *ptr, char *outBuffer) {
 
 void *deserializeGHLMessage(char *inBuffer) {
     GHLMessage *msg = malloc(sizeof(GHLMessage));
+    if (msg == NULL) {
+        destroyGHLMessage(msg);
+        return NULL;
+    }
     msg->PLID = malloc(7 * sizeof(char));
-    if (msg == NULL || msg->PLID == NULL) {
+    if (msg->PLID == NULL) {
         destroyGHLMessage(msg);
         return NULL;
     }
@@ -452,8 +479,12 @@ ssize_t serializeSTAMessage(void *ptr, char *outBuffer) {
 
 void *deserializeSTAMessage(char *inBuffer) {
     STAMessage *msg = malloc(sizeof(STAMessage));
+    if (msg == NULL) {
+        destroySTAMessage(msg);
+        return NULL;
+    }
     msg->PLID = malloc(7 * sizeof(char));
-    if (msg == NULL || msg->PLID == NULL) {
+    if (msg->PLID == NULL) {
         destroySTAMessage(msg);
         return NULL;
     }
