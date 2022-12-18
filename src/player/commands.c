@@ -1,6 +1,5 @@
 #include "commands.h"
 #include "../common/messages.h"
-#include "network.h"
 #include "parsers.h"
 
 #include <ctype.h>
@@ -154,22 +153,38 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
         return HANDLER_EDESERIALIZE;
     }
 
-    char *fname = NULL;
+    ReceivedFile *file = NULL;
     if (cmd->fileReceiveStatuses[status]) {
         errno = 0;
-        if ((fname = readFileTCP(fd)) == NULL) {
+        if ((file = readFileTCP(fd)) == NULL) {
             cmd->requestDestroyer(parsed);
-            return errno == TCP_RCV_ENOMEM ? HANDLER_ENOMEM
-                                           : HANDLER_ECOMMS_TCP;
+            switch (errno) {
+            case TCP_RCV_ENOMEM:
+                return HANDLER_ENOMEM;
+            case TCP_RCV_EINV:
+                return HANDLER_EDESERIALIZE;
+            default:
+                return HANDLER_ECOMMS_TCP;
+            }
         }
     }
 
+    if (checkNewline(fd) != 0) {
+        if (file != NULL) {
+            unlink(file->fname);
+            // no need to check for error as we're already returning error;
+            // this is a best-effort attempt
+            destroyReceivedFile(file);
+        }
+        return HANDLER_EDESERIALIZE;
+    }
+
     if (cmd->callback != NULL) {
-        cmd->callback(parsed, status, fname, state);
+        cmd->callback(parsed, status, file, state);
     }
 
     cmd->requestDestroyer(parsed);
-    free(fname);
+    destroyReceivedFile(file);
     return HANDLER_SUCCESS;
 }
 
@@ -390,23 +405,32 @@ void revealCallback(UNUSED void *req, void *resp, UNUSED PlayerState *state) {
     }
 }
 
-void scoreboardCallback(UNUSED void *req, int status, char *fname,
+void scoreboardCallback(UNUSED void *req, int status, ReceivedFile *file,
                         UNUSED PlayerState *state) {
     switch (status) {
     case RSB_OK:
-        FILE *f = fopen(fname, "r");
+        FILE *f = fopen(file->fname, "r");
         if (f == NULL) {
             printf("Failed to display scoreboard.\n");
         } else {
             char buf[FILE_TRANSFER_BLOCK_SIZE];
 
-            while (fread(buf, sizeof(char), FILE_TRANSFER_BLOCK_SIZE, f) > 0) {
-                // FIXME: need size so we don't print garbage
-                printf("%s", buf);
+            size_t r, remainingRead = file->fsize;
+            while ((r = fread(buf, sizeof(char),
+                              MIN(FILE_TRANSFER_BLOCK_SIZE, remainingRead),
+                              f)) > 0) {
+                remainingRead -= r;
+
+                size_t remainingWrite = r;
+                ssize_t w;
+                while ((w = write(1, buf, remainingWrite)) > 0) {
+                    remainingWrite -= (size_t)w;
+                }
             };
             fclose(f);
         }
-        printf("\n\nA copy of this scoreboard has been saved at %s.\n", fname);
+        printf("\nA copy of this scoreboard has been saved at %s.\n",
+               file->fname);
         return;
     case RSB_EMPTY:
     default:

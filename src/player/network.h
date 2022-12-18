@@ -36,12 +36,18 @@
 #define TCP_RCV_EFTRANSF -4
 #define TCP_RCV_ENOMEM -5
 
+typedef struct {
+    char *fname;
+    size_t fsize;
+} ReceivedFile;
+
 int initNetwork(PlayerState *state);
 
 int sendUDPMessage(PlayerState *state);
 int sendTCPMessage(PlayerState *state);
 ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits);
-char *readFileTCP(int fd);
-int checkEndOfStream(int fd);
+ReceivedFile *readFileTCP(int fd);
+int checkNewline(int fd);
+void destroyReceivedFile(ReceivedFile *file);
 
 #endif // NETWORK_H

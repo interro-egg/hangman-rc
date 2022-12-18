@@ -2,6 +2,7 @@
 #define COMMANDS_H
 
 #include "../common/common.h"
+#include "network.h"
 #include "player_state.h"
 #include <stdbool.h>
 #include <sys/types.h>
@@ -24,7 +25,7 @@ typedef void (*CommandDestroyer)(void *ptr);
 typedef void *(*UDPCommandDeserializer)(char *inBuffer);
 typedef void (*UDPCommandCallback)(void *req, void *resp, PlayerState *state);
 
-typedef void (*TCPCommandCallback)(void *req, int status, char *fname,
+typedef void (*TCPCommandCallback)(void *req, int status, ReceivedFile *file,
                                    PlayerState *state);
 
 typedef struct {
@@ -78,9 +79,12 @@ void exitCallback(void *req, void *resp, PlayerState *state);
 int revealPreHook(void *req, PlayerState *state);
 void revealCallback(void *req, void *resp, PlayerState *state);
 
-void scoreboardCallback(void *req, int status, char *fname, PlayerState *state);
-void hintCallback(void *req, void *resp, PlayerState *state);
-void stateCallback(void *req, void *resp, PlayerState *state);
+void scoreboardCallback(void *req, int status, ReceivedFile *file,
+                        PlayerState *state);
+void hintCallback(void *req, int status, ReceivedFile *file,
+                  PlayerState *state);
+void stateCallback(void *req, int status, ReceivedFile *file,
+                   PlayerState *state);
 
 typedef const void *(*CommandDescriptorsIndexer)(const void *arr, size_t i);
 typedef char **(*CommandAliasesGetter)(const void *cmd);

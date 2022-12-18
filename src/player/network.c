@@ -124,7 +124,7 @@ ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits) {
 }
 
 // Fname Fsize Fdata, returns Fname
-char *readFileTCP(int fd) {
+ReceivedFile *readFileTCP(int fd) {
     char fname[MAX_FNAME_LEN + 1];
     char fsize[MAX_FSIZE_LEN + 1];
     char transfBuf[FILE_TRANSFER_BLOCK_SIZE];
@@ -142,28 +142,34 @@ char *readFileTCP(int fd) {
         return NULL;
     }
 
+    ReceivedFile *file = malloc(sizeof(ReceivedFile));
+    if (file == NULL) {
+        errno = TCP_RCV_ENOMEM;
+        return NULL;
+    }
+
     char *end;
     errno = 0;
-    size_t fsizeNum = (size_t)strtoul(fsize, &end, 10);
-    if (errno != 0 || *end != '\0' || fsizeNum > MAX_FSIZE_NUM) {
+    file->fsize = (size_t)strtoul(fsize, &end, 10);
+    if (errno != 0 || *end != '\0' || file->fsize > MAX_FSIZE_NUM) {
         errno = TCP_RCV_EINV;
         return NULL;
     }
 
-    char *fnameAlloc = malloc((fnameLen + 1) * sizeof(char));
-    if (fnameAlloc == NULL) {
+    file->fname = malloc((fnameLen + 1) * sizeof(char));
+    if (file->fname == NULL) {
         errno = TCP_RCV_ENOMEM;
         return NULL;
     }
-    strncpy(fnameAlloc, fname, fnameLen + 1);
+    strncpy(file->fname, fname, fnameLen + 1);
 
-    FILE *fileFd = fopen(fnameAlloc, "w");
+    FILE *fileFd = fopen(file->fname, "w");
     if (fileFd == NULL) {
         errno = TCP_RCV_EFOPEN;
         return NULL;
     }
 
-    size_t remaining = fsizeNum;
+    size_t remaining = file->fsize;
     while (remaining > 0) {
         size_t amt = MIN(FILE_TRANSFER_BLOCK_SIZE, remaining);
 
@@ -171,7 +177,7 @@ char *readFileTCP(int fd) {
         while (already_read < amt) {
             ssize_t result = read(fd, transfBuf, amt - already_read);
             if (result <= 0) {
-                free(fnameAlloc);
+                destroyReceivedFile(file);
                 fclose(fileFd);
                 errno = TCP_RCV_EFTRANSF;
                 return NULL;
@@ -183,7 +189,7 @@ char *readFileTCP(int fd) {
         while (already_written < already_read) {
             size_t result = fwrite(transfBuf, sizeof(char), amt, fileFd);
             if (result == 0) {
-                free(fnameAlloc);
+                destroyReceivedFile(file);
                 fclose(fileFd);
                 errno = TCP_RCV_EFTRANSF;
                 return NULL;
@@ -196,22 +202,21 @@ char *readFileTCP(int fd) {
 
     fclose(fileFd);
 
-    if (checkEndOfStream(fd) != 0) {
-        unlink(fnameAlloc);
-        // no need to check for error as we're already returning error;
-        // this is a best-effort attempt
-        free(fnameAlloc);
-        errno = TCP_RCV_EINV;
-        return NULL;
-    }
-    return fnameAlloc;
+    return file;
 }
 
-int checkEndOfStream(int fd) {
-    char buf[1];
-    ssize_t n = read(fd, buf, 1 * sizeof(char));
-    if (n <= 0 || buf[0] != '\n') {
+int checkNewline(int fd) {
+    char c;
+    ssize_t n = read(fd, &c, 1 * sizeof(char));
+    if (n <= 0 || c != '\n') {
         return -1;
     }
     return 0;
+}
+
+void destroyReceivedFile(ReceivedFile *file) {
+    if (file != NULL) {
+        free(file->fname);
+    }
+    free(file);
 }
