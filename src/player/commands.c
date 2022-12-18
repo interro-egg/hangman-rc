@@ -86,7 +86,8 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
 
     errno = 0;
     if (sendUDPMessage(state) == -1) {
-        int r = errno == ETIMEDOUT ? HANDLER_ECOMMS_TIMEO : HANDLER_ECOMMS_UDP;
+        int r = (errno == EAGAIN || errno == ETIMEDOUT) ? HANDLER_ECOMMS_TIMEO
+                                                        : HANDLER_ECOMMS_UDP;
         cmd->requestDestroyer(parsed);
         return r;
     }
@@ -170,13 +171,14 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
     }
 
     if (checkNewline(fd) != 0) {
+        bool timedOut = errno == EINPROGRESS;
         if (file != NULL) {
             unlink(file->fname);
             // no need to check for error as we're already returning error;
             // this is a best-effort attempt
             destroyReceivedFile(file);
         }
-        return HANDLER_EDESERIALIZE;
+        return timedOut ? HANDLER_ECOMMS_TIMEO : HANDLER_EDESERIALIZE;
     }
 
     if (cmd->callback != NULL) {

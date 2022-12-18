@@ -13,7 +13,7 @@
 #define IN_BUFFER_SIZE 128 + 1
 #define OUT_BUFFER_SIZE 128 + 1
 
-#define TIMEOUT_SECS 3
+#define TIMEOUT_SECS 5
 #define TIMEOUT_MICROSECS 0
 
 #define NINIT_SUCCESS 0
@@ -32,9 +32,10 @@
 
 #define TCP_RCV_EINV -1
 #define TCP_RCV_EREAD -2
-#define TCP_RCV_EFOPEN -3
-#define TCP_RCV_EFTRANSF -4
-#define TCP_RCV_ENOMEM -5
+#define TCP_RCV_ETIMEO -3
+#define TCP_RCV_EFOPEN -4
+#define TCP_RCV_EFTRANSF -5
+#define TCP_RCV_ENOMEM -6
 
 typedef struct {
     char *fname;

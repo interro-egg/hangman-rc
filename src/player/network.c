@@ -107,7 +107,7 @@ ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits) {
     while (1) {
         ssize_t n = read(fd, buf + alreadyRead, 1 * sizeof(char));
         if (n <= 0) {
-            return TCP_RCV_EREAD;
+            return (errno == EINPROGRESS) ? TCP_RCV_ETIMEO : TCP_RCV_EREAD;
         }
         alreadyRead += (size_t)n;
 
@@ -175,11 +175,13 @@ ReceivedFile *readFileTCP(int fd) {
 
         size_t already_read = 0;
         while (already_read < amt) {
+            errno = 0;
             ssize_t result = read(fd, transfBuf, amt - already_read);
             if (result <= 0) {
+                bool timedOut = errno == EINPROGRESS;
                 destroyReceivedFile(file);
                 fclose(fileFd);
-                errno = TCP_RCV_EFTRANSF;
+                errno = timedOut ? TCP_RCV_ETIMEO : TCP_RCV_EFTRANSF;
                 return NULL;
             }
             already_read += (size_t)result;
