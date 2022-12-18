@@ -233,7 +233,7 @@ void *deserializeRLGMessage(char *inBuffer) {
         break;
     case RLG_ERR:
     default:
-        if (sscanf(inBuffer, "RLG ERR\n") != 1) {
+        if (strcmp(inBuffer, "RLG ERR\n") != 0) {
             destroyRLGMessage(msg);
             return NULL;
         }
@@ -311,12 +311,14 @@ void *deserializeRWGMessage(char *inBuffer) {
     if (sscanf(inBuffer, "RWG %3s", statusStr) != 1) {
         destroyRWGMessage(msg);
         free(statusStr);
+        printf("Error scanning status\n");
         return NULL;
     }
     int status = parseEnum(RWGMessageStatusStrings, statusStr);
     if (status == -1) {
         destroyRWGMessage(msg);
         free(statusStr);
+                printf("Error parsing enum\n");
         return NULL;
     }
     msg->status = status;
@@ -334,8 +336,9 @@ void *deserializeRWGMessage(char *inBuffer) {
         break;
     case RWG_ERR:
     default:
-        if (sscanf(inBuffer, "RWG ERR\n") != 1) {
+        if (strcmp(inBuffer, "RWG ERR\n") != 0) {
             destroyRWGMessage(msg);
+                    printf("Error comparins strings\n");
             return NULL;
         }
         break;
