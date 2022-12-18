@@ -42,12 +42,17 @@ void destroyRSGMessage(void *ptr) {
 
 ssize_t serializeRSGMessage(void *ptr, char *outBuffer) {
     RSGMessage *msg = (RSGMessage *)ptr;
-    if (msg->status == RSG_NOK)
+    switch (msg->status) {
+    case RSG_OK:
+        return sprintf(outBuffer, "RSG %s %u %u\n",
+                       RSGMessageStatusStrings[msg->status], msg->n_letters,
+                       msg->max_errors);
+    case RSG_NOK:
+    case RSG_ERR:
+    default:
         return sprintf(outBuffer, "RSG %s",
                        RSGMessageStatusStrings[msg->status]);
-    return sprintf(outBuffer, "RSG %s %u %u\n",
-                   RSGMessageStatusStrings[msg->status], msg->n_letters,
-                   msg->max_errors);
+    }
 }
 
 void *deserializeRSGMessage(char *inBuffer) {
@@ -69,12 +74,18 @@ void *deserializeRSGMessage(char *inBuffer) {
     }
     msg->status = status;
     free(statusStr);
-    if (msg->status == RSG_OK) {
+    switch (msg->status) {
+    case RSG_OK:
         if (sscanf(inBuffer, "RSG %*s %2u %1u", &msg->n_letters,
                    &msg->max_errors) != 2) {
             destroyRSGMessage(msg);
             return NULL;
         }
+        break;
+    case RSG_NOK:
+    case RSG_ERR:
+    default:
+        break;
     }
     return msg;
 }
@@ -127,7 +138,8 @@ ssize_t serializeRLGMessage(void *ptr, char *outBuffer) {
     char *cur = posBuf;
     if (posBuf == NULL)
         return -1;
-    if (msg->status == RLG_OK) {
+    switch (msg->status) {
+    case RLG_OK:
         for (unsigned int i = 0; i < msg->n; i++) {
             int r = sprintf(cur, " %u", msg->pos[i]);
             if (r < 0) {
@@ -137,18 +149,31 @@ ssize_t serializeRLGMessage(void *ptr, char *outBuffer) {
             cur += r;
         }
 
-        if (sprintf(outBuffer, "RLG %s %u %u %s",
+        if (sprintf(outBuffer, "RLG %s %u %u %s\n",
                     RLGMessageStatusStrings[msg->status], msg->trial, msg->n,
                     posBuf) < 0) {
             free(posBuf);
             return -1;
         }
-    } else {
-        if (sprintf(outBuffer, "RLG %s %u",
+        break;
+    case RLG_WIN:
+    case RLG_DUP:
+    case RLG_NOK:
+    case RLG_OVR:
+    case RLG_INV:
+        if (sprintf(outBuffer, "RLG %s %u\n",
                     RLGMessageStatusStrings[msg->status], msg->trial) < 0) {
             free(posBuf);
             return -1;
         }
+        break;
+    case RLG_ERR:
+    default:
+        if (sprintf(outBuffer, "RLG ERR\n") < 0) {
+            free(posBuf);
+            return -1;
+        }
+        break;
     }
     return 0;
 }
@@ -173,7 +198,8 @@ void *deserializeRLGMessage(char *inBuffer) {
     msg->status = status;
     free(statusStr);
     msg->pos = NULL;
-    if (msg->status == RLG_OK) {
+    switch (msg->status) {
+    case RLG_OK:
         if (sscanf(inBuffer, "RLG %*s %2u %2u\n", &msg->trial, &msg->n) != 2) {
             destroyRLGMessage(msg);
             return NULL;
@@ -194,13 +220,25 @@ void *deserializeRLGMessage(char *inBuffer) {
             }
             cur = strtok(NULL, " ");
         }
-    } else {
+        break;
+    case RLG_WIN:
+    case RLG_DUP:
+    case RLG_NOK:
+    case RLG_OVR:
+    case RLG_INV:
         if (sscanf(inBuffer, "RLG %*s %2u\n", &msg->trial) != 1) {
             destroyRLGMessage(msg);
             return NULL;
         }
+        break;
+    case RLG_ERR:
+    default:
+        if (sscanf(inBuffer, "RLG ERR\n") != 1) {
+            destroyRLGMessage(msg);
+            return NULL;
+        }
+        break;
     }
-
     return msg;
 }
 
@@ -249,8 +287,18 @@ void destroyRWGMessage(void *ptr) {
 
 ssize_t serializeRWGMessage(void *ptr, char *outBuffer) {
     RWGMessage *msg = (RWGMessage *)ptr;
-    return sprintf(outBuffer, "RWG %s %u\n",
-                   RWGMessageStatusStrings[msg->status], msg->trials);
+    switch (msg->status) {
+    case RWG_WIN:
+    case RWG_DUP:
+    case RWG_NOK:
+    case RWG_OVR:
+    case RWG_INV:
+        return sprintf(outBuffer, "RWG %s %u\n",
+                       RWGMessageStatusStrings[msg->status], msg->trials);
+    case RWG_ERR:
+    default:
+        return sprintf(outBuffer, "RWG ERR\n");
+    }
 }
 
 void *deserializeRWGMessage(char *inBuffer) {
@@ -273,9 +321,24 @@ void *deserializeRWGMessage(char *inBuffer) {
     }
     msg->status = status;
     free(statusStr);
-    if (sscanf(inBuffer, "RWG %*s %2u\n", &msg->trials) != 1) {
-        destroyRWGMessage(msg);
-        return NULL;
+    switch (msg->status) {
+    case RWG_WIN:
+    case RWG_DUP:
+    case RWG_NOK:
+    case RWG_OVR:
+    case RWG_INV:
+        if (sscanf(inBuffer, "RWG %*s %2u\n", &msg->trials) != 1) {
+            destroyRWGMessage(msg);
+            return NULL;
+        }
+        break;
+    case RWG_ERR:
+    default:
+        if (sscanf(inBuffer, "RWG ERR\n") != 1) {
+            destroyRWGMessage(msg);
+            return NULL;
+        }
+        break;
     }
     return msg;
 }

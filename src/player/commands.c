@@ -185,21 +185,23 @@ int startPreHook(UNUSED void *req, PlayerState *state) {
 void startCallback(void *req, void *resp, PlayerState *state) {
     SNGMessage *sng = (SNGMessage *)req;
     RSGMessage *rsg = (RSGMessage *)resp;
-    if (rsg->status == RSG_NOK) {
-        printf("A game could not be started. A game might already be on-course "
-               "for this PLID.\n");
+    switch (rsg->status) {
+    case RSG_OK:
+        if (startGame(state, rsg->n_letters, rsg->max_errors, sng->PLID) ==
+            -1) {
+            printf("Failed to start game. Please try again.");
+        }
+        printf("New game started. Guess %u letter word: ", rsg->n_letters);
+        displayWord(state->word);
+        printf("\nYou have %u wrong guesses left.\n", state->remaining_errors);
         return;
-    } else if (rsg->status == RSG_ERR) {
+    case RSG_NOK:
+    case RSG_ERR:
+    default:
         printf("A game could not be started. You might have specified an "
                "invalid PLID; please try again.\n");
         return;
     }
-    if (startGame(state, rsg->n_letters, rsg->max_errors, sng->PLID) == -1) {
-        printf("Failed to start game. Please try again.");
-    }
-    printf("New game started. Guess %u letter word: ", rsg->n_letters);
-    displayWord(state->word);
-    printf("\nYou have %u wrong guesses left.\n", state->remaining_errors);
 }
 
 int playPreHook(void *req, PlayerState *state) {
@@ -216,12 +218,14 @@ int playPreHook(void *req, PlayerState *state) {
 void playCallback(void *req, void *resp, PlayerState *state) {
     PLGMessage *plg = (PLGMessage *)req;
     RLGMessage *rlg = (RLGMessage *)resp;
-    if (rlg->status == RLG_OK) {
+    switch (rlg->status) {
+    case RLG_OK:
         for (size_t i = 0; i < rlg->n; i++) {
             state->word[rlg->pos[i] - 1] = (char)toupper(plg->letter);
         }
         printf("Correct!\n");
-    } else if (rlg->status == RLG_WIN) {
+        break;
+    case RLG_WIN:
         for (size_t i = 0; i < strlen(state->word); i++) {
             if (state->word[i] == '_') {
                 state->word[i] = (char)toupper(plg->letter);
@@ -232,22 +236,28 @@ void playCallback(void *req, void *resp, PlayerState *state) {
         printf("\nYou won! Congratulations!\n");
         endGame(state);
         return;
-    } else if (rlg->status == RLG_DUP) {
+    case RLG_DUP:
         printf("You have already guessed this letter. Please try again.\n");
         state->trial--;
-    } else if (rlg->status == RLG_NOK) {
+        break;
+    case RLG_NOK:
         printf("Wrong letter. Please try again.\n");
         state->remaining_errors--;
-    } else if (rlg->status == RLG_OVR) {
+        break;
+    case RLG_OVR:
         printf("Wrong letter. You have exceeded the maximum number of errors. "
                "You lost!\n");
         endGame(state);
         return;
-    } else if (rlg->status == RLG_INV) {
+    case RLG_INV:
         printf("An error occurred. Please try again.\n");
-    } else if (rlg->status == RLG_ERR) {
+        state->trial = rlg->trial; // Try to sync with server
+        return;
+    case RLG_ERR:
+    default:
         printf("An error occurred. Please try again.\n");
         state->trial--;
+        return;
     }
     displayWord(state->word);
     printf("\nYou have %u wrong guesses left.\n", state->remaining_errors);
@@ -267,7 +277,8 @@ int guessPreHook(void *req, PlayerState *state) {
 void guessCallback(void *req, void *resp, PlayerState *state) {
     PWGMessage *pwg = (PWGMessage *)req;
     RWGMessage *rwg = (RWGMessage *)resp;
-    if (rwg->status == RWG_WIN) {
+    switch (rwg->status) {
+    case RWG_WIN:
         strncpy(state->word, pwg->word, strlen(state->word) + 1);
         for (size_t i = 0; i < strlen(state->word); i++) {
             state->word[i] = (char)toupper(state->word[i]);
@@ -276,22 +287,28 @@ void guessCallback(void *req, void *resp, PlayerState *state) {
         printf("\nYou won! Congratulations!\n");
         endGame(state);
         return;
-    } else if (rwg->status == RWG_DUP) {
+    case RWG_DUP:
         printf("You have already guessed this word. Please try again.\n");
         state->trial--;
-    } else if (rwg->status == RWG_NOK) {
+        break;
+    case RWG_NOK:
         printf("Wrong word. Please try again.\n");
         state->remaining_errors--;
-    } else if (rwg->status == RWG_OVR) {
+        break;
+    case RWG_OVR:
         printf("Wrong word. You have exceeded the maximum number of errors. "
                "You lost!\n");
         endGame(state);
         return;
-    } else if (rwg->status == RWG_INV) {
+    case RWG_INV:
         printf("An error occurred. Please try again.\n");
-    } else if (rwg->status == RWG_ERR) {
+        state->trial = rwg->trials; // Try to sync with server
+        break;
+    case RWG_ERR:
+    default:
         printf("An error occurred. Please try again.\n");
         state->trial--;
+        return;
     }
     displayWord(state->word);
     printf("\n");
@@ -310,12 +327,16 @@ int quitPreHook(void *req, PlayerState *state) {
 
 void quitCallback(UNUSED void *req, void *resp, PlayerState *state) {
     RQTMessage *rqt = (RQTMessage *)resp;
-    if (rqt->status == RQT_OK) {
+    switch (rqt->status) {
+    case RQT_OK:
         printf("You have quit the game. Please start a new one.\n");
         endGame(state);
-    } else if (rqt->status == RQT_NOK) {
+        return;
+    case RQT_NOK:
         printf("You do not have a game to quit. Please start a new one.\n");
-    } else if (rqt->status == RQT_ERR) {
+        return;
+    case RQT_ERR:
+    default:
         printf("An error occurred. Please try again.\n");
     }
 }
@@ -347,14 +368,23 @@ int revealPreHook(void *req, PlayerState *state) {
 
 void revealCallback(UNUSED void *req, void *resp, UNUSED PlayerState *state) {
     RRVMessage *rrv = (RRVMessage *)resp;
-    if (rrv->type == RRV_WORD) {
+    switch (rrv->type) {
+    case RRV_WORD:
         printf("The word is: ");
+        for (size_t i = 0; i < strlen(rrv->word); i++) {
+            rrv->word[i] = (char)toupper(rrv->word[i]);
+        }
         displayWord(rrv->word);
         putchar('\n');
-    } else if (rrv->type == RRV_STATUS) {
-        if (rrv->status == RRV_OK) {
+        return;
+    case RRV_STATUS:
+    default:
+        switch (rrv->status) {
+        case RRV_OK:
             printf("This feature is not currently enabled.\n");
-        } else if (rrv->status == RRV_ERR) {
+            return;
+        case RRV_ERR:
+        default:
             printf("An error occurred. Please try again.\n");
         }
     }
@@ -362,7 +392,8 @@ void revealCallback(UNUSED void *req, void *resp, UNUSED PlayerState *state) {
 
 void scoreboardCallback(UNUSED void *req, int status, char *fname,
                         UNUSED PlayerState *state) {
-    if (status == RSB_OK) {
+    switch (status) {
+    case RSB_OK:
         FILE *f = fopen(fname, "r");
         if (f == NULL) {
             printf("Failed to display scoreboard.\n");
@@ -376,7 +407,9 @@ void scoreboardCallback(UNUSED void *req, int status, char *fname,
             fclose(f);
         }
         printf("\n\nA copy of this scoreboard has been saved at %s.\n", fname);
-    } else if (status == RSB_EMPTY) {
+        return;
+    case RSB_EMPTY:
+    default:
         printf("The scoreboard is currently empty (no game was yet won by any "
                "player).\n");
     }
