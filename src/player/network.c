@@ -38,11 +38,12 @@ int initNetwork(PlayerState *state) {
         return NINIT_ESOCKET_UDP;
     }
     if (setsockopt(state->udp_socket, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
-                   sizeof(state->timeout)) != 0) {
+                   sizeof(*(state->timeout))) != 0) {
+        printf("Error: %d", errno);
         return NINIT_ERCVTIMEO_UDP;
     }
     if (setsockopt(state->udp_socket, SOL_SOCKET, SO_SNDTIMEO, state->timeout,
-                   sizeof(state->timeout)) != 0) {
+                   sizeof(*(state->timeout))) != 0) {
         return NINIT_ESNDTIMEO_UDP;
     }
 
@@ -58,7 +59,6 @@ int sendUDPMessage(PlayerState *state) {
                  NULL) > 0) {
         return 0;
     }
-
     return -1;
 }
 
@@ -71,16 +71,15 @@ int sendTCPMessage(PlayerState *state) {
     }
     state->tcp_socket = fd;
 
-    // FIXME: not working, error EINVAL (see manpage)
-    // if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
-    //                sizeof(state->timeout)) != 0) {
-    //     printf(">>>> %d\n", errno);
-    //     return TCP_SND_ERCVTIMEO;
-    // }
-    // if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, state->timeout,
-    //                sizeof(state->timeout)) != 0) {
-    //     return TCP_SND_ESNDTIMEO;
-    // }
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
+                   sizeof(*(state->timeout))) != 0) {
+        printf(">>>> %d\n", errno);
+        return TCP_SND_ERCVTIMEO;
+    }
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, state->timeout,
+                   sizeof(*(state->timeout))) != 0) {
+        return TCP_SND_ESNDTIMEO;
+    }
 
     if (connect(fd, state->tcp_addr->ai_addr, state->tcp_addr->ai_addrlen) ==
         -1) {

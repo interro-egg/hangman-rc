@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
                          outBuf, NULL, false, NULL, NULL, 0,  0,  false};
 
     int result;
-    if ((result = initNetwork(&state)) == NINIT_SUCCESS) {
+    if ((result = initNetwork(&state)) != NINIT_SUCCESS) {
         fprintf(stderr, "%s", translateNetworkInitError(result));
         exit(EXIT_FAILURE);
     }
