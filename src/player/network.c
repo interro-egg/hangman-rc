@@ -55,9 +55,9 @@ int sendUDPMessage(PlayerState *state) {
     ssize_t received;
     if (sendto(state->udp_socket, state->out_buffer, strlen(state->out_buffer),
                0, state->udp_addr->ai_addr,
-               state->udp_addr->ai_addrlen) != -1 && (received =
-        recvfrom(state->udp_socket, state->in_buffer, IN_BUFFER_SIZE, 0, NULL,
-                 NULL)) > 0) {
+               state->udp_addr->ai_addrlen) != -1 &&
+        (received = recvfrom(state->udp_socket, state->in_buffer,
+                             IN_BUFFER_SIZE, 0, NULL, NULL)) > 0) {
         state->in_buffer[(size_t)received] = '\0';
         return 0;
     }

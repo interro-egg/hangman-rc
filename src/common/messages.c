@@ -318,7 +318,7 @@ void *deserializeRWGMessage(char *inBuffer) {
     if (status == -1) {
         destroyRWGMessage(msg);
         free(statusStr);
-                printf("Error parsing enum\n");
+        printf("Error parsing enum\n");
         return NULL;
     }
     msg->status = status;
@@ -338,7 +338,7 @@ void *deserializeRWGMessage(char *inBuffer) {
     default:
         if (strcmp(inBuffer, "RWG ERR\n") != 0) {
             destroyRWGMessage(msg);
-                    printf("Error comparins strings\n");
+            printf("Error comparins strings\n");
             return NULL;
         }
         break;
