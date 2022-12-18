@@ -140,14 +140,28 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
     if (fd < 0) {
         errno = fd;
         cmd->requestDestroyer(parsed);
-        return HANDLER_ECOMMS_TCP;
+        switch (errno) {
+        case TCP_SND_ESNDTIMEO:
+            return HANDLER_ECOMMS_TIMEO;
+        case TCP_SND_ESOCKET:
+        case TCP_SND_EWRITE:
+        case TCP_SND_ECONNECT:
+        default:
+            return HANDLER_ECOMMS_TCP;
+        }
     }
 
     ssize_t r = readWordTCP(fd, state->in_buffer, MESSAGE_COMMAND_SIZE, false);
     if (r <= 0) {
         errno = (int)r;
         cmd->requestDestroyer(parsed);
-        return HANDLER_ECOMMS_TCP;
+        switch (errno) {
+        case TCP_RCV_EINV:
+            return HANDLER_EDESERIALIZE;
+        case TCP_RCV_EREAD:
+        default:
+            return HANDLER_ECOMMS_TCP;
+        }
     }
     if (strcmp(state->in_buffer, cmd->expectedResponse) != 0) {
         cmd->requestDestroyer(parsed);
@@ -158,7 +172,13 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
     if (r <= 0) {
         errno = (int)r;
         cmd->requestDestroyer(parsed);
-        return HANDLER_ECOMMS_TCP;
+        switch (errno) {
+        case TCP_RCV_EINV:
+            return HANDLER_EDESERIALIZE;
+        case TCP_RCV_EREAD:
+        default:
+            return HANDLER_ECOMMS_TCP;
+        }
     }
 
     int status = parseEnum(cmd->statusEnumStrings, state->in_buffer);
@@ -177,6 +197,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
                 return HANDLER_ENOMEM;
             case TCP_RCV_EINV:
                 return HANDLER_EDESERIALIZE;
+            case TCP_RCV_ETIMEO:
+                return HANDLER_ECOMMS_TIMEO;
             default:
                 return HANDLER_ECOMMS_TCP;
             }
