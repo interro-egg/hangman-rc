@@ -176,7 +176,7 @@ ReceivedFile *readFileTCP(int fd) {
         size_t already_read = 0;
         while (already_read < amt) {
             errno = 0;
-            ssize_t result = read(fd, transfBuf, amt - already_read);
+            ssize_t result = read(fd, transfBuf + already_read, amt - already_read);
             if (result <= 0) {
                 bool timedOut = errno == EINPROGRESS;
                 destroyReceivedFile(file);
