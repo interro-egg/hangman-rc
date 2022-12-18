@@ -183,7 +183,7 @@ char *readFileTCP(int fd) {
 
         size_t already_written = 0;
         while (already_written < already_read) {
-            size_t result = fwrite(transfBuf, amt, 1, fileFd);
+            size_t result = fwrite(transfBuf, sizeof(char), amt, fileFd);
             if (result == 0) {
                 free(fnameAlloc);
                 fclose(fileFd);
