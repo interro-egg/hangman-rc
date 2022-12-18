@@ -48,7 +48,7 @@
     "An invalid response was received from the game server. Please try "       \
     "again.\n"
 
-// TODO: check if order here matches order in .c
+
 void readOpts(int argc, char *argv[], char **host, char **port);
 const void *getCommandDescriptor(char *cmd, const void *commandsArr,
                                  const size_t commandsCount,

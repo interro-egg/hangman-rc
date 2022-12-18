@@ -118,8 +118,6 @@ char *findArgs(char *line, char *cmd) {
     } else {
         return NULL;
     }
-    // this intentionally counts "cmd " as having no args
-    // FIXME: report no args if there are only spaces after cmd
 }
 
 char *translateNetworkInitError(int result) {
