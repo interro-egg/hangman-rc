@@ -360,7 +360,7 @@ void scoreboardCallback(UNUSED void *req, int status, char *fname,
             char buf[FILE_TRANSFER_BLOCK_SIZE];
 
             while (fread(buf, sizeof(char), FILE_TRANSFER_BLOCK_SIZE, f) > 0) {
-                //FIXME: need size so we don't print garbage
+                // FIXME: need size so we don't print garbage
                 printf("%s", buf);
             };
             fclose(f);
