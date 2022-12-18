@@ -2,3 +2,9 @@
 *.o
 /player
 /GS
+*.txt
+*.jpeg
+*.jpg
+*.png
+*.gif
+*.svg
