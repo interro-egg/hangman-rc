@@ -40,6 +40,7 @@ int initNetwork(PlayerState *state);
 
 int sendUDPMessage(PlayerState *state);
 int sendTCPMessage(PlayerState *state);
+ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits);
 char *readFileTCP(int fd);
 
 #endif // NETWORK_H

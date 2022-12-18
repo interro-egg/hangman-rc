@@ -48,7 +48,11 @@
 
 // TODO: check if order here matches order in .c
 void readOpts(int argc, char *argv[], char **host, char **port);
-const UDPCommandDescriptor *getUDPCommandDescriptor(char *cmd);
+const void *getCommandDescriptor(char *cmd, const void *commandsArr,
+                                 const size_t commandsCount,
+                                 CommandDescriptorsIndexer indexer,
+                                 CommandAliasesGetter aliasesGetter,
+                                 CommandAliasesCountGetter aliasesCountGetter);
 void dispatch(char *cmd, char *line, PlayerState *state);
 char *findArgs(char *line, char *cmd);
 char *translateNetworkInitError(int result);

@@ -100,47 +100,46 @@ int sendTCPMessage(PlayerState *state) {
     return fd;
 }
 
+// maxLen does NOT include null terminator.
+// returns number of bytes read, including space (converted to \0)
+ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits) {
+    size_t alreadyRead = 0;
+    while (1) {
+        ssize_t n = read(fd, buf + alreadyRead, 1 * sizeof(char));
+        if (n <= 0) {
+            return TCP_RCV_EREAD;
+        }
+        alreadyRead += (size_t)n;
+
+        if (buf[alreadyRead - 1] == ' ') {
+            break;
+        } else if (alreadyRead >= maxLen + 1 ||
+                   (checkDigits && !isdigit(buf[alreadyRead - 1]))) {
+            return TCP_RCV_EINV;
+        }
+    }
+    buf[alreadyRead - 1] = '\0';
+
+    return (ssize_t)alreadyRead;
+}
+
 // Fname Fsize Fdata, returns Fname
 char *readFileTCP(int fd) {
     char fname[MAX_FNAME_LEN + 1];
     char fsize[MAX_FSIZE_LEN + 1];
 
-    size_t alreadyReadName = 0;
-    while (1) {
-        ssize_t n = read(fd, fname + alreadyReadName, 1 * sizeof(char));
-        if (n <= 0) {
-            errno = TCP_RCV_EREAD;
-            return NULL;
-        }
-        alreadyReadName += (size_t)n;
-
-        if (fname[alreadyReadName - 1] == ' ') {
-            break;
-        } else if (alreadyReadName >= MAX_FNAME_LEN + 1) {
-            errno = TCP_RCV_EINV;
-            return NULL;
-        }
+    ssize_t r = readWordTCP(fd, fname, MAX_FNAME_LEN, false);
+    if (r <= 0) {
+        errno = (int)r;
+        return NULL;
     }
-    fname[alreadyReadName - 1] = '\0';
+    size_t fnameLen = (size_t)r - 1;
 
-    size_t alreadyReadSize = 0;
-    while (1) {
-        ssize_t n = read(fd, fsize + alreadyReadSize, 1 * sizeof(char));
-        if (n <= 0) {
-            errno = TCP_RCV_EREAD;
-            return NULL;
-        }
-        alreadyReadSize += (size_t)n;
-
-        if (fsize[alreadyReadSize - 1] == ' ') {
-            break;
-        } else if (!isdigit(fsize[alreadyReadSize - 1]) ||
-                   alreadyReadSize >= MAX_FSIZE_LEN + 1) {
-            errno = TCP_RCV_EINV;
-            return NULL;
-        }
+    r = readWordTCP(fd, fsize, MAX_FSIZE_LEN, true);
+    if (r <= 0) {
+        errno = (int)r;
+        return NULL;
     }
-    fsize[alreadyReadSize - 1] = '\0';
 
     char *end;
     errno = 0;
@@ -150,14 +149,12 @@ char *readFileTCP(int fd) {
         return NULL;
     }
 
-    char *fnameAlloc = malloc(alreadyReadName * sizeof(char));
+    char *fnameAlloc = malloc((fnameLen + 1) * sizeof(char));
     if (fnameAlloc == NULL) {
         errno = TCP_RCV_ENOMEM;
         return NULL;
     }
-
-    strncpy(fnameAlloc, fname, alreadyReadName - 1);
-    fnameAlloc[alreadyReadName] = '\0';
+    strncpy(fnameAlloc, fname, fnameLen + 1);
 
     int fileFd = open(fnameAlloc, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fileFd == -1) {

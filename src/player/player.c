@@ -63,30 +63,48 @@ void readOpts(int argc, char *argv[], char **host, char **port) {
 }
 
 void dispatch(char *line, char *cmd, PlayerState *state) {
-    const UDPCommandDescriptor *desc;
+    const UDPCommandDescriptor *descUDP = NULL;
+    const TCPCommandDescriptor *descTCP = NULL;
+    int result = HANDLER_EUNKNOWN;
 
     if (sscanf(line, MAX_COMMAND_NAME_SIZE_FMT, cmd) != 1) {
         printf(MSG_PARSE_ERROR);
-    } else if ((desc = getUDPCommandDescriptor(cmd)) == NULL) {
-        printf(MSG_UNKNOWN_COMMAND);
+    } else if ((descUDP = getCommandDescriptor(
+                    cmd, (const void *)UDP_COMMANDS, UDP_COMMANDS_COUNT,
+                    UDPCommandDescriptorsIndexer, getUDPCommandAliases,
+                    getUDPCommandAliasesCount)) != NULL) {
+        result = handleUDPCommand(descUDP, findArgs(line, cmd), state);
+    } else if ((descTCP = getCommandDescriptor(
+                    cmd, (const void *)TCP_COMMANDS, TCP_COMMANDS_COUNT,
+                    TCPCommandDescriptorsIndexer, getTCPCommandAliases,
+                    getTCPCommandAliasesCount)) != NULL) {
+        result = handleTCPCommand(descTCP, findArgs(line, cmd), state);
     } else {
-        int result;
-        if ((result = handleUDPCommand(desc, findArgs(line, cmd), state)) !=
-            HANDLER_SUCCESS) {
-            fprintf(stderr, "%s", translateHandlerError(result));
+        printf(MSG_UNKNOWN_COMMAND);
+        return;
+    }
 
-            if (result == HANDLER_ENOMEM) {
-                exit(EXIT_FAILURE);
-            }
+    if (result != HANDLER_SUCCESS) {
+        fprintf(stderr, "%s", translateHandlerError(result));
+
+        if (result == HANDLER_ENOMEM) {
+            exit(EXIT_FAILURE);
         }
     }
 }
 
-const UDPCommandDescriptor *getUDPCommandDescriptor(char *cmd) {
-    for (size_t i = 0; i < UDP_COMMANDS_COUNT; i++) {
-        for (size_t j = 0; j < UDP_COMMANDS[i].aliasesCount; j++) {
-            if (strcmp(cmd, UDP_COMMANDS[i].aliases[j]) == 0) {
-                return &UDP_COMMANDS[i];
+const void *getCommandDescriptor(char *cmd, const void *commandsArr,
+                                 const size_t commandsCount,
+                                 CommandDescriptorsIndexer indexer,
+                                 CommandAliasesGetter aliasesGetter,
+                                 CommandAliasesCountGetter aliasesCountGetter) {
+    for (size_t i = 0; i < commandsCount; i++) {
+        const void *desc = indexer(commandsArr, i);
+        char **aliases = aliasesGetter(desc);
+        size_t aliasesCount = aliasesCountGetter(desc);
+        for (size_t j = 0; j < aliasesCount; j++) {
+            if (strcmp(cmd, aliases[j]) == 0) {
+                return desc;
             }
         }
     }
@@ -131,7 +149,7 @@ char *translateHandlerError(int result) {
         return MSG_HANDLER_EPARSE;
     case HANDLER_ESERIALIZE:
         return MSG_HANDLER_ESERIALIZE;
-    case HANDLER_ECOMMS:
+    case HANDLER_ECOMMS_UDP:
         return MSG_HANDLER_ECOMMS;
     case HANDLER_ECOMMS_TIMEO:
         return MSG_HANDLER_ECOMMS_TIMEO;

@@ -395,6 +395,9 @@ void *deserializeRRVMessage(char *inBuffer) {
     return msg;
 }
 
-const char *GSBMessageStatusStrings[] = {"OK", "EMPTY", NULL};
+const char *RSBMessageStatusStrings[] = {"OK", "EMPTY", NULL};
+const bool RSBMessageFileReceiveStatuses[] = {true, false, NULL};
 const char *RHLMessageStatusStrings[] = {"OK", "NOK", NULL};
+const bool RHLMessageFileReceiveStatuses[] = {true, false, NULL};
 const char *RSTMessageStatusStrings[] = {"ACT", "FIN", "NOK", NULL};
+const bool RSTMessageFileReceiveStatuses[] = {true, true, false, NULL};

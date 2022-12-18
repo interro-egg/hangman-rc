@@ -1,6 +1,7 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
+#include <stdbool.h>
 #include <stdio.h>
 
 // Start New Game
@@ -147,6 +148,8 @@ typedef void GSBMessage;
 
 enum RSBMessageStatus { RSB_OK, RSB_EMPTY };
 extern const char *RSBMessageStatusStrings[];
+extern const bool RSBMessageFileReceiveStatuses[];
+
 typedef struct RSBMessage {
     enum RQTMessageStatus status;
 } RSBMessage;
@@ -161,6 +164,7 @@ typedef struct GHLMessage {
 
 enum RHLMessageStatus { RHL_OK, RHL_NOK };
 extern const char *RHLMessageStatusStrings[];
+extern const bool RHLMessageFileReceiveStatuses[];
 
 typedef struct RHLMessage {
     enum RHLMessageStatus status;
@@ -176,6 +180,7 @@ typedef struct GSTMessage {
 
 enum RSTMessageStatus { RST_ACT, RST_FIN, RST_NOK };
 extern const char *RSTMessageStatusStrings[];
+extern const bool RSTMessageFileReceiveStatuses[];
 
 typedef struct RSTMessage {
     enum RSTMessageStatus status;

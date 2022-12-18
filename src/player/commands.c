@@ -51,9 +51,11 @@ const UDPCommandDescriptor UDP_COMMANDS[] = {startCmd, playCmd, guessCmd,
                                              quitCmd,  exitCmd, revealCmd};
 const size_t UDP_COMMANDS_COUNT = 6;
 
+const TCPCommandDescriptor TCP_COMMANDS[] = {};
+const size_t TCP_COMMANDS_COUNT = 0;
+
 int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
                      PlayerState *state) {
-    printf("Handling command %s\n", cmd->aliases[0]);
     void *parsed = cmd->argsParser(args);
     if (parsed == NULL) {
         return (errno == ENOMEM) ? HANDLER_ENOMEM : HANDLER_EPARSE;
@@ -67,26 +69,81 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
         cmd->requestDestroyer(parsed);
         return HANDLER_ESERIALIZE;
     }
-    printf("Sending message: |%s|", state->out_buffer);
+
     errno = 0;
     if (sendUDPMessage(state) == -1) {
-        int r = errno == ETIMEDOUT ? HANDLER_ECOMMS_TIMEO : HANDLER_ECOMMS;
+        int r = errno == ETIMEDOUT ? HANDLER_ECOMMS_TIMEO : HANDLER_ECOMMS_UDP;
         cmd->requestDestroyer(parsed);
         return r;
     }
-    printf("Received message: |%s|", state->in_buffer);
+
     void *deserialized = cmd->responseDeserializer(state->in_buffer);
     if (deserialized == NULL) {
         cmd->requestDestroyer(parsed);
         cmd->responseDestroyer(deserialized);
         return HANDLER_EDESERIALIZE;
     }
+
     if (cmd->callback != NULL) {
         cmd->callback(parsed, deserialized, state);
     }
 
     cmd->requestDestroyer(parsed);
     cmd->responseDestroyer(deserialized);
+    return HANDLER_SUCCESS;
+}
+
+int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
+                     PlayerState *state) {
+    void *parsed = cmd->argsParser(args);
+    if (parsed == NULL) {
+        return (errno == ENOMEM) ? HANDLER_ENOMEM : HANDLER_EPARSE;
+    }
+    if (cmd->preHook != NULL && cmd->preHook(parsed, state) != 0) {
+        cmd->requestDestroyer(parsed);
+        return HANDLER_SUCCESS; // don't show message
+    }
+    ssize_t req = cmd->requestSerializer(parsed, state->out_buffer);
+    if (req < 0) {
+        cmd->requestDestroyer(parsed);
+        return HANDLER_ESERIALIZE;
+    }
+    int fd = sendTCPMessage(state);
+    if (fd < 0) {
+        errno = fd;
+        cmd->requestDestroyer(parsed);
+        return HANDLER_ECOMMS_TCP;
+    }
+
+    ssize_t r = readWordTCP(fd, state->in_buffer, cmd->maxStatusEnumLen, false);
+    if (r <= 0) {
+        errno = (int)r;
+        cmd->requestDestroyer(parsed);
+        return HANDLER_ECOMMS_TCP;
+    }
+
+    int status = parseEnum(cmd->statusEnumStrings, state->in_buffer);
+    if (status == -1) {
+        cmd->requestDestroyer(parsed);
+        return HANDLER_EDESERIALIZE;
+    }
+
+    char *fname = NULL;
+    if (cmd->fileReceiveStatuses[status]) {
+        errno = 0;
+        if ((fname = readFileTCP(fd)) == NULL) {
+            cmd->requestDestroyer(parsed);
+            return errno == TCP_RCV_ENOMEM ? HANDLER_ENOMEM
+                                           : HANDLER_ECOMMS_TCP;
+        }
+    }
+
+    if (cmd->callback != NULL) {
+        cmd->callback(parsed, status, fname, state);
+    }
+
+    cmd->requestDestroyer(parsed);
+    free(fname);
     return HANDLER_SUCCESS;
 }
 
@@ -265,4 +322,32 @@ void revealCallback(UNUSED void *req, void *resp, UNUSED PlayerState *state) {
             printf("An error occurred. Please try again.\n");
         }
     }
+}
+
+const void *UDPCommandDescriptorsIndexer(const void *arr, size_t i) {
+    return &(((const UDPCommandDescriptor *)arr)[i]);
+}
+
+char **getUDPCommandAliases(const void *cmd) {
+    const UDPCommandDescriptor *descr = (const UDPCommandDescriptor *)cmd;
+    return descr->aliases;
+}
+
+size_t getUDPCommandAliasesCount(const void *cmd) {
+    const UDPCommandDescriptor *descr = (const UDPCommandDescriptor *)cmd;
+    return descr->aliasesCount;
+}
+
+const void *TCPCommandDescriptorsIndexer(const void *arr, size_t i) {
+    return &(((const TCPCommandDescriptor *)arr)[i]);
+}
+
+char **getTCPCommandAliases(const void *cmd) {
+    const TCPCommandDescriptor *descr = (const TCPCommandDescriptor *)cmd;
+    return descr->aliases;
+}
+
+size_t getTCPCommandAliasesCount(const void *cmd) {
+    const TCPCommandDescriptor *descr = (const TCPCommandDescriptor *)cmd;
+    return descr->aliasesCount;
 }
