@@ -49,13 +49,3 @@ void endGame(PlayerState *state) {
     free(state->word);
     state->word = NULL;
 }
-
-void displayWord(char *word) {
-    if (word == NULL) {
-        printf("No word found.\n");
-        return;
-    }
-    for (size_t i = 0; word[i] != '\0'; i++) {
-        printf("%s%c", i != 0 ? " " : "", word[i]);
-    }
-}

@@ -78,8 +78,21 @@ const TCPCommandDescriptor hintCmd = {hintCmdAliases,
                                       RHLMessageFileReceiveStatuses,
                                       hintCallback};
 
-const TCPCommandDescriptor TCP_COMMANDS[] = {scoreboardCmd, hintCmd};
-const size_t TCP_COMMANDS_COUNT = 2;
+char *stateCmdAliases[] = {"state", "st"};
+const TCPCommandDescriptor stateCmd = {stateCmdAliases,
+                                       2,
+                                       parseSTAArgs,
+                                       statePreHook,
+                                       serializeSTAMessage,
+                                       destroySTAMessage,
+                                       "RST",
+                                       RSTMessageStatusStrings,
+                                       3,
+                                       RSTMessageFileReceiveStatuses,
+                                       stateCallback};
+
+const TCPCommandDescriptor TCP_COMMANDS[] = {scoreboardCmd, hintCmd, stateCmd};
+const size_t TCP_COMMANDS_COUNT = 3;
 
 int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
                      PlayerState *state) {
@@ -446,29 +459,10 @@ void scoreboardCallback(UNUSED void *req, int status, ReceivedFile *file,
                         UNUSED PlayerState *state) {
     switch (status) {
     case RSB_OK:
-        FILE *f = fopen(file->fname, "r");
-        if (f == NULL) {
-            printf("Failed to display scoreboard.\n");
-        } else {
-            char buf[FILE_TRANSFER_BLOCK_SIZE];
-
-            size_t r, remainingRead = file->fsize;
-            while ((r = fread(buf, sizeof(char),
-                              MIN(FILE_TRANSFER_BLOCK_SIZE, remainingRead),
-                              f)) > 0) {
-                remainingRead -= r;
-
-                size_t remainingWrite = r;
-                ssize_t w;
-                while ((w = write(1, buf, remainingWrite)) > 0) {
-                    remainingWrite -= (size_t)w;
-                }
-            };
-            fclose(f);
-        }
+        displayFile(file);
         printf("\nA copy of this scoreboard has been saved at %s (%ld B).\n",
                file->fname, file->fsize);
-        return;
+        break;
     case RSB_EMPTY:
     default:
         printf("The scoreboard is currently empty (no game was yet won by any "
@@ -501,6 +495,40 @@ void hintCallback(UNUSED void *req, int status, ReceivedFile *file,
     }
 }
 
+int statePreHook(void *req, PlayerState *state) {
+    if (state->PLID == NULL) {
+        printf("You are not in a game, nor have you ever played a game. Please "
+               "start a new one.\n");
+        return -1;
+    }
+    STAMessage *sta = (STAMessage *)req;
+    strncpy(sta->PLID, state->PLID, 6 + 1);
+    return 0;
+}
+
+void stateCallback(UNUSED void *req, int status, ReceivedFile *file,
+                   PlayerState *state) {
+    switch (status) {
+    case RST_ACT:
+        printf("Here is a summary of the ongoing game:\n");
+        displayFile(file);
+        break;
+    case RST_FIN:
+        printf("There is no ongoing game, so here is a summary of the most "
+               "recently finished game for the specified PLID:\n");
+        displayFile(file);
+        endGame(state);
+        break;
+    case RST_NOK:
+    default:
+        printf("A problem has occurred or there is no hint image available for "
+               "this word.\n");
+        return;
+    }
+    printf("A copy of the above game state been saved at %s (%ld B).\n",
+           file->fname, file->fsize);
+}
+
 const void *UDPCommandDescriptorsIndexer(const void *arr, size_t i) {
     return &(((const UDPCommandDescriptor *)arr)[i]);
 }
@@ -527,4 +555,37 @@ char **getTCPCommandAliases(const void *cmd) {
 size_t getTCPCommandAliasesCount(const void *cmd) {
     const TCPCommandDescriptor *descr = (const TCPCommandDescriptor *)cmd;
     return descr->aliasesCount;
+}
+
+void displayWord(char *word) {
+    if (word == NULL) {
+        printf("No word found.\n");
+        return;
+    }
+    for (size_t i = 0; word[i] != '\0'; i++) {
+        printf("%s%c", i != 0 ? " " : "", word[i]);
+    }
+}
+
+void displayFile(ReceivedFile *file) {
+    FILE *f = fopen(file->fname, "r");
+    if (f == NULL) {
+        printf("Failed to display file.\n");
+    } else {
+        char buf[FILE_TRANSFER_BLOCK_SIZE];
+
+        size_t r, remainingRead = file->fsize;
+        while ((r = fread(buf, sizeof(char),
+                          MIN(FILE_TRANSFER_BLOCK_SIZE, remainingRead), f)) >
+               0) {
+            remainingRead -= r;
+
+            size_t remainingWrite = r;
+            ssize_t w;
+            while ((w = write(1, buf, remainingWrite)) > 0) {
+                remainingWrite -= (size_t)w;
+            }
+        };
+        fclose(f);
+    }
 }

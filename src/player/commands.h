@@ -84,6 +84,7 @@ void scoreboardCallback(void *req, int status, ReceivedFile *file,
 int hintPreHook(void *parsed, PlayerState *state);
 void hintCallback(void *req, int status, ReceivedFile *file,
                   PlayerState *state);
+int statePreHook(void *parsed, PlayerState *state);
 void stateCallback(void *req, int status, ReceivedFile *file,
                    PlayerState *state);
 
@@ -97,5 +98,8 @@ size_t getUDPCommandAliasesCount(const void *cmd);
 const void *TCPCommandDescriptorsIndexer(const void *arr, size_t i);
 char **getTCPCommandAliases(const void *cmd);
 size_t getTCPCommandAliasesCount(const void *cmd);
+
+void displayWord(char *word);
+void displayFile(ReceivedFile *file);
 
 #endif // COMMANDS_H
