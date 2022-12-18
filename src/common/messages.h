@@ -1,7 +1,10 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
+#include <stdbool.h>
 #include <stdio.h>
+
+#define MESSAGE_COMMAND_SIZE 3
 
 // Start New Game
 
@@ -9,12 +12,13 @@ typedef struct SNGMessage {
     char *PLID;
 } SNGMessage;
 
-ssize_t serializeSNGMessage(SNGMessage *msg, char *outBuffer);
-SNGMessage *deserializeSNGMessage(char *inBuffer);
+void destroySNGMessage(void *ptr);
+ssize_t serializeSNGMessage(void *ptr, char *outBuffer);
+void *deserializeSNGMessage(char *inBuffer);
 
 // Response: Start Game
 
-enum RSGMessageStatus { RSG_OK, RSG_NOK };
+enum RSGMessageStatus { RSG_OK, RSG_NOK, RSG_ERR };
 extern const char *RSGMessageStatusStrings[];
 
 typedef struct RSGMessage {
@@ -23,8 +27,9 @@ typedef struct RSGMessage {
     unsigned int max_errors;
 } RSGMessage;
 
-ssize_t serializeRSGMessage(RSGMessage *msg, char *outBuffer);
-RSGMessage *deserializeRSGMessage(char *inBuffer);
+void destroyRSGMessage(void *ptr);
+ssize_t serializeRSGMessage(void *ptr, char *outBuffer);
+void *deserializeRSGMessage(char *inBuffer);
 
 // Letter Guess
 
@@ -34,8 +39,9 @@ typedef struct PLGMessage {
     unsigned int trial;
 } PLGMessage;
 
-ssize_t serializePLGMessage(PLGMessage *msg, char *outBuffer);
-PLGMessage *deserializePLGMessage(char *inBuffer);
+void destroyPLGMessage(void *ptr);
+ssize_t serializePLGMessage(void *ptr, char *outBuffer);
+void *deserializePLGMessage(char *inBuffer);
 
 // Response: Letter Guess
 
@@ -57,8 +63,9 @@ typedef struct RLGMessage {
     unsigned int *pos;
 } RLGMessage;
 
-ssize_t serializeRLGMessage(RLGMessage *msg, char *outBuffer);
-RLGMessage *deserializeRLGMessage(char *inBuffer);
+void destroyRLGMessage(void *ptr);
+ssize_t serializeRLGMessage(void *ptr, char *outBuffer);
+void *deserializeRLGMessage(char *inBuffer);
 
 // Word Guess
 
@@ -68,12 +75,13 @@ typedef struct PWGMessage {
     unsigned int trial;
 } PWGMessage;
 
-ssize_t serializePWGMessage(PWGMessage *msg, char *outBuffer);
-PWGMessage *deserializePWGMessage(char *inBuffer);
+void destroyPWGMessage(void *ptr);
+ssize_t serializePWGMessage(void *ptr, char *outBuffer);
+void *deserializePWGMessage(char *inBuffer);
 
 // Response: Word Guess
 
-enum RWGMessageStatus { RWG_WIN, RWG_NOK, RWG_OVR, RWG_INV, RWG_ERR };
+enum RWGMessageStatus { RWG_WIN, RWG_DUP, RWG_NOK, RWG_OVR, RWG_INV, RWG_ERR };
 extern const char *RWGstaticMessageStatusStrings[];
 
 typedef struct RWGMessage {
@@ -81,8 +89,9 @@ typedef struct RWGMessage {
     unsigned int trials;
 } RWGMessage;
 
-ssize_t serializeRWGMessage(RWGMessage *msg, char *outBuffer);
-RWGMessage *deserializeRWGMessage(char *inBuffer);
+void destroyRWGMessage(void *ptr);
+ssize_t serializeRWGMessage(void *ptr, char *outBuffer);
+void *deserializeRWGMessage(char *inBuffer);
 
 // Quit
 
@@ -90,20 +99,22 @@ typedef struct QUTMessage {
     char *PLID;
 } QUTMessage;
 
-ssize_t serializeQUTMessage(QUTMessage *msg, char *outBuffer);
-QUTMessage *deserializeQUTMessage(char *inBuffer);
+void destroyQUTMessage(void *ptr);
+ssize_t serializeQUTMessage(void *ptr, char *outBuffer);
+void *deserializeQUTMessage(char *inBuffer);
 
 // Response: Quit
 
-enum RQTMessageStatus { RQT_OK, RQT_ERR };
+enum RQTMessageStatus { RQT_OK, RQT_NOK, RQT_ERR };
 extern const char *RQTMessageStatusStrings[];
 
 typedef struct RQTMessage {
     enum RQTMessageStatus status;
 } RQTMessage;
 
-ssize_t serializeRQTMessage(RQTMessage *msg, char *outBuffer);
-RQTMessage *deserializeRQTMessage(char *inBuffer);
+void destroyRQTMessage(void *ptr);
+ssize_t serializeRQTMessage(void *ptr, char *outBuffer);
+void *deserializeRQTMessage(char *inBuffer);
 
 // Reveal
 
@@ -111,8 +122,9 @@ typedef struct REVMessage {
     char *PLID;
 } REVMessage;
 
-ssize_t serializeREVMessage(REVMessage *msg, char *outBuffer);
-REVMessage *deserializeREVMessage(char *inBuffer);
+void destroyREVMessage(void *ptr);
+ssize_t serializeREVMessage(void *ptr, char *outBuffer);
+void *deserializeREVMessage(char *inBuffer);
 
 // Response: Reveal
 
@@ -126,7 +138,66 @@ typedef struct RRVMessage {
     enum RRVMessageStatus status;
 } RRVMessage;
 
-ssize_t serializeRRVMessage(RRVMessage *msg, char *outBuffer);
-RRVMessage *deserializeRRVMessage(char *inBuffer);
+void destroyRRVMessage(void *ptr);
+ssize_t serializeRRVMessage(void *ptr, char *outBuffer);
+void *deserializeRRVMessage(char *inBuffer);
+
+// Scoreboard
+
+typedef void GSBMessage;
+
+void destroyGSBMessage(void *ptr);
+ssize_t serializeGSBMessage(void *ptr, char *outBuffer);
+void *deserializeGSBMessage(char *inBuffer);
+
+// Response: Scoreboard
+
+enum RSBMessageStatus { RSB_OK, RSB_EMPTY };
+extern const char *RSBMessageStatusStrings[];
+extern const bool RSBMessageFileReceiveStatuses[];
+
+typedef struct RSBMessage {
+    enum RQTMessageStatus status;
+} RSBMessage;
+
+// Hint
+
+typedef struct GHLMessage {
+    char *PLID;
+} GHLMessage;
+
+void destroyGHLMessage(void *ptr);
+ssize_t serializeGHLMessage(void *ptr, char *outBuffer);
+void *deserializeGHLMessage(char *inBuffer);
+
+// Response: Hint
+
+enum RHLMessageStatus { RHL_OK, RHL_NOK };
+extern const char *RHLMessageStatusStrings[];
+extern const bool RHLMessageFileReceiveStatuses[];
+
+typedef struct RHLMessage {
+    enum RHLMessageStatus status;
+} RHLMessage;
+
+// State
+
+typedef struct STAMessage {
+    char *PLID;
+} STAMessage;
+
+void destroySTAMessage(void *ptr);
+ssize_t serializeSTAMessage(void *ptr, char *outBuffer);
+void *deserializeSTAMessage(char *inBuffer);
+
+// Response: State
+
+enum RSTMessageStatus { RST_ACT, RST_FIN, RST_NOK };
+extern const char *RSTMessageStatusStrings[];
+extern const bool RSTMessageFileReceiveStatuses[];
+
+typedef struct RSTMessage {
+    enum RSTMessageStatus status;
+} RSTMessage;
 
 #endif // MESSAGES_H

@@ -1,13 +1,20 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include "messages.h"
-#include <string.h>
+#include <netdb.h>
+#include <stdbool.h>
 
-#define GN 1 // FIXME: use actual group number when assigned
-#define GSPORT 58000 + GN
+#define GN "043" // pad with zeros until 3 digits
+#define GS_DEFAULT_PORT "58" GN
 
-int readUnsignedInt(char *inBuffer, unsigned int *into);
-int parseEnum(const char *strings[], char *to_parse);
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
+
+#define UNUSED __attribute__((unused))
+
+void lowercase(char *str);
+int parseEnum(const char *strings[], char *toParse);
+int getAddrInfoSockType(char *host, char *port, struct addrinfo **addr,
+                        int sockType, bool passive);
 
 #endif // COMMON_H
