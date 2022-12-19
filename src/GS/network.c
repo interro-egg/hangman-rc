@@ -1,6 +1,7 @@
 #include "network.h"
 #include "../common/common.h"
 #include "errno.h"
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -42,4 +43,24 @@ int initNetworkUDP(ServerState *state) {
 
     state->socket = fd;
     return NINIT_SUCCESS;
+}
+
+void logRequest(char *proto, struct sockaddr_in *playerAddr,
+                socklen_t playerAddrLen, ServerState *state) {
+    if (!state->verbose) {
+        return;
+    }
+
+    char playerIpAddr[INET_ADDRSTRLEN] = "???.???.???.???";
+    inet_ntop(playerAddr->sin_family, &(playerAddr->sin_addr), playerIpAddr,
+              INET_ADDRSTRLEN); // no need to check error
+
+    char host[MAX_HOSTNAME_SIZE];
+    char playerHostname[MAX_HOSTNAME_SIZE + 3];
+    if (getnameinfo((struct sockaddr *)playerAddr, playerAddrLen, host,
+                    MAX_HOSTNAME_SIZE, NULL, 0, NI_NAMEREQD) == 0) {
+        snprintf(playerHostname, MAX_HOSTNAME_SIZE + 3, "(%s) ", host);
+    }
+    printf("[RCV] [%s] [%s%s:%d]: %s\n", proto, playerHostname, playerIpAddr,
+           ntohs(playerAddr->sin_port), state->in_buffer);
 }

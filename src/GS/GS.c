@@ -43,7 +43,41 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        printf("This is the parent!\n");
+        while (1) {
+            struct sockaddr_in playerAddr;
+            socklen_t playerAddrLen = sizeof(playerAddr);
+            ssize_t n = recvfrom(
+                serverState.socket, serverState.in_buffer, IN_BUFFER_SIZE, 0,
+                (struct sockaddr *)&playerAddr, &playerAddrLen);
+            if (n <= 0) {
+                perror(MSG_UDP_ERCV);
+                continue;
+            }
+            serverState.in_buffer[n] = '\0';
+
+            logRequest("UDP", &playerAddr, playerAddrLen, &serverState);
+            if (serverState.in_buffer[n - 1] != '\n') {
+                // TODO: send "ERR"
+                continue;
+            }
+
+            UDPCommandDescriptor *descr = getUDPCommandDescriptor(
+                serverState.in_buffer, (size_t)n, &serverState);
+            if (descr == NULL) {
+                // TODO: send "ERR"
+                continue;
+            }
+
+            result = handleUDPCommand(descr, &serverState);
+            if (result != HANDLER_SUCCESS) {
+                // TODO: send "[name] ERR"
+
+                if (result == HANDLER_ENOMEM) {
+                    fprintf(stderr, MSG_NO_MEMORY);
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
     }
 
     return EXIT_SUCCESS;
@@ -73,6 +107,13 @@ void readOpts(int argc, char *argv[], char **word_file, char **port,
             exit(EXIT_FAILURE);
         }
     }
+}
+
+UDPCommandDescriptor *getUDPCommandDescriptor(UNUSED char *inBuf,
+                                              UNUSED size_t len,
+                                              UNUSED ServerState *state) {
+    // TODO: implement
+    return NULL;
 }
 
 char *translateNetworkInitError(int result) {

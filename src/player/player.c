@@ -96,6 +96,8 @@ void dispatch(char *line, PlayerState *state) {
         fprintf(stderr, "%s", translateHandlerError(result));
 
         if (result == HANDLER_ENOMEM) {
+            // no memory to dispatch an EXIT_COMMAND
+            destroyStateComponents(state);
             exit(EXIT_FAILURE);
         }
     }

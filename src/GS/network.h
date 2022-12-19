@@ -9,6 +9,8 @@
 #define TIMEOUT_SECS 5
 #define TIMEOUT_MICROSECS 0
 
+#define MAX_HOSTNAME_SIZE 64 + 1
+
 #define NINIT_SUCCESS 0
 #define NINIT_ENOMEM -1
 #define NINIT_UDP_EADDRINFO -2
@@ -19,5 +21,8 @@
 
 int initNetworkTimeout(struct timeval **timeout);
 int initNetworkUDP(ServerState *state);
+
+void logRequest(char *proto, struct sockaddr_in *playerAddr,
+                socklen_t playerAddrLen, ServerState *state);
 
 #endif // NETWORK_H

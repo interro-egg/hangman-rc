@@ -2,11 +2,13 @@
 #define GS_H
 
 #include "../common/common.h"
+#include "commands.h"
 #include "server_state.h"
 
 #define USAGE_FMT "Usage: %s word_file [-p GSport] [-v]\n"
 
 #define MSG_NO_MEMORY "No memory available.\n"
+#define MSG_UDP_ERCV "Error: Could not receive UDP message.\n"
 
 // Network init error messages
 #define MSG_NINIT_EUNKNOWN                                                     \
@@ -24,6 +26,8 @@
 
 void readOpts(int argc, char *argv[], char **word_file, char **port,
               bool *verbose);
+UDPCommandDescriptor *getUDPCommandDescriptor(char *inBuf, size_t len,
+                                              ServerState *state);
 char *translateNetworkInitError(int result);
 
 #endif // GS_H
