@@ -170,6 +170,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
     if (r <= 0) {
         errno = (int)r;
         cmd->requestDestroyer(parsed);
+        close(fd);
+        state->tcp_socket = -1;
         switch (errno) {
         case TCP_RCV_EINV:
             return HANDLER_EDESERIALIZE;
@@ -180,6 +182,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
     }
     if (strcmp(state->in_buffer, cmd->expectedResponse) != 0) {
         cmd->requestDestroyer(parsed);
+        close(fd);
+        state->tcp_socket = -1;
         return HANDLER_EDESERIALIZE;
     }
 
@@ -187,6 +191,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
     if (r <= 0) {
         errno = (int)r;
         cmd->requestDestroyer(parsed);
+        close(fd);
+        state->tcp_socket = -1;
         switch (errno) {
         case TCP_RCV_EINV:
             return HANDLER_EDESERIALIZE;
@@ -199,6 +205,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
     int status = parseEnum(cmd->statusEnumStrings, state->in_buffer);
     if (status == -1) {
         cmd->requestDestroyer(parsed);
+        close(fd);
+        state->tcp_socket = -1;
         return HANDLER_EDESERIALIZE;
     }
 
@@ -207,6 +215,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
         errno = 0;
         if ((file = readFileTCP(fd)) == NULL) {
             cmd->requestDestroyer(parsed);
+            close(fd);
+            state->tcp_socket = -1;
             switch (errno) {
             case TCP_RCV_ENOMEM:
                 return HANDLER_ENOMEM;
@@ -229,6 +239,9 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
             // this is a best-effort attempt
             destroyReceivedFile(file);
         }
+        cmd->requestDestroyer(parsed);
+        close(fd);
+        state->tcp_socket = -1;
         return timedOut ? HANDLER_ECOMMS_TIMEO : HANDLER_EDESERIALIZE;
     }
 
@@ -237,6 +250,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
     }
 
     cmd->requestDestroyer(parsed);
+    close(fd);
+    state->tcp_socket = -1;
     destroyReceivedFile(file);
     return HANDLER_SUCCESS;
 }
