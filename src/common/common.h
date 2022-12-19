@@ -16,5 +16,6 @@ void lowercase(char *str);
 int parseEnum(const char *strings[], char *toParse);
 int getAddrInfoSockType(char *host, char *port, struct addrinfo **addr,
                         int sockType, bool passive);
+int checkPLID(char *PLID);
 
 #endif // COMMON_H

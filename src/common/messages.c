@@ -2,6 +2,7 @@
 #include "common.h"
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 void destroySNGMessage(void *ptr) {
     SNGMessage *msg = (SNGMessage *)ptr;
@@ -30,6 +31,11 @@ void *deserializeSNGMessage(char *inBuffer) {
         destroySNGMessage(msg);
         return NULL;
     }
+    if (checkPLID(msg->PLID) != 0) {
+        destroySNGMessage(msg);
+        return NULL;
+    }
+
     return msg;
 }
 
@@ -81,6 +87,11 @@ void *deserializeRSGMessage(char *inBuffer) {
             destroyRSGMessage(msg);
             return NULL;
         }
+        //TODO: use defines
+        if (msg->n_letters == 0 || msg->n_letters > 30){
+            destroyRSGMessage(msg);
+            return NULL;
+        }
         break;
     case RSG_NOK:
     case RSG_ERR:
@@ -119,6 +130,11 @@ void *deserializePLGMessage(char *inBuffer) {
         destroyPLGMessage(msg);
         return NULL;
     }
+    if (checkPLID(msg->PLID) != 0) {
+        destroyPLGMessage(msg);
+        return NULL;
+    }
+    
     return msg;
 }
 
@@ -212,8 +228,12 @@ void *deserializeRLGMessage(char *inBuffer) {
 
         char *cur = strtok(inBuffer, " ");
         for (unsigned int i = 0; cur != NULL; i++) {
-            if (i > 3) {
+            if (i > 3) { // first 4 tokens are "RLG", "OK", trial and n
                 if (sscanf(cur, "%2u", &msg->pos[i - 4]) != 1) {
+                    destroyRLGMessage(msg);
+                    return NULL;
+                }
+                if (msg->pos[i - 4] == 0 || msg->pos[i - 4] > 30) {
                     destroyRLGMessage(msg);
                     return NULL;
                 }
@@ -274,6 +294,18 @@ void *deserializePWGMessage(char *inBuffer) {
         destroyPWGMessage(msg);
         return NULL;
     }
+    if (checkPLID(msg->PLID) != 0 || strlen(msg->word) < 3 ||
+        strlen(msg->word) > 30) {
+        destroyPWGMessage(msg);
+        return NULL;
+    }
+
+    for (unsigned int i = 0; i < strlen(msg->word); i++) {
+        if (!isalpha(msg->word[i])) {
+            destroyPWGMessage(msg);
+            return NULL;
+        }
+    }
     return msg;
 }
 
@@ -311,14 +343,12 @@ void *deserializeRWGMessage(char *inBuffer) {
     if (sscanf(inBuffer, "RWG %3s", statusStr) != 1) {
         destroyRWGMessage(msg);
         free(statusStr);
-        printf("Error scanning status\n");
         return NULL;
     }
     int status = parseEnum(RWGMessageStatusStrings, statusStr);
     if (status == -1) {
         destroyRWGMessage(msg);
         free(statusStr);
-        printf("Error parsing enum\n");
         return NULL;
     }
     msg->status = status;
@@ -338,7 +368,6 @@ void *deserializeRWGMessage(char *inBuffer) {
     default:
         if (strcmp(inBuffer, "RWG ERR\n") != 0) {
             destroyRWGMessage(msg);
-            printf("Error comparins strings\n");
             return NULL;
         }
         break;
@@ -370,6 +399,10 @@ void *deserializeQUTMessage(char *inBuffer) {
         return NULL;
     }
     if (sscanf(inBuffer, "QUT %6s\n", msg->PLID) != 1) {
+        destroyQUTMessage(msg);
+        return NULL;
+    }
+    if (checkPLID(msg->PLID) != 0) {
         destroyQUTMessage(msg);
         return NULL;
     }
@@ -435,6 +468,10 @@ void *deserializeREVMessage(char *inBuffer) {
         destroyREVMessage(msg);
         return NULL;
     }
+    if (checkPLID(msg->PLID) != 0) {
+        destroyREVMessage(msg);
+        return NULL;
+    }
     return msg;
 }
 
@@ -461,10 +498,6 @@ void *deserializeRRVMessage(char *inBuffer) {
     if (msg == NULL || statusStr == NULL) {
         return NULL;
     }
-    msg->word = malloc(31 * sizeof(char));
-    if (msg->word == NULL) {
-        return NULL;
-    }
     if (sscanf(inBuffer, "RRV %3s\n", statusStr) != 1) {
         destroyRRVMessage(msg);
         return NULL;
@@ -476,9 +509,23 @@ void *deserializeRRVMessage(char *inBuffer) {
         msg->status = status;
     } else {
         msg->type = RRV_WORD;
+        msg->word = malloc(31 * sizeof(char));
+        if (msg->word == NULL) {
+            return NULL;
+        }
         if (sscanf(inBuffer, "RRV %30s\n", msg->word) != 1) {
             destroyRRVMessage(msg);
             return NULL;
+        }
+        if (strlen(msg->word) < 3 || strlen(msg->word) > 30) {
+            destroyRRVMessage(msg);
+            return NULL;
+        }
+        for (size_t i = 0; i < strlen(msg->word); i++) {
+            if (!isalpha(msg->word[i])) {
+                destroyRRVMessage(msg);
+                return NULL;
+            }
         }
     }
     return msg;
@@ -527,6 +574,10 @@ void *deserializeGHLMessage(char *inBuffer) {
         destroyGHLMessage(msg);
         return NULL;
     }
+    if (checkPLID(msg->PLID) != 0) {
+        destroyGHLMessage(msg);
+        return NULL;
+    }
     return msg;
 }
 
@@ -554,7 +605,11 @@ void *deserializeSTAMessage(char *inBuffer) {
         destroySTAMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "STA %s\n", msg->PLID) != 1) {
+    if (sscanf(inBuffer, "STA %6s\n", msg->PLID) != 1) {
+        destroySTAMessage(msg);
+        return NULL;
+    }
+    if (checkPLID(msg->PLID) != 0) {
         destroySTAMessage(msg);
         return NULL;
     }
