@@ -2,9 +2,10 @@
 *.o
 /player
 /GS
-*.txt
-*.jpeg
-*.jpg
-*.png
-*.gif
-*.svg
+/*.txt
+/*.jpeg
+/*.jpg
+/*.png
+/*.gif
+/*.svg
+!word_eng.txt
