@@ -96,6 +96,7 @@ const size_t TCP_COMMANDS_COUNT = 3;
 
 int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
                      PlayerState *state) {
+    errno = 0;
     void *parsed = cmd->argsParser(args);
     if (parsed == NULL) {
         return (errno == ENOMEM) ? HANDLER_ENOMEM : HANDLER_EPARSE;
@@ -136,6 +137,7 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
 
 int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
                      PlayerState *state) {
+    errno = 0;
     void *parsed = cmd->argsParser(args);
     if (parsed == NULL) {
         return (errno == ENOMEM) ? HANDLER_ENOMEM : HANDLER_EPARSE;
@@ -218,6 +220,7 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
         }
     }
 
+    errno = 0;
     if (checkNewline(fd) != 0) {
         bool timedOut = errno == EINPROGRESS;
         if (file != NULL) {

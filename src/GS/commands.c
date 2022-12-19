@@ -50,11 +50,12 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, ServerState *state) {
         return HANDLER_EDESERIALIZE;
     }
 
+    errno = 0;
     void *resp = cmd->requestFulfiller(req, state);
     if (resp == NULL) {
-        bool nomem = errno == ENOMEM;
+        int r = errno == ENOMEM ? HANDLER_ENOMEM : HANDLER_EFULFILL;
         cmd->requestDestroyer(req);
-        return nomem ? HANDLER_ENOMEM : HANDLER_EFULFILL;
+        return r;
     }
 
     if (cmd->responseSerializer(resp, state->out_buffer) <= 0) {
@@ -73,6 +74,7 @@ void *fulfillSNGRequest(UNUSED void *req, UNUSED ServerState *state) {
     // SNGMessage *sng = (SNGMessage *)req;
     RSGMessage *rsg = (RSGMessage *)malloc(sizeof(RSGMessage));
     if (rsg == NULL) {
+        errno = ENOMEM;
         return NULL;
     }
     printf("UAU\n");

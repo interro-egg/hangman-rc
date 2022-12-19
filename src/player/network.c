@@ -106,6 +106,7 @@ int sendTCPMessage(PlayerState *state) {
 ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits) {
     size_t alreadyRead = 0;
     while (1) {
+        errno = 0;
         ssize_t n = read(fd, buf + alreadyRead, 1 * sizeof(char));
         if (n <= 0) {
             return (errno == EINPROGRESS) ? TCP_RCV_ETIMEO : TCP_RCV_EREAD;
