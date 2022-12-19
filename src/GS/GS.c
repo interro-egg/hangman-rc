@@ -1,8 +1,10 @@
 #include "GS.h"
+#include "commands.h"
 #include "network.h"
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 ServerState serverState = {NULL, GS_DEFAULT_PORT, false, NULL, NULL, NULL, NULL,
@@ -61,8 +63,8 @@ int main(int argc, char *argv[]) {
                 continue;
             }
 
-            UDPCommandDescriptor *descr = getUDPCommandDescriptor(
-                serverState.in_buffer, (size_t)n, &serverState);
+            const UDPCommandDescriptor *descr =
+                getUDPCommandDescriptor(serverState.in_buffer, &serverState);
             if (descr == NULL) {
                 // TODO: send "ERR"
                 continue;
@@ -109,10 +111,14 @@ void readOpts(int argc, char *argv[], char **word_file, char **port,
     }
 }
 
-UDPCommandDescriptor *getUDPCommandDescriptor(UNUSED char *inBuf,
-                                              UNUSED size_t len,
-                                              UNUSED ServerState *state) {
-    // TODO: implement
+const UDPCommandDescriptor *getUDPCommandDescriptor(UNUSED char *inBuf,
+                                                    UNUSED ServerState *state) {
+    // TODO: check if this breaks when inBuf size < COMMAND_NAME_SIZE
+    for (size_t i = 0; i < UDP_COMMANDS_COUNT; i++) {
+        if (strncmp(inBuf, UDP_COMMANDS[i].name, COMMAND_NAME_SIZE) == 0) {
+            return &(UDP_COMMANDS[i]);
+        }
+    }
     return NULL;
 }
 
