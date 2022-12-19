@@ -19,10 +19,10 @@
 #define NINIT_UDP_EREUSEADDR -5
 #define NINIT_UDP_EBIND -6
 
-int initNetworkTimeout(struct timeval **timeout);
+int initNetwork(ServerState *state);
 int initNetworkUDP(ServerState *state);
 
-void logRequest(char *proto, struct sockaddr_in *playerAddr,
-                socklen_t playerAddrLen, ServerState *state);
+int replyUDP(ServerState *state);
+void logRequest(char *proto, ServerState *state);
 
 #endif // NETWORK_H

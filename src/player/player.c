@@ -76,7 +76,7 @@ void dispatch(char *line, PlayerState *state) {
     int result = HANDLER_EUNKNOWN;
 
     if (sscanf(line, MAX_COMMAND_NAME_SIZE_FMT, cmd) != 1) {
-        printf(MSG_PARSE_ERROR);
+        fprintf(stderr, MSG_PARSE_ERROR);
     } else if ((descUDP = getCommandDescriptor(
                     cmd, (const void *)UDP_COMMANDS, UDP_COMMANDS_COUNT,
                     UDPCommandDescriptorsIndexer, getUDPCommandAliases,
@@ -88,7 +88,7 @@ void dispatch(char *line, PlayerState *state) {
                     getTCPCommandAliasesCount)) != NULL) {
         result = handleTCPCommand(descTCP, findArgs(line, cmd), state);
     } else {
-        printf(MSG_UNKNOWN_COMMAND);
+        fprintf(stderr, MSG_UNKNOWN_COMMAND);
         return;
     }
 

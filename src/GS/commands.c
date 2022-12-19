@@ -1,5 +1,6 @@
 #include "commands.h"
 #include "../common/common.h"
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -51,8 +52,9 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, ServerState *state) {
 
     void *resp = cmd->requestFulfiller(req, state);
     if (resp == NULL) {
+        bool nomem = errno == ENOMEM;
         cmd->requestDestroyer(req);
-        return HANDLER_EFULFILL;
+        return nomem ? HANDLER_ENOMEM : HANDLER_EFULFILL;
     }
 
     if (cmd->responseSerializer(resp, state->out_buffer) <= 0) {

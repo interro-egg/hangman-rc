@@ -17,6 +17,9 @@ typedef struct {
     struct addrinfo *addr;
     struct timeval *timeout;
     int socket;
+
+    struct sockaddr_in *player_addr;
+    socklen_t player_addr_len;
 } ServerState;
 
 void destroyStateComponents(ServerState *state);

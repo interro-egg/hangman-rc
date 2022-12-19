@@ -7,8 +7,8 @@
 #include <string.h>
 #include <unistd.h>
 
-ServerState serverState = {NULL, GS_DEFAULT_PORT, false, NULL, NULL, NULL, NULL,
-                           -1};
+ServerState serverState = {
+    NULL, GS_DEFAULT_PORT, false, NULL, NULL, NULL, NULL, -1, NULL, 0};
 
 int main(int argc, char *argv[]) {
     readOpts(argc, argv, &(serverState.word_file), &(serverState.port),
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     serverState.in_buffer = inBuf;
     serverState.out_buffer = outBuf;
 
-    int result = initNetworkTimeout(&(serverState.timeout));
+    int result = initNetwork(&serverState);
     if (result != NINIT_SUCCESS) {
         fprintf(stderr, "%s", translateNetworkInitError(result));
         exit(EXIT_FAILURE);
@@ -46,33 +46,40 @@ int main(int argc, char *argv[]) {
         }
 
         while (1) {
-            struct sockaddr_in playerAddr;
-            socklen_t playerAddrLen = sizeof(playerAddr);
-            ssize_t n = recvfrom(
-                serverState.socket, serverState.in_buffer, IN_BUFFER_SIZE, 0,
-                (struct sockaddr *)&playerAddr, &playerAddrLen);
+            ssize_t n = recvfrom(serverState.socket, serverState.in_buffer,
+                                 IN_BUFFER_SIZE, 0,
+                                 (struct sockaddr *)serverState.player_addr,
+                                 &serverState.player_addr_len);
             if (n <= 0) {
                 perror(MSG_UDP_ERCV);
                 continue;
             }
             serverState.in_buffer[n] = '\0';
 
-            logRequest("UDP", &playerAddr, playerAddrLen, &serverState);
+            logRequest("UDP", &serverState);
+
             if (serverState.in_buffer[n - 1] != '\n') {
-                // TODO: send "ERR"
+                if (sprintf(serverState.out_buffer, "ERR\n") > 0) {
+                    replyUDP(&serverState);
+                }
                 continue;
             }
 
             const UDPCommandDescriptor *descr =
                 getUDPCommandDescriptor(serverState.in_buffer, &serverState);
             if (descr == NULL) {
-                // TODO: send "ERR"
+                if (sprintf(serverState.out_buffer, "ERR\n") > 0) {
+                    replyUDP(&serverState);
+                }
                 continue;
             }
 
             result = handleUDPCommand(descr, &serverState);
             if (result != HANDLER_SUCCESS) {
-                // TODO: send "[name] ERR"
+                if (sprintf(serverState.out_buffer, "%s ERR\n", descr->name) >
+                    0) {
+                    replyUDP(&serverState);
+                }
 
                 if (result == HANDLER_ENOMEM) {
                     fprintf(stderr, MSG_NO_MEMORY);
@@ -113,7 +120,6 @@ void readOpts(int argc, char *argv[], char **word_file, char **port,
 
 const UDPCommandDescriptor *getUDPCommandDescriptor(UNUSED char *inBuf,
                                                     UNUSED ServerState *state) {
-    // TODO: check if this breaks when inBuf size < COMMAND_NAME_SIZE
     for (size_t i = 0; i < UDP_COMMANDS_COUNT; i++) {
         if (strncmp(inBuf, UDP_COMMANDS[i].name, COMMAND_NAME_SIZE) == 0) {
             return &(UDP_COMMANDS[i]);
