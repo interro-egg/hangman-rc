@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 ServerState serverState = {
     NULL, GS_DEFAULT_PORT, false, NULL, NULL, NULL, NULL, -1, NULL, 0};
@@ -129,9 +129,9 @@ void readOpts(int argc, char *argv[], char **word_file, char **port,
 }
 
 int ensureDirExists(const char *path) {
-    //check if directory exists
+    // check if directory exists
     if (access(path, R_OK || W_OK) == -1) {
-        //if not, create it
+        // if not, create it
         if (mkdir(path, 0755) == -1) {
             return -1;
         }
