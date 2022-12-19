@@ -6,6 +6,10 @@
 
 #define MESSAGE_COMMAND_SIZE 3
 
+typedef void (*MessageDestroyer)(void *ptr);
+typedef ssize_t (*MessageSerializer)(void *ptr, char *outBuffer);
+typedef void *(*MessageDeserializer)(char *inBuffer);
+
 // Start New Game
 
 typedef struct SNGMessage {

@@ -2,7 +2,9 @@
 #define COMMANDS_H
 
 #include "../common/common.h"
+#include "../common/messages.h"
 #include "network.h"
+#include "parsers.h"
 #include "player_state.h"
 #include <stdbool.h>
 #include <sys/types.h>
@@ -17,12 +19,7 @@
 #define HANDLER_ECOMMS_TIMEO -7
 #define HANDLER_EDESERIALIZE -8
 
-typedef void *(*CommandParser)(char *args);
 typedef int (*CommandPreHook)(void *parsed, PlayerState *state);
-typedef ssize_t (*CommandSerializer)(void *ptr, char *outBuffer);
-typedef void (*CommandDestroyer)(void *ptr);
-
-typedef void *(*UDPCommandDeserializer)(char *inBuffer);
 typedef void (*UDPCommandCallback)(void *req, void *resp, PlayerState *state);
 
 typedef void (*TCPCommandCallback)(void *req, int status, ReceivedFile *file,
@@ -33,10 +30,10 @@ typedef struct {
     size_t aliasesCount;
     CommandParser argsParser;
     CommandPreHook preHook;
-    CommandSerializer requestSerializer;
-    CommandDestroyer requestDestroyer;
-    UDPCommandDeserializer responseDeserializer;
-    CommandDestroyer responseDestroyer;
+    MessageSerializer requestSerializer;
+    MessageDestroyer requestDestroyer;
+    MessageDeserializer responseDeserializer;
+    MessageDestroyer responseDestroyer;
     UDPCommandCallback callback;
 } UDPCommandDescriptor;
 
@@ -45,8 +42,8 @@ typedef struct {
     size_t aliasesCount;
     CommandParser argsParser;
     CommandPreHook preHook;
-    CommandSerializer requestSerializer;
-    CommandDestroyer requestDestroyer;
+    MessageSerializer requestSerializer;
+    MessageDestroyer requestDestroyer;
     char *expectedResponse;
     const char **statusEnumStrings;
     size_t maxStatusEnumLen;
