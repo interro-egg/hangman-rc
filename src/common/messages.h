@@ -138,8 +138,10 @@ extern const char *RRVMessageStatusStrings[];
 
 typedef struct RRVMessage {
     enum RRVMessageType type;
-    char *word;
-    enum RRVMessageStatus status;
+    union {
+        char *word;
+        enum RRVMessageStatus status;
+    } data;
 } RRVMessage;
 
 void destroyRRVMessage(void *ptr);

@@ -1,8 +1,8 @@
 #include "messages.h"
 #include "common.h"
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 void destroySNGMessage(void *ptr) {
     SNGMessage *msg = (SNGMessage *)ptr;
@@ -87,8 +87,8 @@ void *deserializeRSGMessage(char *inBuffer) {
             destroyRSGMessage(msg);
             return NULL;
         }
-        //TODO: use defines
-        if (msg->n_letters == 0 || msg->n_letters > 30){
+        // TODO: use defines
+        if (msg->n_letters == 0 || msg->n_letters > 30) {
             destroyRSGMessage(msg);
             return NULL;
         }
@@ -134,7 +134,7 @@ void *deserializePLGMessage(char *inBuffer) {
         destroyPLGMessage(msg);
         return NULL;
     }
-    
+
     return msg;
 }
 
@@ -479,8 +479,9 @@ const char *RRVMessageStatusStrings[] = {"OK", "ERR", NULL};
 
 void destroyRRVMessage(void *ptr) {
     RRVMessage *msg = (RRVMessage *)ptr;
-    if (msg != NULL)
-        free(msg->word);
+    if (msg != NULL && msg->type == RRV_WORD) {
+        free(msg->data.word);
+    }
     free(msg);
 }
 
@@ -488,8 +489,8 @@ ssize_t serializeRRVMessage(void *ptr, char *outBuffer) {
     RRVMessage *msg = (RRVMessage *)ptr;
     return sprintf(outBuffer, "RRV %s\n",
                    msg->type == RRV_STATUS
-                       ? RRVMessageStatusStrings[msg->status]
-                       : msg->word);
+                       ? RRVMessageStatusStrings[msg->data.status]
+                       : msg->data.word);
 }
 
 void *deserializeRRVMessage(char *inBuffer) {
@@ -505,24 +506,23 @@ void *deserializeRRVMessage(char *inBuffer) {
     int status = parseEnum(RRVMessageStatusStrings, statusStr);
     if (status != -1) {
         msg->type = RRV_STATUS;
-        msg->word = NULL;
-        msg->status = status;
+        msg->data.status = status;
     } else {
         msg->type = RRV_WORD;
-        msg->word = malloc(31 * sizeof(char));
-        if (msg->word == NULL) {
+        msg->data.word = malloc(31 * sizeof(char));
+        if (msg->data.word == NULL) {
             return NULL;
         }
-        if (sscanf(inBuffer, "RRV %30s\n", msg->word) != 1) {
+        if (sscanf(inBuffer, "RRV %30s\n", msg->data.word) != 1) {
             destroyRRVMessage(msg);
             return NULL;
         }
-        if (strlen(msg->word) < 3 || strlen(msg->word) > 30) {
+        if (strlen(msg->data.word) < 3 || strlen(msg->data.word) > 30) {
             destroyRRVMessage(msg);
             return NULL;
         }
-        for (size_t i = 0; i < strlen(msg->word); i++) {
-            if (!isalpha(msg->word[i])) {
+        for (size_t i = 0; i < strlen(msg->data.word); i++) {
+            if (!isalpha(msg->data.word[i])) {
                 destroyRRVMessage(msg);
                 return NULL;
             }

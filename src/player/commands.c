@@ -447,15 +447,15 @@ void revealCallback(UNUSED void *req, void *resp, UNUSED PlayerState *state) {
     switch (rrv->type) {
     case RRV_WORD:
         printf("The word is: ");
-        for (size_t i = 0; i < strlen(rrv->word); i++) {
-            rrv->word[i] = (char)toupper(rrv->word[i]);
+        for (size_t i = 0; i < strlen(rrv->data.word); i++) {
+            rrv->data.word[i] = (char)toupper(rrv->data.word[i]);
         }
-        displayWord(rrv->word);
+        displayWord(rrv->data.word);
         putchar('\n');
         return;
     case RRV_STATUS:
     default:
-        switch (rrv->status) {
+        switch (rrv->data.status) {
         case RRV_OK:
             printf("This feature is not currently enabled.\n");
             return;
