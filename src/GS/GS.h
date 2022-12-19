@@ -26,6 +26,8 @@
 
 void readOpts(int argc, char *argv[], char **word_file, char **port,
               bool *verbose);
+
+int ensureDirExists(const char *path);
 const UDPCommandDescriptor *getUDPCommandDescriptor(char *inBuf,
                                               ServerState *state);
 char *translateNetworkInitError(int result);

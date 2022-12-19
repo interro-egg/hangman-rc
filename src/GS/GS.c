@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 ServerState serverState = {
     NULL, GS_DEFAULT_PORT, false, NULL, NULL, NULL, NULL, -1, NULL, 0};
@@ -16,6 +17,11 @@ int main(int argc, char *argv[]) {
 
     if (serverState.word_file == NULL) {
         fprintf(stderr, USAGE_FMT, argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    if (ensureDirExists("GAMES") != 0 || ensureDirExists("SCORES") != 0) {
+        fprintf(stderr, "Failed to access/create storage directories\n");
         exit(EXIT_FAILURE);
     }
 
@@ -103,6 +109,10 @@ void readOpts(int argc, char *argv[], char **word_file, char **port,
                 fprintf(stderr, USAGE_FMT, argv[0]);
                 exit(EXIT_FAILURE);
             }
+            if (access(optarg, R_OK) == -1) {
+                fprintf(stderr, "%s: Cannot read from file.\n", optarg);
+                exit(EXIT_FAILURE);
+            }
             *word_file = optarg;
             break;
         case 'p':
@@ -116,6 +126,17 @@ void readOpts(int argc, char *argv[], char **word_file, char **port,
             exit(EXIT_FAILURE);
         }
     }
+}
+
+int ensureDirExists(const char *path) {
+    //check if directory exists
+    if (access(path, R_OK || W_OK) == -1) {
+        //if not, create it
+        if (mkdir(path, 0755) == -1) {
+            return -1;
+        }
+    }
+    return 0;
 }
 
 const UDPCommandDescriptor *getUDPCommandDescriptor(UNUSED char *inBuf,
