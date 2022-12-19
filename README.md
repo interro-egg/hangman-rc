@@ -10,7 +10,7 @@ Run `make` to compile both the player and GS executables.
 ./GS word_file [-p GSport] [-v]
 ```
 
-- `word_file` - the name of the file containing a set of words that the GS can select from when a new game is started. Each line of the file should contain a word and a class to which the word belongs, separated by a single space. There's an example already in the root directory.
+- `word_file` - the name of the file containing a set of words that the GS can select from when a new game is started. Each line of the file should contain a word and the name of a file inside the `hints` directory which relates to the class to which the word belongs to, separated by a single space. There's an example already in the root directory.
 - `GSport` - the port where the game server is going to accept requests (UDP & TCP). Default value is 58043.
 - If the `-v` option is set, the program operates in verbose mode, outputing a short description of the requests received and the IP and port originating those requests.
 
