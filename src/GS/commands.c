@@ -111,8 +111,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, ServerState *state) {
         return HANDLER_EFILE_REQUIRED;
     }
 
-    if (sprintf(state->out_buffer, "%s %s%s", cmd->response,
-                cmd->statusEnumStrings[status], file != NULL ? " " : "") <= 0) {
+    if (sprintf(state->out_buffer, "%s %s", cmd->response,
+                cmd->statusEnumStrings[status]) <= 0) {
         return HANDLER_ESERIALIZE;
     }
 

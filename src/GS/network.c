@@ -92,6 +92,8 @@ int initNetworkTCP(ServerState *state) {
 }
 
 int replyUDP(ServerState *state) {
+    logTraffic(T_RESPONSE, "UDP", NULL, state);
+
     return sendto(state->socket, state->out_buffer, strlen(state->out_buffer),
                   0, (struct sockaddr *)state->player_addr,
                   state->player_addr_len) > 0
@@ -101,13 +103,15 @@ int replyUDP(ServerState *state) {
 
 // Sends state->out_buffer, followed by the file (if exists), followed by \n
 int replyTCP(ResponseFile *file, ServerState *state) {
+    logTraffic(T_RESPONSE, "TCP", file, state);
+
     if (writeToTCPSocket(state->socket, state->out_buffer,
                          strlen(state->out_buffer)) == -1) {
         return -1;
     }
 
     if (file != NULL) {
-        sprintf(state->out_buffer, "%s %lu ", file->name, file->size);
+        sprintf(state->out_buffer, " %s %lu ", file->name, file->size);
         if (writeToTCPSocket(state->socket, state->out_buffer,
                              strlen(state->out_buffer)) == -1 ||
             writeToTCPSocket(state->socket, file->data, file->size) == -1) {
@@ -151,7 +155,8 @@ ssize_t readTCPMessage(int socket, char *buf, size_t bufSize) {
     return -1;
 }
 
-void logRequest(char *proto, ServerState *state) {
+void logTraffic(enum TrafficType type, char *proto, ResponseFile *file,
+                ServerState *state) {
     if (!state->verbose) {
         return;
     }
@@ -168,6 +173,11 @@ void logRequest(char *proto, ServerState *state) {
                     NI_NAMEREQD) == 0) {
         snprintf(playerHostname, MAX_HOSTNAME_SIZE + 3, "(%s) ", host);
     }
-    printf("[RCV] [%s] [%s%s:%d]: %s\n", proto, playerHostname, playerIpAddr,
-           ntohs(state->player_addr->sin_port), state->in_buffer);
+    printf("[%s] [%s] [%s%s:%d]: %s", type == T_REQUEST ? "RCV" : "SND", proto,
+           playerHostname, playerIpAddr, ntohs(state->player_addr->sin_port),
+           type == T_REQUEST ? state->in_buffer : state->out_buffer);
+
+    if (type == T_RESPONSE && strcmp(proto, "TCP") == 0 && file != NULL) {
+        printf(" %s %lu <data>\n", file->name, file->size);
+    }
 }

@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
             }
             serverState.in_buffer[n] = '\0';
 
-            logRequest("UDP", &serverState);
+            logTraffic(T_REQUEST, "UDP", NULL, &serverState);
 
             if (serverState.in_buffer[n - 1] != '\n') {
                 if (sprintf(serverState.out_buffer, "ERR\n") > 0) {
@@ -166,6 +166,8 @@ int main(int argc, char *argv[]) {
                     destroyStateComponents(&serverState);
                     exit(EXIT_FAILURE);
                 }
+
+                logTraffic(T_REQUEST, "TCP", NULL, &serverState);
 
                 const TCPCommandDescriptor *descr =
                     getTCPCommandDescriptor(serverState.in_buffer);

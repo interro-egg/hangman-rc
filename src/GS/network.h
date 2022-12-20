@@ -38,6 +38,9 @@ int replyTCP(ResponseFile *file, ServerState *state);
 int writeToTCPSocket(int socket, char *buf, size_t toWrite);
 ssize_t readTCPMessage(int socket, char *buf, size_t bufSize);
 
-void logRequest(char *proto, ServerState *state);
+enum TrafficType { T_REQUEST, T_RESPONSE };
+
+void logTraffic(enum TrafficType type, char *proto, ResponseFile *file,
+                ServerState *state);
 
 #endif // NETWORK_H
