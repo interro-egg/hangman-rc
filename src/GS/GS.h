@@ -5,7 +5,6 @@
 #include "commands.h"
 #include "server_state.h"
 
-#define UMASK 0022
 #define RAND_SEED ((unsigned int)time(NULL))
 
 #define USAGE_FMT "Usage: %s word_file [-p GSport] [-v]\n"
@@ -40,7 +39,6 @@
 void readOpts(int argc, char *argv[], char **word_file, char **port,
               bool *verbose);
 
-int ensureDirExists(const char *path);
 const UDPCommandDescriptor *getUDPCommandDescriptor(char *inBuf);
 const TCPCommandDescriptor *getTCPCommandDescriptor(char *inBuf);
 

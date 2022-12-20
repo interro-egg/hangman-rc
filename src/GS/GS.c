@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -29,7 +28,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if (ensureDirExists("GAMES") != 0 || ensureDirExists("SCORES") != 0) {
+    if (initPersistence() != 0) {
         fprintf(stderr, "Failed to access/create storage directories\n");
         destroyStateComponents(&serverState);
         exit(EXIT_FAILURE);
@@ -48,7 +47,6 @@ int main(int argc, char *argv[]) {
     }
 
     srand(RAND_SEED);
-    umask(UMASK);
     serverState.word_list = parseWordListFile(serverState.word_file);
     if (serverState.word_list == NULL) {
         fprintf(stderr, "Failed to parse word list from file %s\n",
@@ -232,17 +230,6 @@ void readOpts(int argc, char *argv[], char **word_file, char **port,
             exit(EXIT_FAILURE);
         }
     }
-}
-
-int ensureDirExists(const char *path) {
-    // check if directory exists
-    if (access(path, R_OK || W_OK) == -1) {
-        // if not, create it
-        if (mkdir(path, 0755) == -1) {
-            return -1;
-        }
-    }
-    return 0;
 }
 
 const UDPCommandDescriptor *getUDPCommandDescriptor(char *inBuf) {

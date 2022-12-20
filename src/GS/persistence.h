@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#define UMASK 0022
+
 #define GAMES_DIR "GAMES"
 #define SCORES_DIR "SCORES"
 #define MAX_FILE_PATH_SIZE 37 + 1
@@ -55,6 +57,8 @@ typedef struct {
     unsigned int remainingLetters;
 } Game;
 
+int initPersistence();
+
 void destroyWordListEntry(WordListEntry *entry);
 
 WordListEntry *createWordListEntry(char *word, char *hintFile);
@@ -77,5 +81,6 @@ Game *loadGame(char *PLID, bool ongoingOnly);
 int registerGameTrial(Game *game, GameTrial *trial);
 
 FILE *findGameFileForPlayer(char *PLID, bool ongoingOnly);
+int ensureDirExists(const char *path);
 
 #endif // PERSISTENCE_H

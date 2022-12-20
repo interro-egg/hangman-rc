@@ -5,7 +5,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/file.h>
+#include <sys/stat.h>
 #include <unistd.h>
+
+int initPersistence() {
+    if (ensureDirExists("GAMES") != 0 || ensureDirExists("SCORES") != 0) {
+        return -1;
+    }
+    umask(UMASK);
+    return 0;
+}
 
 Game *newGame(char *PLID, ServerState *state) {
     Game *game = malloc(sizeof(Game));
@@ -90,7 +99,7 @@ WordListEntry *chooseSequentialWordListEntry(WordList *list, size_t *seqPtr) {
         return NULL;
     }
     *seqPtr = (*seqPtr) % list->numEntries;
-    return list->entries[(*seqPtr)++]; //🤯
+    return list->entries[(*seqPtr)++]; // 🤯
 }
 
 WordListEntry *createWordListEntry(char *word, char *hintFile) {
@@ -306,4 +315,15 @@ char *computeGameFilePath(char *PLID, bool ongoing) {
              ongoing ? "%s/%s.txt" : "%s/%s_last.txt", GAMES_DIR, PLID);
 
     return filePath;
+}
+
+int ensureDirExists(const char *path) {
+    // check if directory exists
+    if (access(path, R_OK || W_OK) == -1) {
+        // if not, create it
+        if (mkdir(path, 0755) == -1) {
+            return -1;
+        }
+    }
+    return 0;
 }
