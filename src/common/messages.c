@@ -164,34 +164,29 @@ ssize_t serializeRLGMessage(void *ptr, char *outBuffer) {
             }
             cur += r;
         }
-
-        if (sprintf(outBuffer, "RLG %s %u %u %s\n",
+        int w = sprintf(outBuffer, "RLG %s %u %u%s\n",
                     RLGMessageStatusStrings[msg->status], msg->trial, msg->n,
-                    posBuf) < 0) {
+                    posBuf);
+        if (w < 0) {
             free(posBuf);
             return -1;
         }
-        break;
+        return w;
     case RLG_WIN:
     case RLG_DUP:
     case RLG_NOK:
     case RLG_OVR:
     case RLG_INV:
-        if (sprintf(outBuffer, "RLG %s %u\n",
-                    RLGMessageStatusStrings[msg->status], msg->trial) < 0) {
             free(posBuf);
-            return -1;
-        }
-        break;
+        return sprintf(outBuffer, "RLG %s %u\n",
+                    RLGMessageStatusStrings[msg->status], msg->trial);
+
     case RLG_ERR:
     default:
-        if (sprintf(outBuffer, "RLG ERR\n") < 0) {
             free(posBuf);
-            return -1;
-        }
-        break;
+        return sprintf(outBuffer, "RLG ERR\n");
+
     }
-    return 0;
 }
 
 void *deserializeRLGMessage(char *inBuffer) {
