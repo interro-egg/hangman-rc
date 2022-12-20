@@ -167,8 +167,8 @@ ssize_t serializeRLGMessage(void *ptr, char *outBuffer) {
         int w = sprintf(outBuffer, "RLG %s %u %u%s\n",
                     RLGMessageStatusStrings[msg->status], msg->trial, msg->n,
                     posBuf);
+        free(posBuf);
         if (w < 0) {
-            free(posBuf);
             return -1;
         }
         return w;
