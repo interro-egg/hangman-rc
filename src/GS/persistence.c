@@ -160,7 +160,7 @@ int registerGameTrial(Game *game, GameTrial *trial) {
     return 0;
 }
 
-int saveGame(Game *game, UNUSED ServerState *state) {
+int saveGame(Game *game) {
     if (game == NULL) {
         return -1;
     }

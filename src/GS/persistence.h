@@ -72,7 +72,7 @@ Game *newGame(char *PLID, ServerState *state);
 void destroyGame(Game *game);
 
 char *computeGameFilePath(char *PLID, bool ongoing);
-int saveGame(Game *game, ServerState *state);
+int saveGame(Game *game);
 Game *loadGame(char *PLID, bool ongoingOnly);
 int registerGameTrial(Game *game, GameTrial *trial);
 
