@@ -52,7 +52,7 @@ void destroyWordList(WordList *list) {
         return;
     }
     for (size_t i = 0; i < list->numEntries; i++) {
-        destroyWordListEntry(&list->entries[i]);
+        destroyWordListEntry(list->entries[i]);
     }
     free(list);
 }
@@ -81,24 +81,29 @@ WordListEntry *chooseRandomWordListEntry(WordList *list) {
         return NULL;
     }
     size_t index = (size_t)rand() % list->numEntries;
-    return &list->entries[index];
+    return list->entries[index];
 }
 
 WordListEntry *chooseSequentialWordListEntry(WordList *list, size_t *seqPtr) {
     if (list == NULL || list->numEntries == 0) {
         return NULL;
     }
-    *seqPtr = (*seqPtr + 1) % list->numEntries;
-    return &list->entries[*seqPtr];
+    *seqPtr = (*seqPtr) % list->numEntries;
+    return list->entries[(*seqPtr)++]; //🤯
 }
 
 WordListEntry *createWordListEntry(char *word, char *hintFile) {
     WordListEntry *entry = malloc(sizeof(WordListEntry));
-    if (entry == NULL) {
+    if (entry == NULL || word == NULL || hintFile == NULL) {
         return NULL;
     }
-    entry->word = word;
-    entry->hintFile = hintFile;
+    entry->word = strdup(word);
+    entry->hintFile = strdup(hintFile);
+    if (entry->word == NULL || entry->hintFile == NULL) {
+        free(entry->word);
+        free(entry->hintFile);
+        return NULL;
+    }
     return entry;
 }
 
@@ -134,7 +139,7 @@ WordList *parseWordListFile(char *wordFile) {
         if (list->entries == NULL) {
             return NULL;
         }
-        list->entries[list->numEntries - 1] = *entry;
+        list->entries[list->numEntries - 1] = entry;
     }
     free(line);
     fclose(file);
@@ -187,11 +192,11 @@ int saveGame(Game *game, UNUSED ServerState *state) {
     return 0;
 }
 
-Game *loadGame(char *PLID) {
+Game *loadGame(char *PLID, bool ongoingOnly) {
     if (PLID == NULL) {
         return NULL;
     }
-    FILE *file = findGameFileForPlayer(PLID);
+    FILE *file = findGameFileForPlayer(PLID, ongoingOnly);
     if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
         return NULL;
     }
@@ -258,7 +263,7 @@ unsigned long getScore(Game *game) {
 }
 
 // Either ongoing or last game
-FILE *findGameFileForPlayer(char *PLID) {
+FILE *findGameFileForPlayer(char *PLID, bool ongoingOnly) {
     if (PLID == NULL) {
         return NULL;
     }
@@ -268,7 +273,7 @@ FILE *findGameFileForPlayer(char *PLID) {
     }
     FILE *file = fopen(filePath, "r");
     if (file == NULL) {
-        if (errno != ENOENT) {
+        if (errno != ENOENT || ongoingOnly) {
             free(filePath);
             return NULL;
         }

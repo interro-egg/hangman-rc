@@ -1,8 +1,10 @@
 #include "commands.h"
 #include "../common/common.h"
+#include "persistence.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 const UDPCommandDescriptor SNGCmd = {"SNG",
                                      deserializeSNGMessage,
@@ -65,20 +67,70 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, ServerState *state) {
     }
 
     // TODO: Send response
-    printf("Response: %s\n", state->out_buffer);
 
     return HANDLER_SUCCESS;
 }
 
-void *fulfillSNGRequest(UNUSED void *req, UNUSED ServerState *state) {
-    // SNGMessage *sng = (SNGMessage *)req;
+void *fulfillSNGRequest(void *req, ServerState *state) {
+    SNGMessage *sng = (SNGMessage *)req;
     RSGMessage *rsg = (RSGMessage *)malloc(sizeof(RSGMessage));
     if (rsg == NULL) {
         errno = ENOMEM;
         return NULL;
     }
-    printf("UAU\n");
-    rsg->status = RSG_NOK;
-
+    Game *game = loadGame(sng->PLID, true);
+    if (game != NULL && game->numTrials != 0){
+        rsg->status = RSG_NOK;
+        rsg->n_letters = 0;
+        rsg->max_errors = 0;
+        return rsg;
+    }
+    if (game == NULL) {
+        game = newGame(sng->PLID, state);
+        if (game == NULL) {
+            return NULL;
+        }
+        if (saveGame(game, state) != 0) {
+            return NULL;
+        }
+    }
+    rsg->status = RSG_OK;
+    rsg->n_letters = (unsigned int)strlen(game->wordListEntry->word);
+    rsg->max_errors = game->maxErrors;
     return rsg;
 }
+
+// void *fulfillPLGRequest(UNUSED void *req, UNUSED ServerState *state) {
+//     PLGMessage *plg = (PLGMessage *)req;
+//     RLGMessage *rlg = (RLGMessage *)malloc(sizeof(RLGMessage));
+//     if (rlg == NULL) {
+//         errno = ENOMEM;
+//         return NULL;
+//     }
+//     Game *game = loadGame(plg->PLID, false);
+//     if (game == NULL) {
+//         rlg->status = RLG_NOK;
+//         return rlg;
+//     }
+//     if (game->numTrials == 0) {
+//         rlg->status = RLG_OVR;
+//         return rlg;
+//     }
+//     if (plg->trial != game->numTrials) {
+//         rlg->status = RLG_INV;
+//         return rlg;
+//     }
+//     if (game->numErrors >= game->maxErrors) {
+//         rlg->status = RLG_OVR;
+//         return rlg;
+//     }
+//     if (game->wordListEntry->word[plg->trial] == plg->letter) {
+//         rlg->status = RLG_WIN;
+//         return rlg;
+//     }
+//     if (game->wordListEntry->word[plg->trial] != plg->letter) {
+//         rlg->status = RLG_NOK;
+//         return rlg;
+//     }
+//     return rlg;
+// }

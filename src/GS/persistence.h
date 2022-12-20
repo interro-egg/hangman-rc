@@ -19,7 +19,7 @@ typedef struct {
 
 typedef struct WordList {
     size_t numEntries;
-    WordListEntry *entries;
+    WordListEntry **entries;
 } WordList;
 
 enum GameOutcome {
@@ -72,9 +72,9 @@ void destroyGame(Game *game);
 
 char *computeGameFilePath(char *PLID, bool ongoing);
 int saveGame(Game *game, ServerState *state);
-Game *loadGame(char *PLID);
+Game *loadGame(char *PLID, bool ongoingOnly);
 int registerGameTrial(Game *game, GameTrial *trial);
 
-FILE *findGameFileForPlayer(char *PLID);
+FILE *findGameFileForPlayer(char *PLID, bool ongoingOnly);
 
 #endif // PERSISTENCE_H
