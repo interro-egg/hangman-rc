@@ -170,8 +170,12 @@ int saveGame(Game *game, UNUSED ServerState *state) {
     fprintf(file, "%c %s %s\n", game->outcome, game->wordListEntry->word,
             game->wordListEntry->hintFile);
     for (size_t i = 0; i < game->numTrials; i++) {
-        // FIXME: see if type is letter or word
-        fprintf(file, "%c %s\n", game->trials[i].type, game->trials[i].guess);
+        if (game->trials[i].type == TRIAL_TYPE_LETTER) {
+            fprintf(file, "%c %c\n", game->trials[i].type,
+                    game->trials[i].guess.letter);
+        } else if (game->trials[i].type == TRIAL_TYPE_WORD){
+        fprintf(file, "%c %s\n", game->trials[i].type, game->trials[i].guess.word);
+        }
     }
     fclose(file);
     return 0;
@@ -188,20 +192,21 @@ Game *loadGame(char *PLID) {
 
     Game *game = malloc(sizeof(Game));
     if (game == NULL) {
-        close(file);
+        fclose(file);
         return NULL;
     }
 
-    char *word, *hintFile;
-    if (fscanf(file, "%c %s %s", &game->outcome, word, hintFile) != 3) {
+    char *word = NULL;
+    char *hintFile = NULL;
+    if (fscanf(file, "%c %s %s", (char *)&game->outcome, word, hintFile) != 3) {
         free(game);
-        close(file);
+        fclose(file);
         return NULL;
     }
     game->wordListEntry = createWordListEntry(word, hintFile);
     if (game->wordListEntry == NULL) {
         free(game);
-        close(file);
+        fclose(file);
         return NULL;
     }
     game->numTrials = 0;
@@ -215,7 +220,7 @@ Game *loadGame(char *PLID) {
     }
 
     free(line);
-    close(file);
+    fclose(file);
     return game;
 }
 
