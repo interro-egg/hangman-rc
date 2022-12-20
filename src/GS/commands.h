@@ -45,4 +45,6 @@ extern const size_t TCP_COMMANDS_COUNT;
 int handleUDPCommand(const UDPCommandDescriptor *cmd, ServerState *state);
 
 void *fulfillSNGRequest(void *req, ServerState *state);
+void *fulfillPLGRequest(void *req, ServerState *state);
+
 #endif // COMMANDS_H

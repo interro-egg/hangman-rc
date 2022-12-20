@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
             }
 
             const UDPCommandDescriptor *descr =
-                getUDPCommandDescriptor(serverState.in_buffer, &serverState);
+                getUDPCommandDescriptor(serverState.in_buffer);
             if (descr == NULL) {
                 if (sprintf(serverState.out_buffer, "ERR\n") > 0) {
                     replyUDP(&serverState);
@@ -155,13 +155,13 @@ int ensureDirExists(const char *path) {
     return 0;
 }
 
-const UDPCommandDescriptor *getUDPCommandDescriptor(UNUSED char *inBuf,
-                                                    UNUSED ServerState *state) {
+const UDPCommandDescriptor *getUDPCommandDescriptor(char *inBuf) {
     for (size_t i = 0; i < UDP_COMMANDS_COUNT; i++) {
         if (strncmp(inBuf, UDP_COMMANDS[i].name, COMMAND_NAME_SIZE) == 0) {
             return &(UDP_COMMANDS[i]);
         }
     }
+    printf("Unknown command: %s", inBuf);
     return NULL;
 }
 
