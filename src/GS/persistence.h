@@ -2,10 +2,18 @@
 #define PERSISTENCE_H
 
 #include "server_state.h"
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 
+typedef struct {
+    char *word;
+    char *hintFile;
+} WordListEntry;
 
+typedef struct WordList {
+    size_t numEntries;
+    WordListEntry *entries;
+} WordList;
 
 enum GameOutcome {
     OUTCOME_ONGOING = '-',
