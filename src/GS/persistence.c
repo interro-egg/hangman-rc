@@ -22,6 +22,7 @@ Game *newGame(char *PLID, ServerState *state) {
     game->trials = NULL;
     game->numSucc = 0;
     game->maxErrors = calculateMaxErrors(game->wordListEntry->word);
+    game->remainingLetters = (unsigned int)strlen(game->wordListEntry->word);
     return game;
 }
 
@@ -33,7 +34,7 @@ void destroyGame(Game *game) {
     free(game->finishStamp);
     destroyWordListEntry(game->wordListEntry);
     for (size_t i = 0; i < game->numTrials; i++) {
-        destroyGameTrial(&game->trials[i]);
+        destroyGameTrial(game->trials[i]);
     }
     free(game);
 }
@@ -155,7 +156,7 @@ int registerGameTrial(Game *game, GameTrial *trial) {
     if (game->trials == NULL) {
         return -1;
     }
-    game->trials[game->numTrials - 1] = *trial;
+    game->trials[game->numTrials - 1] = trial;
     return 0;
 }
 
@@ -172,19 +173,19 @@ int saveGame(Game *game, UNUSED ServerState *state) {
     if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
         return -1;
     }
-    if (fprintf(file, "%s %s\n%c %lu %d\n", game->wordListEntry->word,
+    if (fprintf(file, "%s %s\n%c %u %d %u\n", game->wordListEntry->word,
                 game->wordListEntry->hintFile, game->outcome, game->numSucc,
-                game->maxErrors) <= 0) {
+                game->maxErrors, game->remainingLetters) <= 0) {
         fclose(file);
         return -1;
     }
     for (size_t i = 0; i < game->numTrials; i++) {
-        if (game->trials[i].type == TRIAL_TYPE_LETTER) {
-            fprintf(file, "%c %c\n", game->trials[i].type,
-                    game->trials[i].guess.letter);
-        } else if (game->trials[i].type == TRIAL_TYPE_WORD) {
-            fprintf(file, "%c %s\n", game->trials[i].type,
-                    game->trials[i].guess.word);
+        if (game->trials[i]->type == TRIAL_TYPE_LETTER) {
+            fprintf(file, "%c %c\n", game->trials[i]->type,
+                    game->trials[i]->guess.letter);
+        } else if (game->trials[i]->type == TRIAL_TYPE_WORD) {
+            fprintf(file, "%c %s\n", game->trials[i]->type,
+                    game->trials[i]->guess.word);
         }
     }
     fclose(file);
@@ -208,8 +209,8 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
 
     char *word = NULL;
     char *hintFile = NULL;
-    if (fscanf(file, "%ms %ms\n%c %lu %d\n", &word, &hintFile,
-               (char *)&game->outcome, &game->numSucc, &game->maxErrors) != 5) {
+    if (fscanf(file, "%ms %ms\n%c %u %d %u\n", &word, &hintFile,
+               (char *)&game->outcome, &game->numSucc, &game->maxErrors, &game->remainingLetters) != 6) {
         free(game);
         fclose(file);
         return NULL;

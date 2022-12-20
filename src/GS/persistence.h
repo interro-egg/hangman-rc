@@ -48,10 +48,11 @@ typedef struct {
     enum GameOutcome outcome;
     char *finishStamp;
     WordListEntry *wordListEntry;
-    size_t numTrials;
-    GameTrial *trials;
-    size_t numSucc; // number of successful trials
+    unsigned int numTrials;
+    GameTrial **trials;
+    unsigned int numSucc; // number of successful trials
     unsigned int maxErrors;
+    unsigned int remainingLetters;
 } Game;
 
 void destroyWordListEntry(WordListEntry *entry);
