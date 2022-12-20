@@ -3,6 +3,7 @@
 #include "network.h"
 #include "persistence.h"
 #include <getopt.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,6 +52,9 @@ int main(int argc, char *argv[]) {
                 serverState.word_file);
         exit(EXIT_FAILURE);
     }
+
+    // explicitly ignore SIGCHLD to avoid zombies
+    signal(SIGCHLD, SIG_IGN);
 
     pid_t pid = fork();
 
