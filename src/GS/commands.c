@@ -12,7 +12,8 @@ const UDPCommandDescriptor SNGCmd = {"SNG",
                                      destroySNGMessage,
                                      fulfillSNGRequest,
                                      serializeRSGMessage,
-                                     destroyRSGMessage};
+                                     destroyRSGMessage,
+                                     "RSG"};
 
 /*
 const UDPCommandDescriptor PLGCmd = {"PLG",

@@ -111,8 +111,8 @@ int main(int argc, char *argv[]) {
 
             result = handleUDPCommand(descr, &serverState);
             if (result != HANDLER_SUCCESS) {
-                if (sprintf(serverState.out_buffer, "%s ERR\n", descr->name) >
-                    0) {
+                if (sprintf(serverState.out_buffer, "%s ERR\n",
+                            descr->response) > 0) {
                     replyUDP(&serverState);
                 }
 
@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
                 result = handleTCPCommand(descr, &serverState);
                 if (result != HANDLER_SUCCESS) {
                     if (sprintf(serverState.out_buffer, "%s ERR\n",
-                                descr->name) > 0) {
+                                descr->response) > 0) {
                         replyTCP(NULL, &serverState);
                     }
 

@@ -33,6 +33,7 @@ typedef struct {
     UDPRequestFulfiller requestFulfiller;
     MessageSerializer responseSerializer;
     MessageDestroyer responseDestroyer;
+    char *response;
 } UDPCommandDescriptor;
 
 typedef struct {
