@@ -10,7 +10,8 @@
 #include <unistd.h>
 
 ServerState serverState = {
-    NULL, GS_DEFAULT_PORT, false, NULL, NULL, NULL, NULL, -1, NULL, 0, NULL, false};
+    NULL, GS_DEFAULT_PORT, false, NULL, NULL, NULL, NULL, -1, NULL, 0, NULL,
+    false};
 
 int main(int argc, char *argv[]) {
     readOpts(argc, argv, &(serverState.word_file), &(serverState.port),
@@ -43,7 +44,7 @@ int main(int argc, char *argv[]) {
                 serverState.word_file);
         exit(EXIT_FAILURE);
     }
-    
+
     pid_t pid = fork();
 
     if (pid == -1) {

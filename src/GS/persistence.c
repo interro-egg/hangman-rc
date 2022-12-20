@@ -1,8 +1,8 @@
 #include "persistence.h"
 #include "../common/common.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 Game *newGame(char *PLID, ServerState *state) {
     Game *game = malloc(sizeof(Game));
@@ -131,7 +131,8 @@ WordList *generateWordList(char *wordFile) {
             return NULL;
         }
         list->numEntries++;
-        list->entries = realloc(list->entries, sizeof(WordListEntry) * list->numEntries);
+        list->entries =
+            realloc(list->entries, sizeof(WordListEntry) * list->numEntries);
         if (list->entries == NULL) {
             return NULL;
         }
@@ -155,7 +156,7 @@ int registerGameTrial(Game *game, GameTrial *trial) {
     return 0;
 }
 
-int saveGame(Game *game, UNUSED ServerState *state){
+int saveGame(Game *game, UNUSED ServerState *state) {
     if (game == NULL) {
         return -1;
     }
@@ -171,6 +172,4 @@ int saveGame(Game *game, UNUSED ServerState *state){
     return 0;
 }
 
-char *computeGameFilePath(UNUSED Game *game) {
-    return NULL;
-}
+char *computeGameFilePath(UNUSED Game *game) { return NULL; }
