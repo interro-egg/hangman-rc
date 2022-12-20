@@ -79,7 +79,7 @@ void *fulfillSNGRequest(void *req, ServerState *state) {
         return NULL;
     }
     Game *game = loadGame(sng->PLID, true);
-    if (game != NULL && game->numTrials != 0){
+    if (game != NULL && game->numTrials != 0) {
         rsg->status = RSG_NOK;
         rsg->n_letters = 0;
         rsg->max_errors = 0;

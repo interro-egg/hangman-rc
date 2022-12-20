@@ -125,7 +125,6 @@ WordList *parseWordListFile(char *wordFile) {
     while ((read = getline(&line, &len, file)) != -1) {
         char *word = strtok(line, " \n");
         char *hintFile = strtok(NULL, " \n");
-        printf("word: [%s], hintFile: [%s]\n", word, hintFile);
         if (word == NULL || hintFile == NULL) {
             return NULL;
         }
