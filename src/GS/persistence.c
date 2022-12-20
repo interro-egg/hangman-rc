@@ -173,8 +173,9 @@ int saveGame(Game *game, UNUSED ServerState *state) {
         if (game->trials[i].type == TRIAL_TYPE_LETTER) {
             fprintf(file, "%c %c\n", game->trials[i].type,
                     game->trials[i].guess.letter);
-        } else if (game->trials[i].type == TRIAL_TYPE_WORD){
-        fprintf(file, "%c %s\n", game->trials[i].type, game->trials[i].guess.word);
+        } else if (game->trials[i].type == TRIAL_TYPE_WORD) {
+            fprintf(file, "%c %s\n", game->trials[i].type,
+                    game->trials[i].guess.word);
         }
     }
     fclose(file);
@@ -217,7 +218,7 @@ Game *loadGame(char *PLID) {
     ssize_t read;
     char type;
     char *guess = malloc(sizeof(char) * MAX_GUESS_SIZE);
-    //ignore first line of file
+    // ignore first line of file
     while ((read = getline(&line, &len, file)) != -1) {
         if (sscanf(line, "%c %s", &type, guess) != 2) {
             free(game);
