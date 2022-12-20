@@ -12,7 +12,6 @@ Game *newGame(char *PLID, ServerState *state) {
     if (game == NULL) {
         return NULL;
     }
-    game->__curFilePath = NULL;
     game->PLID = PLID;
     game->outcome = OUTCOME_ONGOING;
     game->finishStamp = NULL;
@@ -21,6 +20,8 @@ Game *newGame(char *PLID, ServerState *state) {
     }
     game->numTrials = 0;
     game->trials = NULL;
+    game->numSucc = 0;
+    game->maxErrors = calculateMaxErrors(game->wordListEntry->word);
     return game;
 }
 
@@ -28,7 +29,6 @@ void destroyGame(Game *game) {
     if (game == NULL) {
         return;
     }
-    free(game->__curFilePath);
     free(game->PLID);
     free(game->finishStamp);
     destroyWordListEntry(game->wordListEntry);
@@ -167,8 +167,12 @@ int saveGame(Game *game, UNUSED ServerState *state) {
     if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
         return -1;
     }
-    fprintf(file, "%c %s %s\n", game->outcome, game->wordListEntry->word,
-            game->wordListEntry->hintFile);
+    if (fprintf(file, "%s %s\n%c %lu %d\n", game->wordListEntry->word,
+                game->wordListEntry->hintFile, game->outcome, game->numSucc,
+                game->maxErrors) <= 0) {
+        fclose(file);
+        return -1;
+    }
     for (size_t i = 0; i < game->numTrials; i++) {
         if (game->trials[i].type == TRIAL_TYPE_LETTER) {
             fprintf(file, "%c %c\n", game->trials[i].type,
@@ -199,7 +203,8 @@ Game *loadGame(char *PLID) {
 
     char *word = NULL;
     char *hintFile = NULL;
-    if (fscanf(file, "%c %s %s", (char *)&game->outcome, word, hintFile) != 3) {
+    if (fscanf(file, "%s %s\n%c %lu %d\n", word, hintFile,
+               (char *)&game->outcome, &game->numSucc, &game->maxErrors) != 3) {
         free(game);
         fclose(file);
         return NULL;
@@ -218,9 +223,8 @@ Game *loadGame(char *PLID) {
     ssize_t read;
     char type;
     char *guess = malloc(sizeof(char) * MAX_GUESS_SIZE);
-    // ignore first line of file
     while ((read = getline(&line, &len, file)) != -1) {
-        if (sscanf(line, "%c %s", &type, guess) != 2) {
+        if (sscanf(line, "%c %s\n", &type, guess) != 2) {
             free(game);
             fclose(file);
             return NULL;
@@ -242,6 +246,14 @@ Game *loadGame(char *PLID) {
     free(line);
     fclose(file);
     return game;
+}
+
+unsigned long getScore(Game *game) {
+    if (game == NULL || game->numTrials == 0) {
+        return 0;
+    }
+    // round(game->numSucc / game->numTrials)
+    return (game->numSucc + (game->numTrials / 2)) / game->numTrials;
 }
 
 // Either ongoing or last game

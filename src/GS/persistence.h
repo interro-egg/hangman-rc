@@ -9,7 +9,7 @@
 #define GAMES_DIR "GAMES"
 #define SCORES_DIR "SCORES"
 #define MAX_FILE_PATH_SIZE 37 + 1
-//FIXME: this should be in common.h
+// FIXME: this should be in common.h
 #define MAX_GUESS_SIZE 30 + 1
 
 typedef struct {
@@ -44,13 +44,14 @@ typedef struct {
 } GameTrial;
 
 typedef struct {
-    char *__curFilePath;
     char *PLID;
     enum GameOutcome outcome;
     char *finishStamp;
     WordListEntry *wordListEntry;
     size_t numTrials;
     GameTrial *trials;
+    size_t numSucc; // number of successful trials
+    unsigned int maxErrors;
 } Game;
 
 void destroyWordListEntry(WordListEntry *entry);
