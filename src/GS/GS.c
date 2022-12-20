@@ -1,6 +1,7 @@
 #include "GS.h"
 #include "commands.h"
 #include "network.h"
+#include "persistence.h"
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +10,7 @@
 #include <unistd.h>
 
 ServerState serverState = {
-    NULL, GS_DEFAULT_PORT, false, NULL, NULL, NULL, NULL, -1, NULL, 0};
+    NULL, GS_DEFAULT_PORT, false, NULL, NULL, NULL, NULL, -1, NULL, 0, NULL, false};
 
 int main(int argc, char *argv[]) {
     readOpts(argc, argv, &(serverState.word_file), &(serverState.port),
@@ -36,6 +37,13 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    serverState.word_list = generateWordList(serverState.word_file);
+    if (serverState.word_list == NULL) {
+        fprintf(stderr, "Failed to generate word list from file %s\n",
+                serverState.word_file);
+        exit(EXIT_FAILURE);
+    }
+    
     pid_t pid = fork();
 
     if (pid == -1) {

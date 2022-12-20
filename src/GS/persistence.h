@@ -3,16 +3,9 @@
 
 #include "server_state.h"
 #include <stddef.h>
+#include <stdbool.h>
 
-typedef struct {
-    char *word;
-    char *hintFile;
-} WordListEntry;
 
-typedef struct {
-    size_t numEntries;
-    WordListEntry *entries;
-} WordList;
 
 enum GameOutcome {
     OUTCOME_ONGOING = '-',
@@ -47,10 +40,12 @@ typedef struct {
 
 void destroyWordListEntry(WordListEntry *entry);
 
-WordList *getWordList(ServerState *state);
+WordListEntry *generateWordListEntry(char *word, char *hintFile);
+WordList *generateWordList(char *wordFile);
 void destroyWordList(WordList *list);
 WordListEntry *chooseWordListEntry(WordList *list, ServerState *state);
-
+WordListEntry *chooseRandomWordListEntry(WordList *list);
+WordListEntry *chooseSequentialWordListEntry(WordList *list);
 void destroyGameTrial(GameTrial *trial);
 
 Game *newGame(char *PLID, ServerState *state);
@@ -58,6 +53,6 @@ void destroyGame(Game *game);
 char *computeGameFilePath(Game *game);
 int saveGame(Game *game, ServerState *state);
 Game *loadGame(char *PLID, ServerState *state);
-int registerGameTrial(Game *game, GameTrial *trial, ServerState *state);
+int registerGameTrial(Game *game, GameTrial *trial);
 
 #endif // PERSISTENCE_H

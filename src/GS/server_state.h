@@ -5,6 +5,18 @@
 #include <stdbool.h>
 #include <sys/time.h>
 
+
+//FIXME: This is a circular dependency, it's been put here for now
+typedef struct {
+    char *word;
+    char *hintFile;
+} WordListEntry;
+
+typedef struct {
+    size_t numEntries;
+    WordListEntry *entries;
+} WordList;
+
 typedef struct {
     char *word_file;
     char *port;
@@ -20,6 +32,9 @@ typedef struct {
 
     struct sockaddr_in *player_addr;
     socklen_t player_addr_len;
+
+    WordList *word_list; // Circular dependency
+    bool randomize_word_list;
 } ServerState;
 
 void destroyStateComponents(ServerState *state);
