@@ -28,5 +28,6 @@ typedef struct {
 
 void destroyStateComponents(ServerState *state);
 unsigned int calculateMaxErrors(char *word);
+unsigned int getLetterPositions(char letter, char* word, unsigned int **pos);
 
 #endif // SERVER_STATE_H
