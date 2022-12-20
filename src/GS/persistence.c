@@ -118,8 +118,9 @@ WordList *parseWordListFile(char *wordFile) {
     size_t len = 0;
     ssize_t read;
     while ((read = getline(&line, &len, file)) != -1) {
-        char *word = strtok(line, " ");
-        char *hintFile = strtok(NULL, " ");
+        char *word = strtok(line, " \n");
+        char *hintFile = strtok(NULL, " \n");
+        printf("word: [%s], hintFile: [%s]\n", word, hintFile);
         if (word == NULL || hintFile == NULL) {
             return NULL;
         }
@@ -204,7 +205,7 @@ Game *loadGame(char *PLID) {
     char *word = NULL;
     char *hintFile = NULL;
     if (fscanf(file, "%s %s\n%c %lu %d\n", word, hintFile,
-               (char *)&game->outcome, &game->numSucc, &game->maxErrors) != 3) {
+               (char *)&game->outcome, &game->numSucc, &game->maxErrors) != 5) {
         free(game);
         fclose(file);
         return NULL;
