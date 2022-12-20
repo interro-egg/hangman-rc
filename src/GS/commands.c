@@ -48,7 +48,6 @@ const UDPCommandDescriptor UDP_COMMANDS[] = {SNGCmd/*, PLGCmd, PWGCmd, QUTCmd,
                                              REVCmd*/};
 const size_t UDP_COMMANDS_COUNT = 1;
 
-// FIXME: remove
 const TCPCommandDescriptor GSBCmd = {"GSB",
                                      deserializeGSBMessage,
                                      destroyGSBMessage,

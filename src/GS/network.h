@@ -25,13 +25,15 @@
 #define NINIT_TCP_EADDRINFO -7
 #define NINIT_TCP_ESOCKET -8
 #define NINIT_TCP_ESNDTIMEO -9
-#define NINIT_TCP_EREUSEADDR -10
-#define NINIT_TCP_EBIND -11
-#define NINIT_TCP_ELISTEN -12
+#define NINIT_TCP_ERCVTIMEO -10
+#define NINIT_TCP_EREUSEADDR -11
+#define NINIT_TCP_EBIND -12
+#define NINIT_TCP_ELISTEN -13
 
 int initNetwork(ServerState *state);
 int initNetworkUDP(ServerState *state);
 int initNetworkTCP(ServerState *state);
+int initTCPSessionSocket(ServerState *state);
 
 int replyUDP(ServerState *state);
 int replyTCP(ResponseFile *file, ServerState *state);

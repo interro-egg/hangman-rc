@@ -158,7 +158,8 @@ int main(int argc, char *argv[]) {
 
                 serverState.socket = sessionFd;
 
-                if (readTCPMessage(serverState.socket, serverState.in_buffer,
+                if (initTCPSessionSocket(&serverState) != NINIT_SUCCESS ||
+                    readTCPMessage(serverState.socket, serverState.in_buffer,
                                    IN_BUFFER_SIZE - 1) <= 0) {
                     if (sprintf(serverState.out_buffer, "ERR\n") > 0) {
                         replyTCP(NULL, &serverState);

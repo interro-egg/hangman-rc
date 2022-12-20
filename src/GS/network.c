@@ -91,6 +91,19 @@ int initNetworkTCP(ServerState *state) {
     return NINIT_SUCCESS;
 }
 
+int initTCPSessionSocket(ServerState *state) {
+    if (setsockopt(state->socket, SOL_SOCKET, SO_SNDTIMEO, state->timeout,
+                   sizeof(*(state->timeout))) != 0) {
+        return NINIT_TCP_ESNDTIMEO;
+    }
+    if (setsockopt(state->socket, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
+                   sizeof(*(state->timeout))) != 0) {
+        return NINIT_TCP_ERCVTIMEO;
+    }
+
+    return NINIT_SUCCESS;
+}
+
 int replyUDP(ServerState *state) {
     logTraffic(T_RESPONSE, "UDP", NULL, state);
 
