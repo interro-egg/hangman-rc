@@ -208,7 +208,7 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
 
     char *word = NULL;
     char *hintFile = NULL;
-    if (fscanf(file, "%s %s\n%c %lu %d\n", word, hintFile,
+    if (fscanf(file, "%ms %ms\n%c %lu %d\n", &word, &hintFile,
                (char *)&game->outcome, &game->numSucc, &game->maxErrors) != 5) {
         free(game);
         fclose(file);
