@@ -12,6 +12,8 @@
 
 #define UNUSED __attribute__((unused))
 
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+
 void lowercase(char *str);
 int parseEnum(const char *strings[], char *toParse);
 int getAddrInfoSockType(char *host, char *port, struct addrinfo **addr,

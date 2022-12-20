@@ -39,10 +39,12 @@ int initNetwork(PlayerState *state) {
     }
     if (setsockopt(state->udp_socket, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
                    sizeof(*(state->timeout))) != 0) {
+        close(state->udp_socket);
         return NINIT_ERCVTIMEO_UDP;
     }
     if (setsockopt(state->udp_socket, SOL_SOCKET, SO_SNDTIMEO, state->timeout,
                    sizeof(*(state->timeout))) != 0) {
+        close(state->udp_socket);
         return NINIT_ESNDTIMEO_UDP;
     }
 
@@ -74,10 +76,12 @@ int sendTCPMessage(PlayerState *state) {
 
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
                    sizeof(*(state->timeout))) != 0) {
+        close(fd);
         return TCP_SND_ERCVTIMEO;
     }
     if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, state->timeout,
                    sizeof(*(state->timeout))) != 0) {
+        close(fd);
         return TCP_SND_ESNDTIMEO;
     }
 

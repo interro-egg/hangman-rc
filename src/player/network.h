@@ -1,9 +1,8 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
+#include "../common/common.h"
 #include "player_state.h"
-
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
 #define MAX_FNAME_LEN 24
 #define MAX_FSIZE_LEN 10

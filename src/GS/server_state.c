@@ -1,4 +1,5 @@
 #include "server_state.h"
+#include "persistence.h"
 #include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +14,8 @@ void destroyStateComponents(ServerState *state) {
     if (state->socket >= 0) {
         close(state->socket);
     }
+    free(state->player_addr);
+    destroyWordList(state->word_list);
 }
 
 unsigned int calculateMaxErrors(char *word) {

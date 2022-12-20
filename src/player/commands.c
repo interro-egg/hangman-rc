@@ -113,8 +113,9 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
 
     errno = 0;
     if (sendUDPMessage(state) == -1) {
-        int r = (errno == EAGAIN || errno == ETIMEDOUT) ? HANDLER_ECOMMS_TIMEO
-                                                        : HANDLER_ECOMMS_UDP;
+        int r = (errno == EAGAIN || errno == EWOULDBLOCK || errno == ETIMEDOUT)
+                    ? HANDLER_ECOMMS_TIMEO
+                    : HANDLER_ECOMMS_UDP;
         cmd->requestDestroyer(parsed);
         return r;
     }

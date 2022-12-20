@@ -1,7 +1,7 @@
 #include "commands.h"
 #include "../common/common.h"
-#include "persistence.h"
 #include "network.h"
+#include "persistence.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,6 +47,18 @@ const UDPCommandDescriptor UDP_COMMANDS[] = {SNGCmd/*, PLGCmd, PWGCmd, QUTCmd,
                                              REVCmd*/};
 const size_t UDP_COMMANDS_COUNT = 1;
 
+// FIXME: remove
+const TCPCommandDescriptor GSBCmd = {"GSB",
+                                     deserializeGSBMessage,
+                                     destroyGSBMessage,
+                                     fulfillGSBRequest,
+                                     RSBMessageStatusStrings,
+                                     RSBMessageFileReceiveStatuses,
+                                     "RSB"};
+
+const TCPCommandDescriptor TCP_COMMANDS[] = {GSBCmd};
+const size_t TCP_COMMANDS_COUNT = 1;
+
 int handleUDPCommand(const UDPCommandDescriptor *cmd, ServerState *state) {
     void *req = cmd->requestDeserializer(state->in_buffer);
     if (req == NULL) {
@@ -74,6 +86,36 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, ServerState *state) {
     }
 
     return HANDLER_SUCCESS;
+}
+
+int handleTCPCommand(const TCPCommandDescriptor *cmd, ServerState *state) {
+    void *req = cmd->requestDeserializer(state->in_buffer);
+    if (req == NULL) {
+        return HANDLER_EDESERIALIZE;
+    }
+
+    ResponseFile *file;
+
+    errno = 0;
+    int status = cmd->requestFulfiller(req, state, &file);
+    int r = errno == ENOMEM ? HANDLER_ENOMEM : HANDLER_EFULFILL;
+    cmd->requestDestroyer(req);
+    if (status < 0) {
+        return r;
+    }
+
+    if (!cmd->fileSendStatuses[status]) {
+        file = NULL;
+    } else if (file == NULL) {
+        return HANDLER_EFILE_REQUIRED;
+    }
+
+    if (sprintf(state->out_buffer, "%s %s%s", cmd->response,
+                cmd->statusEnumStrings[status], file != NULL ? " " : "") <= 0) {
+        return HANDLER_ESERIALIZE;
+    }
+
+    return replyTCP(file, state) == 0 ? HANDLER_SUCCESS : HANDLER_ECOMMS;
 }
 
 void *fulfillSNGRequest(void *req, ServerState *state) {
@@ -139,3 +181,22 @@ void *fulfillSNGRequest(void *req, ServerState *state) {
 //     }
 //     return rlg;
 // }
+
+int fulfillGSBRequest(UNUSED void *req, UNUSED ServerState *state,
+                      ResponseFile **fptr) {
+    ResponseFile *file = malloc(sizeof(ResponseFile));
+    if (file == NULL) {
+        return -1;
+    }
+
+    // TODO: implement
+
+    file->name = "test.txt";
+    file->size = 4;
+    file->data = "abcd";
+    *fptr = file;
+
+    return RSB_OK;
+
+    return 0;
+}
