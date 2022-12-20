@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "../common/common.h"
 #include "persistence.h"
+#include "network.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,7 +67,11 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, ServerState *state) {
         return HANDLER_ESERIALIZE;
     }
 
-    // TODO: Send response
+    if (replyUDP(state) == -1) {
+        cmd->requestDestroyer(req);
+        cmd->responseDestroyer(resp);
+        return HANDLER_ECOMMS;
+    }
 
     return HANDLER_SUCCESS;
 }

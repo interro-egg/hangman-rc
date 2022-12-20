@@ -13,6 +13,7 @@
 #define HANDLER_EDESERIALIZE -3
 #define HANDLER_EFULFILL -4
 #define HANDLER_ESERIALIZE -5
+#define HANDLER_ECOMMS -6
 
 typedef void *(*UDPRequestFulfiller)(void *req, ServerState *state);
 typedef int (*TCPRequestFulfiller)(void *req, ServerState *state);
