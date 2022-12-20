@@ -1,8 +1,11 @@
 #include "persistence.h"
 #include "../common/common.h"
-#include <stdio.h>
+#include <errno.h>
+#include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/file.h>
+#include <unistd.h>
 
 Game *newGame(char *PLID, ServerState *state) {
     Game *game = malloc(sizeof(Game));
@@ -13,10 +16,7 @@ Game *newGame(char *PLID, ServerState *state) {
     game->PLID = PLID;
     game->outcome = OUTCOME_ONGOING;
     game->finishStamp = NULL;
-    WordList *list = state->word_list;
-    if ((game->wordListEntry = chooseWordListEntry(list, state)) == NULL) {
-        destroyWordList(list);
-        destroyWordListEntry(game->wordListEntry);
+    if ((game->wordListEntry = chooseWordListEntry(state)) == NULL) {
         return NULL;
     }
     game->numTrials = 0;
@@ -28,13 +28,13 @@ void destroyGame(Game *game) {
     if (game == NULL) {
         return;
     }
+    free(game->__curFilePath);
     free(game->PLID);
     free(game->finishStamp);
     destroyWordListEntry(game->wordListEntry);
     for (size_t i = 0; i < game->numTrials; i++) {
         destroyGameTrial(&game->trials[i]);
     }
-    free(game->trials);
     free(game);
 }
 
@@ -54,7 +54,6 @@ void destroyWordList(WordList *list) {
     for (size_t i = 0; i < list->numEntries; i++) {
         destroyWordListEntry(&list->entries[i]);
     }
-    free(list->entries);
     free(list);
 }
 
@@ -68,34 +67,32 @@ void destroyGameTrial(GameTrial *trial) {
     free(trial);
 }
 
-WordListEntry *chooseWordListEntry(WordList *list, ServerState *state) {
-    if (list == NULL) {
-        return NULL;
-    }
-    if (state->randomize_word_list) {
-        return chooseRandomWordListEntry(list);
+WordListEntry *chooseWordListEntry(ServerState *state) {
+    if (state->sequential_word_selection) {
+        return chooseSequentialWordListEntry(state->word_list,
+                                             &state->word_list_seq_ptr);
     } else {
-        return chooseSequentialWordListEntry(list);
+        return chooseRandomWordListEntry(state->word_list);
     }
 }
 
 WordListEntry *chooseRandomWordListEntry(WordList *list) {
-    if (list == NULL) {
-        return NULL;
-    }
-    if (list->numEntries == 0) {
+    if (list == NULL || list->numEntries == 0) {
         return NULL;
     }
     size_t index = (size_t)rand() % list->numEntries;
     return &list->entries[index];
 }
 
-WordListEntry *chooseSequentialWordListEntry(UNUSED WordList *list) {
-    // ???
-    return NULL;
+WordListEntry *chooseSequentialWordListEntry(WordList *list, size_t *seqPtr) {
+    if (list == NULL || list->numEntries == 0) {
+        return NULL;
+    }
+    *seqPtr = (*seqPtr + 1) % list->numEntries;
+    return &list->entries[*seqPtr];
 }
 
-WordListEntry *generateWordListEntry(char *word, char *hintFile) {
+WordListEntry *createWordListEntry(char *word, char *hintFile) {
     WordListEntry *entry = malloc(sizeof(WordListEntry));
     if (entry == NULL) {
         return NULL;
@@ -105,7 +102,7 @@ WordListEntry *generateWordListEntry(char *word, char *hintFile) {
     return entry;
 }
 
-WordList *generateWordList(char *wordFile) {
+WordList *parseWordListFile(char *wordFile) {
     FILE *file = fopen(wordFile, "r");
     if (file == NULL) {
         return NULL;
@@ -126,13 +123,13 @@ WordList *generateWordList(char *wordFile) {
         if (word == NULL || hintFile == NULL) {
             return NULL;
         }
-        WordListEntry *entry = generateWordListEntry(word, hintFile);
+        WordListEntry *entry = createWordListEntry(word, hintFile);
         if (entry == NULL) {
             return NULL;
         }
         list->numEntries++;
-        list->entries =
-            realloc(list->entries, sizeof(WordListEntry) * list->numEntries);
+        list->entries = reallocarray(list->entries, list->numEntries,
+                                     sizeof(WordListEntry));
         if (list->entries == NULL) {
             return NULL;
         }
@@ -148,7 +145,8 @@ int registerGameTrial(Game *game, GameTrial *trial) {
         return -1;
     }
     game->numTrials++;
-    game->trials = realloc(game->trials, sizeof(GameTrial) * game->numTrials);
+    game->trials =
+        reallocarray(game->trials, game->numTrials, sizeof(GameTrial));
     if (game->trials == NULL) {
         return -1;
     }
@@ -160,16 +158,109 @@ int saveGame(Game *game, UNUSED ServerState *state) {
     if (game == NULL) {
         return -1;
     }
-    char *filePath = computeGameFilePath(game);
+    char *filePath =
+        computeGameFilePath(game->PLID, game->outcome == OUTCOME_ONGOING);
     if (filePath == NULL) {
         return -1;
     }
     FILE *file = fopen(filePath, "w");
-    if (file == NULL) {
+    if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
         return -1;
     }
-    // ???? cenas
+    fprintf(file, "%c %s %s\n", game->outcome, game->wordListEntry->word,
+            game->wordListEntry->hintFile);
+    for (size_t i = 0; i < game->numTrials; i++) {
+        // FIXME: see if type is letter or word
+        fprintf(file, "%c %s\n", game->trials[i].type, game->trials[i].guess);
+    }
+    fclose(file);
     return 0;
 }
 
-char *computeGameFilePath(UNUSED Game *game) { return NULL; }
+Game *loadGame(char *PLID) {
+    if (PLID == NULL) {
+        return NULL;
+    }
+    FILE *file = findGameFileForPlayer(PLID);
+    if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
+        return NULL;
+    }
+
+    Game *game = malloc(sizeof(Game));
+    if (game == NULL) {
+        close(file);
+        return NULL;
+    }
+
+    char *word, *hintFile;
+    if (fscanf(file, "%c %s %s", &game->outcome, word, hintFile) != 3) {
+        free(game);
+        close(file);
+        return NULL;
+    }
+    game->wordListEntry = createWordListEntry(word, hintFile);
+    if (game->wordListEntry == NULL) {
+        free(game);
+        close(file);
+        return NULL;
+    }
+    game->numTrials = 0;
+    game->trials = NULL; // FIXME: implement
+
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    while ((read = getline(&line, &len, file)) != -1) {
+        // FIXME: implement
+    }
+
+    free(line);
+    close(file);
+    return game;
+}
+
+// Either ongoing or last game
+FILE *findGameFileForPlayer(char *PLID) {
+    if (PLID == NULL) {
+        return NULL;
+    }
+    char *filePath = computeGameFilePath(PLID, true);
+    if (filePath == NULL) {
+        return NULL;
+    }
+    FILE *file = fopen(filePath, "r");
+    if (file == NULL) {
+        if (errno != ENOENT) {
+            free(filePath);
+            return NULL;
+        }
+        filePath = computeGameFilePath(PLID, false);
+        if (filePath == NULL) {
+            free(filePath);
+            return NULL;
+        }
+        file = fopen(filePath, "r");
+        if (file == NULL) {
+            free(filePath);
+            return NULL;
+        }
+    }
+    free(filePath);
+    return file;
+}
+
+char *computeGameFilePath(char *PLID, bool ongoing) {
+    if (PLID == NULL) {
+        return NULL;
+    }
+
+    char *filePath = malloc(MAX_FILE_PATH_SIZE * sizeof(char));
+    if (filePath == NULL) {
+        return NULL;
+    }
+
+    snprintf(filePath, MAX_FILE_PATH_SIZE,
+             ongoing ? "%s/%s.txt" : "%s/%s_last.txt", GAMES_DIR, PLID);
+
+    return filePath;
+}

@@ -22,7 +22,8 @@ typedef struct {
     socklen_t player_addr_len;
 
     struct WordList *word_list;
-    bool randomize_word_list;
+    bool sequential_word_selection;
+    size_t word_list_seq_ptr;
 } ServerState;
 
 void destroyStateComponents(ServerState *state);

@@ -7,11 +7,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
 
-ServerState serverState = {
-    NULL, GS_DEFAULT_PORT, false, NULL, NULL, NULL, NULL, -1, NULL, 0, NULL,
-    false};
+ServerState serverState = {NULL,  GS_DEFAULT_PORT,
+                           false, NULL,
+                           NULL,  NULL,
+                           NULL,  -1,
+                           NULL,  0,
+                           NULL,  true,
+                           0};
 
 int main(int argc, char *argv[]) {
     readOpts(argc, argv, &(serverState.word_file), &(serverState.port),
@@ -38,9 +43,11 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    serverState.word_list = generateWordList(serverState.word_file);
+    srand(RAND_SEED);
+    umask(UMASK);
+    serverState.word_list = parseWordListFile(serverState.word_file);
     if (serverState.word_list == NULL) {
-        fprintf(stderr, "Failed to generate word list from file %s\n",
+        fprintf(stderr, "Failed to parse word list from file %s\n",
                 serverState.word_file);
         exit(EXIT_FAILURE);
     }

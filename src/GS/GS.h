@@ -5,6 +5,9 @@
 #include "commands.h"
 #include "server_state.h"
 
+#define UMASK 0022
+#define RAND_SEED ((unsigned int)time(NULL))
+
 #define USAGE_FMT "Usage: %s word_file [-p GSport] [-v]\n"
 
 #define MSG_NO_MEMORY "No memory available.\n"
@@ -29,7 +32,7 @@ void readOpts(int argc, char *argv[], char **word_file, char **port,
 
 int ensureDirExists(const char *path);
 const UDPCommandDescriptor *getUDPCommandDescriptor(char *inBuf,
-                                              ServerState *state);
+                                                    ServerState *state);
 char *translateNetworkInitError(int result);
 
 #endif // GS_H

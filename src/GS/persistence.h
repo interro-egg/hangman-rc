@@ -4,6 +4,11 @@
 #include "server_state.h"
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
+
+#define GAMES_DIR "GAMES"
+#define SCORES_DIR "SCORES"
+#define MAX_FILE_PATH_SIZE 37 + 1
 
 typedef struct {
     char *word;
@@ -48,19 +53,25 @@ typedef struct {
 
 void destroyWordListEntry(WordListEntry *entry);
 
-WordListEntry *generateWordListEntry(char *word, char *hintFile);
-WordList *generateWordList(char *wordFile);
+WordListEntry *createWordListEntry(char *word, char *hintFile);
+WordList *parseWordListFile(char *wordFile);
+
+// TODO: delete this comment, reorder
 void destroyWordList(WordList *list);
-WordListEntry *chooseWordListEntry(WordList *list, ServerState *state);
+WordListEntry *chooseWordListEntry(ServerState *state);
 WordListEntry *chooseRandomWordListEntry(WordList *list);
-WordListEntry *chooseSequentialWordListEntry(WordList *list);
+WordListEntry *chooseSequentialWordListEntry(WordList *list, size_t *seqPtr);
+
 void destroyGameTrial(GameTrial *trial);
 
 Game *newGame(char *PLID, ServerState *state);
 void destroyGame(Game *game);
-char *computeGameFilePath(Game *game);
+
+char *computeGameFilePath(char *PLID, bool ongoing);
 int saveGame(Game *game, ServerState *state);
-Game *loadGame(char *PLID, ServerState *state);
+Game *loadGame(char *PLID);
 int registerGameTrial(Game *game, GameTrial *trial);
+
+FILE *findGameFileForPlayer(char *PLID);
 
 #endif // PERSISTENCE_H
