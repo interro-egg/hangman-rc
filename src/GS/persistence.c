@@ -210,13 +210,32 @@ Game *loadGame(char *PLID) {
         return NULL;
     }
     game->numTrials = 0;
-    game->trials = NULL; // FIXME: implement
+    game->trials = NULL;
 
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
+    char type;
+    char *guess = malloc(sizeof(char) * MAX_GUESS_SIZE);
+    //ignore first line of file
     while ((read = getline(&line, &len, file)) != -1) {
-        // FIXME: implement
+        if (sscanf(line, "%c %s", &type, guess) != 2) {
+            free(game);
+            fclose(file);
+            return NULL;
+        }
+        GameTrial trial;
+        trial.type = type;
+        if (type == TRIAL_TYPE_LETTER) {
+            trial.guess.letter = guess[0];
+        } else if (type == TRIAL_TYPE_WORD) {
+            trial.guess.word = guess;
+        }
+        if (registerGameTrial(game, &trial) == -1) {
+            free(game);
+            fclose(file);
+            return NULL;
+        }
     }
 
     free(line);
