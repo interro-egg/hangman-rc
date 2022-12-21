@@ -337,7 +337,7 @@ void playCallback(void *req, void *resp, PlayerState *state) {
         return;
     case RLG_ERR:
     default:
-        printf("An error occurred. Please try again.\n");
+        printf("An error occurred. Please try again. You can run 'state' to check the current game state.\n");
         state->trial--;
         return;
     }
@@ -395,7 +395,7 @@ void guessCallback(void *req, void *resp, PlayerState *state) {
         break;
     case RWG_ERR:
     default:
-        printf("An error occurred. Please try again.\n");
+        printf("An error occurred. Please try again. You can run 'state' to check the current game state.\n");
         state->trial--;
         return;
     }
