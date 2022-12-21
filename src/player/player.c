@@ -12,6 +12,7 @@ PlayerState playerState = {NULL, NULL, NULL,  NULL, NULL, -1, -1, NULL,
 
 int main(int argc, char *argv[]) {
     signal(SIGINT, handleGracefulShutdownSignal);
+    signal(SIGPIPE, SIG_IGN);
 
     char *host = GS_DEFAULT_HOST;
     char *port = GS_DEFAULT_PORT;

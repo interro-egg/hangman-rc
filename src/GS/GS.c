@@ -22,6 +22,7 @@ ServerState serverState = {NULL,  GS_DEFAULT_PORT,
 
 int main(int argc, char *argv[]) {
     signal(SIGINT, handleGracefulShutdownSignal);
+    signal(SIGPIPE, SIG_IGN);
 
     readOpts(argc, argv, &(serverState.word_file), &(serverState.port),
              &(serverState.verbose));
