@@ -232,6 +232,7 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     }
     game->numTrials = 0;
     game->trials = NULL;
+    game->PLID = strdup(PLID);
 
     char *line = NULL;
     size_t len = 0;
