@@ -216,6 +216,7 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
 
         } else if (game->remainingLetters - rlg->n == 0) {
             // It's a win
+            game->numSucc++;
             rlg->status = RLG_WIN;
         } else {
             game->remainingLetters -= rlg->n;
@@ -299,6 +300,7 @@ void *fulfillPWGRequest(void *req, UNUSED ServerState *state) {
                 rwg->status = RWG_OVR;
             }
         } else {
+            game->numSucc++;    
             rwg->status = RWG_WIN;
         }
         GameTrial *newTrial = malloc(sizeof(GameTrial));
