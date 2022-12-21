@@ -188,13 +188,20 @@ int saveGame(Game *game) {
     }
     for (size_t i = 0; i < game->numTrials; i++) {
         if (game->trials[i]->type == TRIAL_TYPE_LETTER) {
-            fprintf(file, "%c %c\n", game->trials[i]->type,
-                    game->trials[i]->guess.letter);
+            if (fprintf(file, "%c %c\n", game->trials[i]->type,
+                        game->trials[i]->guess.letter) <= 0) {
+                fclose(file);
+                return -1;
+            }
         } else if (game->trials[i]->type == TRIAL_TYPE_WORD) {
-            fprintf(file, "%c %s\n", game->trials[i]->type,
-                    game->trials[i]->guess.word);
+            if (fprintf(file, "%c %s\n", game->trials[i]->type,
+                        game->trials[i]->guess.word) <= 0) {
+                fclose(file);
+                return -1;
+            }
         }
     }
+
     fclose(file);
     return 0;
 }
