@@ -44,4 +44,6 @@ const TCPCommandDescriptor *getTCPCommandDescriptor(char *inBuf);
 
 char *translateNetworkInitError(int result);
 
+void handleGracefulShutdownSignal(int sig);
+
 #endif // GS_H

@@ -137,7 +137,7 @@ void *fulfillSNGRequest(void *req, ServerState *state) {
         if (game == NULL) {
             return NULL;
         }
-        if (saveGame(game, state) != 0) {
+        if (saveGame(game) != 0) {
             return NULL;
         }
     }

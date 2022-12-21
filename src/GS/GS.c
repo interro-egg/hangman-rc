@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -17,9 +18,11 @@ ServerState serverState = {NULL,  GS_DEFAULT_PORT,
                            NULL,  -1,
                            NULL,  0,
                            NULL,  true,
-                           0};
+                           0,     false};
 
 int main(int argc, char *argv[]) {
+    signal(SIGINT, handleGracefulShutdownSignal);
+
     readOpts(argc, argv, &(serverState.word_file), &(serverState.port),
              &(serverState.verbose));
 
@@ -78,13 +81,15 @@ int main(int argc, char *argv[]) {
             printf("[UDP] Listening on port %s\n", serverState.port);
         }
 
-        while (1) {
+        while (!serverState.shutdown) {
             ssize_t n = recvfrom(serverState.socket, serverState.in_buffer,
                                  IN_BUFFER_SIZE - 1, 0,
                                  (struct sockaddr *)serverState.player_addr,
                                  &serverState.player_addr_len);
             if (n <= 0) {
-                perror(MSG_UDP_ERCV);
+                if (errno != EINTR) {
+                    perror(MSG_UDP_ERCV);
+                }
                 continue;
             }
             serverState.in_buffer[n] = '\0';
@@ -135,13 +140,15 @@ int main(int argc, char *argv[]) {
             printf("[TCP] Listening on port %s\n", serverState.port);
         }
 
-        while (1) {
+        while (!serverState.shutdown) {
             int sessionFd = accept(serverState.socket,
                                    (struct sockaddr *)serverState.player_addr,
                                    &serverState.player_addr_len);
 
             if (sessionFd == -1) {
-                perror(MSG_TCP_EACPT);
+                if (errno != EINTR) {
+                    perror(MSG_TCP_EACPT);
+                }
                 continue;
             }
 
@@ -282,5 +289,24 @@ char *translateNetworkInitError(int result) {
         return MSG_NINIT_TCP_ELISTEN;
     default:
         return MSG_NINIT_EUNKNOWN;
+    }
+}
+
+void handleGracefulShutdownSignal(int sig) {
+    signal(sig, handleGracefulShutdownSignal);
+
+    if (serverState.shutdown) {
+        // second time
+        destroyStateComponents(&serverState);
+        exit(EXIT_FAILURE);
+    }
+
+    serverState.shutdown = true;
+
+    while (1) {
+        errno = 0;
+        if (wait(NULL) == -1 && errno == ECHILD) {
+            break;
+        }
     }
 }

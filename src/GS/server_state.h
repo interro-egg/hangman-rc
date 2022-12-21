@@ -24,6 +24,8 @@ typedef struct {
     struct WordList *word_list;
     bool sequential_word_selection;
     size_t word_list_seq_ptr;
+
+    bool shutdown;
 } ServerState;
 
 void destroyStateComponents(ServerState *state);
