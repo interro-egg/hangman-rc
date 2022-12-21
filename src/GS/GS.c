@@ -247,10 +247,14 @@ void readOpts(int argc, char *argv[], char **word_file, char **port,
 const UDPCommandDescriptor *getUDPCommandDescriptor(char *inBuf) {
     for (size_t i = 0; i < UDP_COMMANDS_COUNT; i++) {
         if (strncmp(inBuf, UDP_COMMANDS[i].name, COMMAND_NAME_SIZE) == 0) {
+            // assumes all commands are the same length, COMMAND_NAME_SIZE
+            if (inBuf[COMMAND_NAME_SIZE] != ' ' &&
+                inBuf[COMMAND_NAME_SIZE] != '\n') {
+                return NULL;
+            }
             return &(UDP_COMMANDS[i]);
         }
     }
-    printf("Unknown command: %s", inBuf);
     return NULL;
 }
 
