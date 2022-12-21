@@ -11,8 +11,6 @@
 #define GAMES_DIR "GAMES"
 #define SCORES_DIR "SCORES"
 #define MAX_FILE_PATH_SIZE 37 + 1
-// FIXME: this should be in common.h
-#define MAX_GUESS_SIZE 30 + 1
 
 typedef struct {
     char *word;

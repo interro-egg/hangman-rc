@@ -9,6 +9,9 @@
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
+#define MAX_WORD_SIZE 30
+#define MIN_WORD_SIZE 3
+#define PLID_SIZE 6
 
 #define UNUSED __attribute__((unused))
 

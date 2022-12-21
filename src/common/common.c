@@ -33,10 +33,10 @@ int getAddrInfoSockType(char *host, char *port, struct addrinfo **addr,
 }
 
 int checkPLID(char *PLID) {
-    if (strlen(PLID) != 6) {
+    if (strlen(PLID) != PLID_SIZE) {
         return -1;
     }
-    for (unsigned int i = 0; i < strlen(PLID); i++) {
+    for (unsigned int i = 0; i < PLID_SIZE; i++) {
         if (!isdigit(PLID[i])) {
             return -1;
         }

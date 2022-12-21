@@ -246,7 +246,7 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     size_t len = 0;
     ssize_t read;
     char type;
-    char *guess = malloc(sizeof(char) * MAX_GUESS_SIZE);
+    char *guess = malloc(sizeof(char) * (MAX_WORD_SIZE + 1));
     while ((read = getline(&line, &len, file)) != -1) {
         if (sscanf(line, "%c %s\n", &type, guess) != 2) {
             free(game);
