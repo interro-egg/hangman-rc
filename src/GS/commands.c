@@ -2,6 +2,7 @@
 #include "../common/common.h"
 #include "network.h"
 #include "persistence.h"
+#include "server_state.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,14 +16,15 @@ const UDPCommandDescriptor SNGCmd = {"SNG",
                                      destroyRSGMessage,
                                      "RSG"};
 
-/*
 const UDPCommandDescriptor PLGCmd = {"PLG",
                                      deserializePLGMessage,
-                                     destroyRLGMessage,
+                                     destroyPLGMessage,
                                      fulfillPLGRequest,
-                                     serializeRSGMessage,
-                                     destroyRSGMessage};
+                                     serializeRLGMessage,
+                                     destroyRLGMessage,
+                                     "RLG"};
 
+/*
 const UDPCommandDescriptor PWGCmd = {"PWG",
                                      deserializePWGMessage,
                                      destroyPWGMessage,
@@ -44,9 +46,9 @@ const UDPCommandDescriptor REVCmd = {"REV",
                                      serializeRRVMessage,
                                      destroyRRVMessage};
 */
-const UDPCommandDescriptor UDP_COMMANDS[] = {SNGCmd/*, PLGCmd, PWGCmd, QUTCmd,
+const UDPCommandDescriptor UDP_COMMANDS[] = {SNGCmd, PLGCmd/*, PWGCmd, QUTCmd,
                                              REVCmd*/};
-const size_t UDP_COMMANDS_COUNT = 1;
+const size_t UDP_COMMANDS_COUNT = 2;
 
 const TCPCommandDescriptor GSBCmd = {"GSB",
                                      deserializeGSBMessage,
@@ -128,8 +130,6 @@ void *fulfillSNGRequest(void *req, ServerState *state) {
     Game *game = loadGame(sng->PLID, true);
     if (game != NULL && game->numTrials != 0) {
         rsg->status = RSG_NOK;
-        rsg->n_letters = 0;
-        rsg->max_errors = 0;
         return rsg;
     }
     if (game == NULL) {
@@ -147,40 +147,100 @@ void *fulfillSNGRequest(void *req, ServerState *state) {
     return rsg;
 }
 
-// void *fulfillPLGRequest(UNUSED void *req, UNUSED ServerState *state) {
-//     PLGMessage *plg = (PLGMessage *)req;
-//     RLGMessage *rlg = (RLGMessage *)malloc(sizeof(RLGMessage));
-//     if (rlg == NULL) {
-//         errno = ENOMEM;
-//         return NULL;
-//     }
-//     Game *game = loadGame(plg->PLID, false);
-//     if (game == NULL) {
-//         rlg->status = RLG_NOK;
-//         return rlg;
-//     }
-//     if (game->numTrials == 0) {
-//         rlg->status = RLG_OVR;
-//         return rlg;
-//     }
-//     if (plg->trial != game->numTrials) {
-//         rlg->status = RLG_INV;
-//         return rlg;
-//     }
-//     if (game->numErrors >= game->maxErrors) {
-//         rlg->status = RLG_OVR;
-//         return rlg;
-//     }
-//     if (game->wordListEntry->word[plg->trial] == plg->letter) {
-//         rlg->status = RLG_WIN;
-//         return rlg;
-//     }
-//     if (game->wordListEntry->word[plg->trial] != plg->letter) {
-//         rlg->status = RLG_NOK;
-//         return rlg;
-//     }
-//     return rlg;
-// }
+void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
+    PLGMessage *plg = (PLGMessage *)req;
+    RLGMessage *rlg = (RLGMessage *)malloc(sizeof(RLGMessage));
+    rlg->pos = NULL;
+    if (rlg == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    Game *game = loadGame(plg->PLID, true);
+    if (game == NULL) {
+        return NULL;
+    }
+    // If it's not repetition of last trial or current trial
+    if (plg->trial != game->numTrials + 1 && plg->trial != game->numTrials) {
+        rlg->status = RLG_INV;
+    }
+    // If it's a repetition of last trial
+    else if (plg->trial == game->numTrials) {
+        // If letter is different now
+        if (plg->letter != game->trials[plg->trial - 1]->guess.letter) {
+            rlg->status = RLG_INV;
+        }
+        // check if letter has been already guessed up until last trial
+        else {
+            for (size_t i = 0; i < game->numTrials - 1; i++) {
+                if (game->trials[i]->guess.letter == plg->letter) {
+                    rlg->status = RLG_DUP;
+                    rlg->trial = game->numTrials;
+                    return rlg;
+                }
+            }
+            errno = 0;
+            rlg->n = getLetterPositions(plg->letter, game->wordListEntry->word,
+                                        &rlg->pos);
+            if (rlg->n == 0 && errno == ENOMEM) {
+                return NULL;
+            }
+            if (rlg->n == 0) {
+                rlg->status = RLG_NOK;
+            } else {
+                rlg->status = RLG_OK;
+            }
+            // No need to test/set anything else because it's a repetition
+        }
+
+    } else {
+        // It's a new trial
+        for (size_t i = 0; i < game->numTrials; i++) {
+            if (game->trials[i]->guess.letter == plg->letter) {
+                rlg->status = RLG_DUP;
+                rlg->trial = game->numTrials;
+                return rlg;
+            }
+        }
+        errno = 0;
+        rlg->n = getLetterPositions(plg->letter, game->wordListEntry->word,
+                                    &rlg->pos);
+
+        if (rlg->n == 0 && errno == ENOMEM) {
+            return NULL;
+        }
+        if (rlg->n == 0) {
+            rlg->status = RLG_NOK;
+
+            // check if it's a gameover
+            if (game->numTrials - game->numSucc >= game->maxErrors) {
+                rlg->status = RLG_OVR;
+            }
+
+        } // check if it's a win
+        else if (game->remainingLetters - rlg->n == 0) {
+            rlg->status = RLG_WIN;
+        } else {
+            game->remainingLetters -= rlg->n;
+            game->numSucc++;
+            rlg->status = RLG_OK;
+        }
+        GameTrial *newTrial = malloc(sizeof(GameTrial));
+        if (newTrial == NULL) {
+            return NULL;
+        }
+        newTrial->type = TRIAL_TYPE_LETTER;
+        newTrial->guess.letter = plg->letter;
+        if (registerGameTrial(game, newTrial) != 0) {
+            return NULL;
+        }
+    }
+    // n and pos are already set
+    rlg->trial = game->numTrials;
+    if (saveGame(game) != 0) {
+        return NULL;
+    }
+    return rlg;
+}
 
 int fulfillGSBRequest(UNUSED void *req, UNUSED ServerState *state,
                       ResponseFile **fptr) {
