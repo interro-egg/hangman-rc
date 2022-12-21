@@ -219,7 +219,8 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     char *word = NULL;
     char *hintFile = NULL;
     if (fscanf(file, "%ms %ms\n%c %u %d %u\n", &word, &hintFile,
-               (char *)&game->outcome, &game->numSucc, &game->maxErrors, &game->remainingLetters) != 6) {
+               (char *)&game->outcome, &game->numSucc, &game->maxErrors,
+               &game->remainingLetters) != 6) {
         free(game);
         fclose(file);
         return NULL;
@@ -306,15 +307,12 @@ char *computeGameFilePath(char *PLID, bool ongoing) {
     if (PLID == NULL) {
         return NULL;
     }
-
     char *filePath = malloc(MAX_FILE_PATH_SIZE * sizeof(char));
     if (filePath == NULL) {
         return NULL;
     }
-
     snprintf(filePath, MAX_FILE_PATH_SIZE,
              ongoing ? "%s/%s.txt" : "%s/%s_last.txt", GAMES_DIR, PLID);
-
     return filePath;
 }
 
