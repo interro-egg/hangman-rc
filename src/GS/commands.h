@@ -58,6 +58,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, ServerState *state);
 void *fulfillSNGRequest(void *req, ServerState *state);
 void *fulfillPLGRequest(void *req, ServerState *state);
 void *fulfillPWGRequest(void *req, ServerState *state);
+void *fulfillQUTRequest(void *req, ServerState *state);
+void *fulfillREVRequest(void *req, ServerState *state);
 
 int fulfillGSBRequest(void *req, ServerState *state, ResponseFile **fptr);
 

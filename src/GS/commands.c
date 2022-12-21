@@ -32,24 +32,26 @@ const UDPCommandDescriptor PWGCmd = {"PWG",
                                      destroyRWGMessage,
                                      "RWG"};
 
-/*
 const UDPCommandDescriptor QUTCmd = {"QUT",
                                      deserializeQUTMessage,
                                      destroyQUTMessage,
                                      fulfillQUTRequest,
                                      serializeRQTMessage,
-                                     destroyRQTMessage};
+                                     destroyRQTMessage,
+                                     "RQT"};
+
 
 const UDPCommandDescriptor REVCmd = {"REV",
                                      deserializeREVMessage,
                                      destroyREVMessage,
                                      fulfillREVRequest,
                                      serializeRRVMessage,
-                                     destroyRRVMessage};
-*/
-const UDPCommandDescriptor UDP_COMMANDS[] = {SNGCmd, PLGCmd, PWGCmd/*, QUTCmd,
-                                             REVCmd*/};
-const size_t UDP_COMMANDS_COUNT = 3;
+                                     destroyRRVMessage,
+                                     "RRV"};
+
+const UDPCommandDescriptor UDP_COMMANDS[] = {SNGCmd, PLGCmd, PWGCmd, QUTCmd,
+                                             REVCmd};
+const size_t UDP_COMMANDS_COUNT = 5;
 
 const TCPCommandDescriptor GSBCmd = {"GSB",
                                      deserializeGSBMessage,
@@ -311,6 +313,39 @@ void *fulfillPWGRequest(void *req, UNUSED ServerState *state) {
         return NULL;
     }
     return rwg;
+}
+
+void *fulfillQUTRequest(void *req, UNUSED ServerState *state) {
+    QUTMessage *qut = (QUTMessage *)req;
+    RQTMessage *rqt = (RQTMessage *)malloc(sizeof(RQTMessage));
+    if (rqt == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    Game *game = loadGame(qut->PLID, true);
+    if (game == NULL) {
+        rqt->status = RQT_NOK;
+    } else {
+        rqt->status = RQT_OK;
+    }
+    return rqt;
+}
+
+void *fulfillREVRequest(void *req, UNUSED ServerState *state) {
+    REVMessage *rev = (REVMessage *)req;
+    RRVMessage *rrv = (RRVMessage *)malloc(sizeof(RRVMessage));
+    if (rrv == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    Game *game = loadGame(rev->PLID, true);
+    if (game == NULL) {
+        return NULL;
+    } else {
+        rrv->type = RRV_WORD;
+        rrv->data.word = game->wordListEntry->word;
+    }
+    return rrv;
 }
 
 int fulfillGSBRequest(UNUSED void *req, UNUSED ServerState *state,
