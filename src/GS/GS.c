@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
                 if (initTCPSessionSocket(&serverState) != NINIT_SUCCESS ||
                     readTCPMessage(serverState.socket, serverState.in_buffer,
                                    IN_BUFFER_SIZE - 1) <= 0) {
-                    if (sprintf(serverState.out_buffer, "ERR\n") > 0) {
+                    if (sprintf(serverState.out_buffer, "ERR") > 0) {
                         replyTCP(NULL, &serverState);
                     }
                     destroyStateComponents(&serverState);
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
                 const TCPCommandDescriptor *descr =
                     getTCPCommandDescriptor(serverState.in_buffer);
                 if (descr == NULL) {
-                    if (sprintf(serverState.out_buffer, "ERR\n") > 0) {
+                    if (sprintf(serverState.out_buffer, "ERR") > 0) {
                         replyTCP(NULL, &serverState);
                     }
 
@@ -192,7 +192,7 @@ int main(int argc, char *argv[]) {
 
                 result = handleTCPCommand(descr, &serverState);
                 if (result != HANDLER_SUCCESS) {
-                    if (sprintf(serverState.out_buffer, "%s ERR\n",
+                    if (sprintf(serverState.out_buffer, "%s ERR",
                                 descr->response) > 0) {
                         replyTCP(NULL, &serverState);
                     }
