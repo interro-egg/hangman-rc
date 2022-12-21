@@ -247,6 +247,7 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
         }
         newTrial->type = TRIAL_TYPE_LETTER;
         newTrial->guess.letter = plg->letter;
+        newTrial->correct = rlg->status == RLG_OK || rlg->status == RLG_WIN;
         if (registerGameTrial(game, newTrial) != 0) {
             return NULL;
         }
@@ -327,6 +328,7 @@ void *fulfillPWGRequest(void *req, UNUSED ServerState *state) {
         }
         newTrial->type = TRIAL_TYPE_WORD;
         newTrial->guess.word = pwg->word;
+        newTrial->correct = rwg->status == RWG_WIN;
         if (registerGameTrial(game, newTrial) != 0) {
             return NULL;
         }

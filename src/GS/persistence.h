@@ -52,6 +52,7 @@ typedef struct {
         char letter;
         char *word;
     } guess;
+    bool correct;
 } GameTrial;
 
 typedef struct {

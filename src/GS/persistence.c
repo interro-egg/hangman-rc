@@ -206,14 +206,16 @@ int saveGame(Game *game) {
     }
     for (size_t i = 0; i < game->numTrials; i++) {
         if (game->trials[i]->type == TRIAL_TYPE_LETTER) {
-            if (fprintf(file, "%c %c\n", game->trials[i]->type,
-                        game->trials[i]->guess.letter) <= 0) {
+            if (fprintf(file, "%c %c %d\n", game->trials[i]->type,
+                        game->trials[i]->guess.letter,
+                        game->trials[i]->correct) <= 0) {
                 fclose(file);
                 return -1;
             }
         } else if (game->trials[i]->type == TRIAL_TYPE_WORD) {
-            if (fprintf(file, "%c %s\n", game->trials[i]->type,
-                        game->trials[i]->guess.word) <= 0) {
+            if (fprintf(file, "%c %s %d\n", game->trials[i]->type,
+                        game->trials[i]->guess.word,
+                        game->trials[i]->correct) <= 0) {
                 fclose(file);
                 return -1;
             }
@@ -265,8 +267,9 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     ssize_t read;
     char type;
     char *guess = malloc((MAX_WORD_SIZE + 1) * sizeof(char));
+    int correct;
     while ((read = getline(&line, &len, file)) != -1) {
-        if (sscanf(line, "%c %s\n", &type, guess) != 2) {
+        if (sscanf(line, "%c %s %d\n", &type, guess, &correct) != 3) {
             destroyGame(game);
             fclose(file);
             return NULL;
@@ -278,6 +281,7 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
         } else if (type == TRIAL_TYPE_WORD) {
             trial->guess.word = guess;
         }
+        trial->correct = (bool)correct;
         if (registerGameTrial(game, trial) == -1) {
             destroyGame(game);
             fclose(file);
@@ -506,7 +510,7 @@ ResponseFile *getGameState(Game *game) {
             return NULL;
         }
     } else {
-        if (fprintf(tmp, "\n\n\t--- Trials found: %u (%u successful) ---",
+        if (fprintf(tmp, "\n\n\t--- Trials found: %u (%u correct) ---",
                     game->numTrials, game->numSucc) <= 0) {
             free(fname);
             fclose(tmp);
@@ -521,7 +525,9 @@ ResponseFile *getGameState(Game *game) {
             } else if (trial->type == TRIAL_TYPE_WORD) {
                 r = fprintf(tmp, "\n\tWord guess: %s", trial->guess.word);
             }
-            if (r <= 0) {
+
+            if (r <= 0 || fprintf(tmp, " - %s",
+                                  trial->correct ? "Correct" : "Wrong") <= 0) {
                 free(fname);
                 fclose(tmp);
                 return NULL;
@@ -531,7 +537,7 @@ ResponseFile *getGameState(Game *game) {
 
     int r = 0;
     if (game->outcome == OUTCOME_ONGOING) {
-        // Guessed so far: _____ (x letters, y remaining)
+        // TODO: Guessed so far: _____ (x letters, y remaining)
         r = fprintf(tmp, "\n\n\t%u wrong guesses left",
                     game->maxErrors - (game->numTrials - game->numSucc));
     } else {
