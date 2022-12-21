@@ -327,8 +327,8 @@ void *deserializeRLGMessage(char *inBuffer) {
     case RLG_INV:
         char newline = 0;
         char trials[3] = {0};
-        if (sscanf(inBuffer, "RLG%1c%3[^ ]%1c%2[^\n]%1c", whitespaces, statusStr,
-                   whitespaces + 1, trials, &newline) != 5) {
+        if (sscanf(inBuffer, "RLG%1c%3[^ ]%1c%2[^\n]%1c", whitespaces,
+                   statusStr, whitespaces + 1, trials, &newline) != 5) {
             destroyRLGMessage(msg);
             free(statusStr);
             return NULL;
@@ -467,8 +467,8 @@ void *deserializeRWGMessage(char *inBuffer) {
         char newline = 0;
         char trials[3] = {0};
         char whitespaces[2] = {0};
-        if (sscanf(inBuffer, "RWG%1c%3[^ ]%1c%2[^\n]%1c", whitespaces, statusStr,
-                   whitespaces + 1, trials, &newline) != 5) {
+        if (sscanf(inBuffer, "RWG%1c%3[^ ]%1c%2[^\n]%1c", whitespaces,
+                   statusStr, whitespaces + 1, trials, &newline) != 5) {
             destroyRWGMessage(msg);
             free(statusStr);
             return NULL;
