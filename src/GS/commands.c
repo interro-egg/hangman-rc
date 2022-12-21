@@ -235,10 +235,14 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
         } else if (game->remainingLetters - rlg->n == 0) {
             // It's a win
             game->numSucc++;
+            strcpy(game->maskedWord, game->wordListEntry->word);
             rlg->status = RLG_WIN;
         } else {
             game->remainingLetters -= rlg->n;
             game->numSucc++;
+            for (size_t i = 0; i < rlg->n; i++) {
+                game->maskedWord[rlg->pos[i]] = plg->letter;
+            }
             rlg->status = RLG_OK;
         }
         GameTrial *newTrial = malloc(sizeof(GameTrial));
@@ -320,6 +324,7 @@ void *fulfillPWGRequest(void *req, UNUSED ServerState *state) {
             }
         } else {
             game->numSucc++;
+            strcpy(game->maskedWord, game->wordListEntry->word);
             rwg->status = RWG_WIN;
         }
         GameTrial *newTrial = malloc(sizeof(GameTrial));
