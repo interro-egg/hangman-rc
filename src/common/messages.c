@@ -88,7 +88,7 @@ void *deserializeRSGMessage(char *inBuffer) {
             destroyRSGMessage(msg);
             return NULL;
         }
-        if (msg->n_letters == 0 || msg->n_letters > MAX_WORD_SIZE) {
+        if (msg->n_letters < MIN_WORD_SIZE || msg->n_letters > MAX_WORD_SIZE) {
             destroyRSGMessage(msg);
             return NULL;
         }
@@ -130,7 +130,7 @@ void *deserializePLGMessage(char *inBuffer) {
         destroyPLGMessage(msg);
         return NULL;
     }
-    if (checkPLID(msg->PLID) != 0) {
+    if (checkPLID(msg->PLID) != 0 || !isalpha(msg->letter)) {
         destroyPLGMessage(msg);
         return NULL;
     }
@@ -211,6 +211,11 @@ void *deserializeRLGMessage(char *inBuffer) {
     switch (msg->status) {
     case RLG_OK:
         if (sscanf(inBuffer, "RLG %*s %2u %2u\n", &msg->trial, &msg->n) != 2) {
+            destroyRLGMessage(msg);
+            return NULL;
+        }
+        if (msg->trial < 1 || msg->n < 1 ||
+            msg->n > MAX_WORD_SIZE) {
             destroyRLGMessage(msg);
             return NULL;
         }
