@@ -170,7 +170,8 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
         } else {
             // check if letter has been already guessed up until last trial
             for (size_t i = 0; i < game->numTrials - 1; i++) {
-                if (game->trials[i]->guess.letter == plg->letter) {
+                if (game->trials[i]->type == TRIAL_TYPE_LETTER &&
+                    game->trials[i]->guess.letter == plg->letter) {
                     rlg->status = RLG_DUP;
                     rlg->trial = game->numTrials;
                     return rlg;
@@ -192,7 +193,8 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
     } else {
         // It's a new trial
         for (size_t i = 0; i < game->numTrials; i++) {
-            if (game->trials[i]->guess.letter == plg->letter) {
+            if (game->trials[i]->type == TRIAL_TYPE_LETTER &&
+                game->trials[i]->guess.letter == plg->letter) {
                 rlg->status = RLG_DUP;
                 rlg->trial = game->numTrials;
                 return rlg;
@@ -270,7 +272,8 @@ void *fulfillPWGRequest(void *req, UNUSED ServerState *state) {
         // check if word has been already guessed up until last trial
         else {
             for (size_t i = 0; i < game->numTrials - 1; i++) {
-                if (strcmp(game->trials[i]->guess.word, pwg->word) == 0) {
+                if (game->trials[i]->type == TRIAL_TYPE_WORD &&
+                    strcmp(game->trials[i]->guess.word, pwg->word) == 0) {
                     rwg->status = RWG_DUP;
                     rwg->trials = game->numTrials;
                     return rwg;
@@ -283,7 +286,8 @@ void *fulfillPWGRequest(void *req, UNUSED ServerState *state) {
     } else {
         // It's a new trial
         for (size_t i = 0; i < game->numTrials; i++) {
-            if (strcmp(game->trials[i]->guess.word, pwg->word) == 0) {
+            if (game->trials[i]->type == TRIAL_TYPE_WORD &&
+                strcmp(game->trials[i]->guess.word, pwg->word) == 0) {
                 rwg->status = RWG_DUP;
                 rwg->trials = game->numTrials;
                 return rwg;
