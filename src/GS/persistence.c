@@ -171,7 +171,6 @@ int saveGame(Game *game) {
     if (game == NULL) {
         return -1;
     }
-    printf("Outcome: %d\n", game->outcome);
     char *filePath =
         computeGameFilePath(game->PLID, game->outcome == OUTCOME_ONGOING);
     if (filePath == NULL) {
@@ -217,13 +216,15 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
 
     char *word = NULL;
     char *hintFile = NULL;
-    if (fscanf(file, "%ms %ms\n%c %u %d %u\n", &word, &hintFile,
-               (char *)&game->outcome, &game->numSucc, &game->maxErrors,
+    char outcome;
+    if (fscanf(file, "%ms %ms\n%c %u %d %u\n", &word, &hintFile, &outcome,
+               &game->numSucc, &game->maxErrors,
                &game->remainingLetters) != 6) {
         free(game);
         fclose(file);
         return NULL;
     }
+    game->outcome = (enum GameOutcome)outcome;
     game->wordListEntry = createWordListEntry(word, hintFile);
     if (game->wordListEntry == NULL) {
         free(game);
