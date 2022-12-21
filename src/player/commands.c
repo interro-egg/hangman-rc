@@ -165,8 +165,10 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
         }
     }
 
-    ssize_t r = readWordTCP(fd, state->in_buffer, MESSAGE_COMMAND_SIZE, false);
-    if (r <= 0) {
+    bool foundEOL = false;
+    ssize_t r = readWordTCP(fd, state->in_buffer, MESSAGE_COMMAND_SIZE, false,
+                            &foundEOL);
+    if (r <= 0 || foundEOL) {
         errno = (int)r;
         cmd->requestDestroyer(parsed);
         close(fd);
@@ -186,7 +188,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
         return HANDLER_EDESERIALIZE;
     }
 
-    r = readWordTCP(fd, state->in_buffer, cmd->maxStatusEnumLen, false);
+    r = readWordTCP(fd, state->in_buffer, cmd->maxStatusEnumLen, false,
+                    &foundEOL);
     if (r <= 0) {
         errno = (int)r;
         cmd->requestDestroyer(parsed);
@@ -227,21 +230,24 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
                 return HANDLER_ECOMMS_TCP;
             }
         }
-    }
 
-    errno = 0;
-    if (checkNewline(fd) != 0) {
-        bool timedOut = errno == EINPROGRESS;
-        if (file != NULL) {
+        errno = 0;
+        if (checkNewline(fd) != 0) {
+            bool timedOut = errno == EINPROGRESS;
             unlink(file->fname);
             // no need to check for error as we're already returning error;
             // this is a best-effort attempt
             destroyReceivedFile(file);
+            cmd->requestDestroyer(parsed);
+            close(fd);
+            state->tcp_socket = -1;
+            return timedOut ? HANDLER_ECOMMS_TIMEO : HANDLER_EDESERIALIZE;
         }
+    } else if (!foundEOL) {
         cmd->requestDestroyer(parsed);
         close(fd);
         state->tcp_socket = -1;
-        return timedOut ? HANDLER_ECOMMS_TIMEO : HANDLER_EDESERIALIZE;
+        return HANDLER_EDESERIALIZE;
     }
 
     if (cmd->callback != NULL) {
@@ -442,8 +448,7 @@ int exitPreHook(void *req, PlayerState *state) {
     return 0;
 }
 
-void exitCallback(UNUSED void *req, UNUSED void *resp,
-                  UNUSED PlayerState *state) {
+void exitCallback(UNUSED void *req, UNUSED void *resp, PlayerState *state) {
     endGame(state);
     state->shutdown = true;
 }

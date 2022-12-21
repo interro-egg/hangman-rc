@@ -101,7 +101,8 @@ int sendTCPMessage(PlayerState *state) {
 
 // maxLen does NOT include null terminator.
 // returns number of bytes read, including space (converted to \0)
-ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits) {
+ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits,
+                    bool *foundEOL) {
     size_t alreadyRead = 0;
     while (1) {
         errno = 0;
@@ -112,6 +113,11 @@ ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits) {
         alreadyRead += (size_t)n;
 
         if (buf[alreadyRead - 1] == ' ') {
+            break;
+        } else if (buf[alreadyRead - 1] == '\n') {
+            if (foundEOL != NULL) {
+                *foundEOL = true;
+            }
             break;
         } else if (alreadyRead >= maxLen + 1 ||
                    (checkDigits && !isdigit(buf[alreadyRead - 1]))) {
@@ -128,16 +134,17 @@ ReceivedFile *readFileTCP(int fd) {
     char fname[MAX_FNAME_LEN + 1];
     char fsize[MAX_FSIZE_LEN + 1];
     char transfBuf[FILE_TRANSFER_BLOCK_SIZE];
+    bool foundEOL = false;
 
-    ssize_t r = readWordTCP(fd, fname, MAX_FNAME_LEN, false);
-    if (r <= 0) {
+    ssize_t r = readWordTCP(fd, fname, MAX_FNAME_LEN, false, &foundEOL);
+    if (r <= 0 || foundEOL) {
         errno = (int)r;
         return NULL;
     }
     size_t fnameLen = (size_t)r - 1;
 
-    r = readWordTCP(fd, fsize, MAX_FSIZE_LEN, true);
-    if (r <= 0) {
+    r = readWordTCP(fd, fsize, MAX_FSIZE_LEN, true, &foundEOL);
+    if (r <= 0 || foundEOL) {
         errno = (int)r;
         return NULL;
     }

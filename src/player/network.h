@@ -45,7 +45,8 @@ int initNetwork(PlayerState *state);
 
 int sendUDPMessage(PlayerState *state);
 int sendTCPMessage(PlayerState *state);
-ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits);
+ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits,
+                    bool *foundEnd);
 ReceivedFile *readFileTCP(int fd);
 int checkNewline(int fd);
 void destroyReceivedFile(ReceivedFile *file);
