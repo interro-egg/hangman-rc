@@ -1,5 +1,5 @@
 #include "commands.h"
-#include "../common/common.h" //TODO: this is only for UNUSED
+#include "../common/common.h"
 #include "network.h"
 #include "persistence.h"
 #include <errno.h>
