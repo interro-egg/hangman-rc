@@ -1,7 +1,6 @@
 #ifndef PLAYER_STATE_H
 #define PLAYER_STATE_H
 
-#include <netdb.h>
 #include <stdbool.h>
 #include <sys/time.h>
 

@@ -1,8 +1,8 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
-#include "../common/common.h"
 #include "player_state.h"
+#include <sys/types.h>
 
 #define MAX_FNAME_LEN 24
 #define MAX_FSIZE_LEN 10

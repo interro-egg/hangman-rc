@@ -1,9 +1,7 @@
 #ifndef GS_H
 #define GS_H
 
-#include "../common/common.h"
 #include "commands.h"
-#include "server_state.h"
 
 #define RAND_SEED ((unsigned int)time(NULL))
 

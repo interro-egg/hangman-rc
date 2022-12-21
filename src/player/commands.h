@@ -1,13 +1,10 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
-#include "../common/common.h"
 #include "../common/messages.h"
 #include "network.h"
 #include "parsers.h"
-#include "player_state.h"
 #include <stdbool.h>
-#include <sys/types.h>
 
 #define HANDLER_SUCCESS 0
 #define HANDLER_EUNKNOWN -1

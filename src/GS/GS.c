@@ -1,4 +1,5 @@
 #include "GS.h"
+#include "../common/common.h"
 #include "commands.h"
 #include "network.h"
 #include "persistence.h"

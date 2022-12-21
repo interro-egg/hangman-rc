@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 PlayerState playerState = {NULL, NULL, NULL,  NULL, NULL, -1, -1, NULL,
                            NULL, NULL, false, NULL, NULL, 0,  0,  false};

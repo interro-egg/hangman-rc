@@ -3,7 +3,6 @@
 
 #include "../common/common.h"
 #include "commands.h"
-#include "player_state.h"
 
 #define GS_DEFAULT_HOST "localhost"
 

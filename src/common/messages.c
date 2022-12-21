@@ -1,6 +1,7 @@
 #include "messages.h"
 #include "common.h"
 #include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -87,8 +88,7 @@ void *deserializeRSGMessage(char *inBuffer) {
             destroyRSGMessage(msg);
             return NULL;
         }
-        // TODO: use defines
-        if (msg->n_letters == 0 || msg->n_letters > 30) {
+        if (msg->n_letters == 0 || msg->n_letters > MAX_WORD_SIZE) {
             destroyRSGMessage(msg);
             return NULL;
         }
@@ -227,7 +227,7 @@ void *deserializeRLGMessage(char *inBuffer) {
                     destroyRLGMessage(msg);
                     return NULL;
                 }
-                if (msg->pos[i - 4] == 0 || msg->pos[i - 4] > 30) {
+                if (msg->pos[i - 4] == 0 || msg->pos[i - 4] > MAX_WORD_SIZE) {
                     destroyRLGMessage(msg);
                     return NULL;
                 }
@@ -288,8 +288,8 @@ void *deserializePWGMessage(char *inBuffer) {
         destroyPWGMessage(msg);
         return NULL;
     }
-    if (checkPLID(msg->PLID) != 0 || strlen(msg->word) < 3 ||
-        strlen(msg->word) > 30) {
+    if (checkPLID(msg->PLID) != 0 || strlen(msg->word) < MIN_WORD_SIZE ||
+        strlen(msg->word) > MAX_WORD_SIZE) {
         destroyPWGMessage(msg);
         return NULL;
     }
@@ -511,7 +511,8 @@ void *deserializeRRVMessage(char *inBuffer) {
             destroyRRVMessage(msg);
             return NULL;
         }
-        if (strlen(msg->data.word) < 3 || strlen(msg->data.word) > 30) {
+        if (strlen(msg->data.word) < MIN_WORD_SIZE ||
+            strlen(msg->data.word) > MAX_WORD_SIZE) {
             destroyRRVMessage(msg);
             return NULL;
         }

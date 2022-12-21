@@ -2,7 +2,7 @@
 #define MESSAGES_H
 
 #include <stdbool.h>
-#include <stdio.h>
+#include <sys/types.h>
 
 #define MESSAGE_COMMAND_SIZE 3
 

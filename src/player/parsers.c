@@ -1,12 +1,14 @@
 #include "parsers.h"
+#include "../common/common.h"
 #include "../common/messages.h"
 #include <ctype.h>
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 void *parseSNGArgs(char *args) {
-    if (args == NULL || strlen(args) != 6) {
+    if (args == NULL || strlen(args) != PLID_SIZE) {
         return NULL;
     }
 

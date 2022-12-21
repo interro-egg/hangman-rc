@@ -1,8 +1,7 @@
 #include "commands.h"
-#include "../common/common.h"
+#include "../common/common.h" //TODO: this is only for UNUSED
 #include "network.h"
 #include "persistence.h"
-#include "server_state.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

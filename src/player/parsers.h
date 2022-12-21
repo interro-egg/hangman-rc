@@ -1,8 +1,6 @@
 #ifndef PARSERS_H
 #define PARSERS_H
 
-#include "../common/messages.h"
-
 typedef void *(*CommandParser)(char *args);
 
 void *parseSNGArgs(char *args);
