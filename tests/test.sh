@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 # slightly adapted from @randomicecube's original version
 
@@ -7,7 +8,9 @@ if [ -z "$ADDR" ]; then
 	exit 1
 fi
 
-MY_IP=$(curl -s http://ipecho.net/plain)
+: "${LOCAL_PORT:=58043}"
+
+MY_IP=$(curl -s https://ipecho.net/plain)
 TOTAL_TESTS=$(ls tests/scripts/*.txt | wc -l)
 CORRECT_TESTS=0
 
@@ -17,14 +20,14 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 function run_server() {
-  GS word_eng.txt -v -p 58043 > tests/tmp/server.log
+  ./GS word_eng.txt -v -p $LOCAL_PORT > tests/tmp/server.log
 }
 
 function run_command() {
     echo "Testing $1"
     FILE_NAME=$(basename $1 .txt)
     TEST=$(echo $FILE_NAME | cut -d'_' -f2)
-    COMMAND=$(echo "$MY_IP 58043 $TEST" | nc $ADDR > tests/tmp/report-$TEST.html)
+    COMMAND=$(echo "$MY_IP $LOCAL_PORT $TEST" | nc $ADDR > tests/tmp/report-$TEST.html)
     if [ ! -s tests/tmp/report-$TEST.html ] || grep -q "color=\"red\"" tests/tmp/report-$TEST.html; then
         echo -e "${RED}Test failed${NC}"
     else
@@ -37,7 +40,7 @@ function handle_test() {
     run_server &
     run_command $1
     killall GS
-    sleep 2 # to avoid being timed out ;-;
+    sleep 2 # to avoid being timed out
 }
 
 # Script core
