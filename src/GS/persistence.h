@@ -38,11 +38,10 @@ enum GameTrialType {
 
 typedef struct {
     enum GameTrialType type;
-    union {
+    union Guess{
         char letter;
         char *word;
     } guess;
-    bool correct;
 } GameTrial;
 
 typedef struct {
