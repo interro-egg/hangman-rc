@@ -28,15 +28,18 @@ void *deserializeSNGMessage(char *inBuffer) {
         destroySNGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "SNG %6s\n", msg->PLID) != 1) {
-        destroySNGMessage(msg);
-        return NULL;
-    }
-    if (checkPLID(msg->PLID) != 0) {
+    char whitespace = 0;
+    char newline = 0;
+    if (sscanf(inBuffer, "SNG%1c%6[^\n]%1c", &whitespace, msg->PLID,
+               &newline) != 3) {
         destroySNGMessage(msg);
         return NULL;
     }
 
+    if (whitespace != ' ' || newline != '\n' || checkPLID(msg->PLID) != 0) {
+        destroySNGMessage(msg);
+        return NULL;
+    }
     return msg;
 }
 
@@ -67,12 +70,24 @@ void *deserializeRSGMessage(char *inBuffer) {
     char *statusStr = malloc(4 * sizeof(char));
     if (msg == NULL || statusStr == NULL) {
         destroyRSGMessage(msg);
+        free(statusStr);
         return NULL;
     }
-    if (sscanf(inBuffer, "RSG %3s\n", statusStr) != 1) {
+    char whitespace = 0;
+    if (sscanf(inBuffer, "RSG%1c%3[^\n]", &whitespace, statusStr) != 2) {
         destroyRSGMessage(msg);
+        free(statusStr);
         return NULL;
     }
+    if (whitespace != ' ') {
+        destroyRSGMessage(msg);
+        free(statusStr);
+        return NULL;
+    }
+    if (statusStr[strlen(statusStr) - 1] == ' ') {
+        statusStr[strlen(statusStr) - 1] = '\0';
+    }
+
     int status = parseEnum(RSGMessageStatusStrings, statusStr);
     if (status == -1) {
         destroyRSGMessage(msg);
@@ -80,14 +95,33 @@ void *deserializeRSGMessage(char *inBuffer) {
         return NULL;
     }
     msg->status = status;
-    free(statusStr);
     switch (msg->status) {
     case RSG_OK:
-        if (sscanf(inBuffer, "RSG %*s %2u %1u", &msg->n_letters,
-                   &msg->max_errors) != 2) {
+        char newline = 0;
+        char n_letters[3] = {0};
+        char max_errors[2] = {0};
+        char whitespaces[3] = {0};
+        if (sscanf(inBuffer, "RSG%1c%3[^ ]%1c%2[^ ]%1c%2[^\n]%1c", whitespaces,
+                   statusStr, whitespaces + 1, n_letters, whitespaces + 2,
+                   max_errors, &newline) != 7) {
+            destroyRSGMessage(msg);
+            free(statusStr);
+            return NULL;
+        }
+        free(statusStr);
+        if (whitespaces[0] != ' ' || whitespaces[1] != ' ' ||
+            whitespaces[2] != ' ' || newline != '\n' ||
+            !isdigit(n_letters[0]) ||
+            (!isdigit(n_letters[1]) && n_letters[1] != 0)) {
             destroyRSGMessage(msg);
             return NULL;
         }
+        if (!isdigit(max_errors[0])) {
+            destroyRSGMessage(msg);
+            return NULL;
+        }
+        msg->n_letters = (unsigned int)atoi(n_letters);
+        msg->max_errors = (unsigned int)atoi(max_errors);
         if (msg->n_letters < MIN_WORD_SIZE || msg->n_letters > MAX_WORD_SIZE) {
             destroyRSGMessage(msg);
             return NULL;
@@ -96,6 +130,15 @@ void *deserializeRSGMessage(char *inBuffer) {
     case RSG_NOK:
     case RSG_ERR:
     default:
+        if (sscanf(inBuffer, "RSG%1c%3[^\n]%1c", whitespaces, whitespaces + 1,
+                   &newline) != 3) {
+            destroyRSGMessage(msg);
+            return NULL;
+        }
+        if (whitespaces[0] != ' ' || whitespaces[1] != ' ' || newline != '\n') {
+            destroyRSGMessage(msg);
+            return NULL;
+        }
         break;
     }
     return msg;
@@ -125,16 +168,23 @@ void *deserializePLGMessage(char *inBuffer) {
         destroyPLGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "PLG %6s %1c %2u\n", msg->PLID, &msg->letter,
-               &msg->trial) != 3) {
+    char whitespaces[3] = {0};
+    char newline = 0;
+    char trial[3] = {0};
+    if (sscanf(inBuffer, "PLG%1c%6[^\n]%1c%1c%1c%2[^\n]%1c", whitespaces,
+               msg->PLID, whitespaces + 1, &msg->letter, whitespaces + 2, trial,
+               &newline) != 7) {
         destroyPLGMessage(msg);
         return NULL;
     }
-    if (checkPLID(msg->PLID) != 0 || !isalpha(msg->letter)) {
+    if (whitespaces[0] != ' ' || whitespaces[1] != ' ' ||
+        whitespaces[2] != ' ' || newline != '\n' || checkPLID(msg->PLID) != 0 ||
+        !isalpha(msg->letter) || !isdigit(trial[0]) ||
+        (!isdigit(trial[1]) && trial[1] != 0)) {
         destroyPLGMessage(msg);
         return NULL;
     }
-
+    msg->trial = (unsigned int)atoi(trial);
     return msg;
 }
 
@@ -193,12 +243,25 @@ void *deserializeRLGMessage(char *inBuffer) {
     char *statusStr = malloc(4 * sizeof(char));
     if (msg == NULL || statusStr == NULL) {
         destroyRLGMessage(msg);
+        free(statusStr);
         return NULL;
     }
-    if (sscanf(inBuffer, "RLG %3s", statusStr) != 1) {
+    char whitespace = 0;
+    if (sscanf(inBuffer, "RLG%1c%3[^\n]", &whitespace, statusStr) != 2) {
         destroyRLGMessage(msg);
+        free(statusStr);
         return NULL;
     }
+
+    if (whitespace != ' ') {
+        destroyRLGMessage(msg);
+        free(statusStr);
+        return NULL;
+    }
+    if (statusStr[strlen(statusStr) - 1] == ' ') {
+        statusStr[strlen(statusStr) - 1] = '\0';
+    }
+
     int status = parseEnum(RLGMessageStatusStrings, statusStr);
     if (status == -1) {
         destroyRLGMessage(msg);
@@ -206,16 +269,33 @@ void *deserializeRLGMessage(char *inBuffer) {
         return NULL;
     }
     msg->status = status;
-    free(statusStr);
     msg->pos = NULL;
     switch (msg->status) {
     case RLG_OK:
-        if (sscanf(inBuffer, "RLG %*s %2u %2u\n", &msg->trial, &msg->n) != 2) {
+        char whitespaces[3] = {0};
+        char trial[3] = {0};
+        char n[3] = {0};
+        if (sscanf(inBuffer, "RLG%1c%3[^ ]%1c%2[^ ]%1c%2[^ ]", whitespaces,
+                   statusStr, whitespaces + 1, trial, whitespaces + 2,
+                   n) != 6) {
+            destroyRLGMessage(msg);
+            free(statusStr);
+            return NULL;
+        }
+        free(statusStr);
+        if (whitespaces[0] != ' ' || whitespaces[1] != ' ' ||
+            whitespaces[2] != ' ') {
             destroyRLGMessage(msg);
             return NULL;
         }
-        if (msg->trial < 1 || msg->n < 1 ||
-            msg->n > MAX_WORD_SIZE) {
+        if (!isdigit(trial[0]) || (!isdigit(trial[1]) && trial[1] != 0) ||
+            !isdigit(n[0]) || (!isdigit(n[1]) && n[1] != 0)) {
+            destroyRLGMessage(msg);
+            return NULL;
+        }
+        msg->trial = (unsigned int)atoi(trial);
+        msg->n = (unsigned int)atoi(n);
+        if (msg->trial < 1 || msg->n < 1 || msg->n > MAX_WORD_SIZE) {
             destroyRLGMessage(msg);
             return NULL;
         }
@@ -245,10 +325,21 @@ void *deserializeRLGMessage(char *inBuffer) {
     case RLG_NOK:
     case RLG_OVR:
     case RLG_INV:
-        if (sscanf(inBuffer, "RLG %*s %2u\n", &msg->trial) != 1) {
+        char newline = 0;
+        char trials[3] = {0};
+        if (sscanf(inBuffer, "RLG%1c%3[^ ]%1c%2[^\n]%1c", whitespaces, statusStr,
+                   whitespaces + 1, trials, &newline) != 5) {
+            destroyRLGMessage(msg);
+            free(statusStr);
+            return NULL;
+        }
+        free(statusStr);
+        if (whitespaces[0] != ' ' || whitespaces[1] != ' ' || newline != '\n' ||
+            !isdigit(trials[0]) || (!isdigit(trials[1]) && trials[1] != 0)) {
             destroyRLGMessage(msg);
             return NULL;
         }
+        msg->trial = (unsigned int)atoi(trials);
         break;
     case RLG_ERR:
     default:
@@ -288,13 +379,20 @@ void *deserializePWGMessage(char *inBuffer) {
         destroyPWGMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "PWG %6s %30s %2u\n", msg->PLID, msg->word,
-               &msg->trial) != 3) {
+    char whitespaces[3] = {0};
+    char newline = 0;
+    char trial[3] = {0};
+    if (sscanf(inBuffer, "PWG%1c%6[^\n]%1c%30[^ ]%1c%2[^\n]%1c", whitespaces,
+               msg->PLID, whitespaces + 1, msg->word, whitespaces + 2, trial,
+               &newline) != 7) {
         destroyPWGMessage(msg);
         return NULL;
     }
-    if (checkPLID(msg->PLID) != 0 || strlen(msg->word) < MIN_WORD_SIZE ||
-        strlen(msg->word) > MAX_WORD_SIZE) {
+    if (whitespaces[0] != ' ' || whitespaces[1] != ' ' ||
+        whitespaces[2] != ' ' || newline != '\n' || checkPLID(msg->PLID) != 0 ||
+        strlen(msg->word) < MIN_WORD_SIZE ||
+        strlen(msg->word) > MAX_WORD_SIZE || !isdigit(trial[0]) ||
+        (!isdigit(trial[1]) && trial[1] != 0)) {
         destroyPWGMessage(msg);
         return NULL;
     }
@@ -305,6 +403,7 @@ void *deserializePWGMessage(char *inBuffer) {
             return NULL;
         }
     }
+    msg->trial = (unsigned int)atoi(trial);
     return msg;
 }
 
@@ -337,13 +436,21 @@ void *deserializeRWGMessage(char *inBuffer) {
     char *statusStr = malloc(4 * sizeof(char));
     if (msg == NULL || statusStr == NULL) {
         destroyRWGMessage(msg);
+        free(statusStr);
         return NULL;
     }
-    if (sscanf(inBuffer, "RWG %3s", statusStr) != 1) {
+    char whitespace = 0;
+    if (sscanf(inBuffer, "RWG%1c%3[^\n]", &whitespace, statusStr) != 2) {
         destroyRWGMessage(msg);
         free(statusStr);
         return NULL;
     }
+    if (whitespace != ' ') {
+        destroyRSGMessage(msg);
+        free(statusStr);
+        return NULL;
+    }
+
     int status = parseEnum(RWGMessageStatusStrings, statusStr);
     if (status == -1) {
         destroyRWGMessage(msg);
@@ -351,17 +458,28 @@ void *deserializeRWGMessage(char *inBuffer) {
         return NULL;
     }
     msg->status = status;
-    free(statusStr);
     switch (msg->status) {
     case RWG_WIN:
     case RWG_DUP:
     case RWG_NOK:
     case RWG_OVR:
     case RWG_INV:
-        if (sscanf(inBuffer, "RWG %*s %2u\n", &msg->trials) != 1) {
+        char newline = 0;
+        char trials[3] = {0};
+        char whitespaces[2] = {0};
+        if (sscanf(inBuffer, "RWG%1c%3[^ ]%1c%2[^\n]%1c", whitespaces, statusStr,
+                   whitespaces + 1, trials, &newline) != 5) {
+            destroyRWGMessage(msg);
+            free(statusStr);
+            return NULL;
+        }
+        free(statusStr);
+        if (whitespaces[0] != ' ' || whitespaces[1] != ' ' || newline != '\n' ||
+            !isdigit(trials[0]) || (!isdigit(trials[1]) && trials[1] != 0)) {
             destroyRWGMessage(msg);
             return NULL;
         }
+        msg->trials = (unsigned int)atoi(trials);
         break;
     case RWG_ERR:
     default:
@@ -397,11 +515,14 @@ void *deserializeQUTMessage(char *inBuffer) {
         destroyQUTMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "QUT %6s\n", msg->PLID) != 1) {
+    char whitespace = 0;
+    char newline = 0;
+    if (sscanf(inBuffer, "QUT%1c%6[^\n]%1c", &whitespace, msg->PLID,
+               &newline) != 3) {
         destroyQUTMessage(msg);
         return NULL;
     }
-    if (checkPLID(msg->PLID) != 0) {
+    if (whitespace != ' ' || newline != '\n' || checkPLID(msg->PLID) != 0) {
         destroyQUTMessage(msg);
         return NULL;
     }
@@ -427,7 +548,14 @@ void *deserializeRQTMessage(char *inBuffer) {
         destroyRQTMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "RQT %3s\n", statusStr) != 1) {
+    char whitespace = 0;
+    char newline = 0;
+    if (sscanf(inBuffer, "RQT%1c%3[^\n]%1c", &whitespace, statusStr,
+               &newline) != 3) {
+        destroyRQTMessage(msg);
+        return NULL;
+    }
+    if (whitespace != ' ' || newline != '\n') {
         destroyRQTMessage(msg);
         return NULL;
     }
@@ -570,11 +698,14 @@ void *deserializeGHLMessage(char *inBuffer) {
         destroyGHLMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "GHL %6s\n", msg->PLID) != 1) {
+    char whitespace = 0;
+    char newline = 0;
+    if (sscanf(inBuffer, "GHL%1c%6[^\n]%1c", &whitespace, msg->PLID,
+               &newline) != 3) {
         destroyGHLMessage(msg);
         return NULL;
     }
-    if (checkPLID(msg->PLID) != 0) {
+    if (whitespace != ' ' || newline != '\n' || checkPLID(msg->PLID) != 0) {
         destroyGHLMessage(msg);
         return NULL;
     }
@@ -605,11 +736,14 @@ void *deserializeSTAMessage(char *inBuffer) {
         destroySTAMessage(msg);
         return NULL;
     }
-    if (sscanf(inBuffer, "STA %6s\n", msg->PLID) != 1) {
+    char whitespace = 0;
+    char newline = 0;
+    if (sscanf(inBuffer, "STA%1c%6[^\n]%1c", &whitespace, msg->PLID,
+               &newline) != 3) {
         destroySTAMessage(msg);
         return NULL;
     }
-    if (checkPLID(msg->PLID) != 0) {
+    if (whitespace != ' ' || newline != '\n' || checkPLID(msg->PLID) != 0) {
         destroySTAMessage(msg);
         return NULL;
     }
