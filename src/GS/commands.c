@@ -67,8 +67,16 @@ const TCPCommandDescriptor GHLCmd = {"GHL",
                                      RHLMessageFileReceiveStatuses,
                                      "RHL"};
 
-const TCPCommandDescriptor TCP_COMMANDS[] = {GSBCmd, GHLCmd};
-const size_t TCP_COMMANDS_COUNT = 2;
+const TCPCommandDescriptor STACmd = {"STA",
+                                     deserializeSTAMessage,
+                                     destroySTAMessage,
+                                     fulfillSTARequest,
+                                     RSTMessageStatusStrings,
+                                     RSTMessageFileReceiveStatuses,
+                                     "RST"};
+
+const TCPCommandDescriptor TCP_COMMANDS[] = {GSBCmd, GHLCmd, STACmd};
+const size_t TCP_COMMANDS_COUNT = 3;
 
 int handleUDPCommand(const UDPCommandDescriptor *cmd, ServerState *state) {
     void *req = cmd->requestDeserializer(state->in_buffer);
@@ -387,7 +395,26 @@ int fulfillGHLRequest(void *req, UNUSED ServerState *state,
         return RHL_NOK;
     }
 
-    *fptr = getFSFile(HINTS_DIR, game->wordListEntry->hintFile, NULL);
+    *fptr = getFSResponseFile(HINTS_DIR, game->wordListEntry->hintFile, NULL);
 
     return (*fptr != NULL) ? RHL_OK : RHL_NOK;
+}
+
+int fulfillSTARequest(void *req, UNUSED ServerState *state,
+                      ResponseFile **fptr) {
+    STAMessage *sta = (STAMessage *)req;
+    Game *game = loadGame(sta->PLID, false);
+    if (game == NULL) {
+        return RST_NOK;
+    }
+
+    *fptr = getGameState(game);
+
+    if (*fptr == NULL) {
+        return RST_NOK;
+    } else if (game->outcome == OUTCOME_ONGOING) {
+        return RST_ACT;
+    } else {
+        return RST_FIN;
+    }
 }

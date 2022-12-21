@@ -545,17 +545,19 @@ void stateCallback(UNUSED void *req, int status, ReceivedFile *file,
     case RST_ACT:
         printf("Here is a summary of the ongoing game:\n\n");
         displayFile(file);
+        putchar('\n');
         break;
     case RST_FIN:
         printf("There is no ongoing game, so here is a summary of the most "
                "recently finished game for the specified PLID:\n");
         displayFile(file);
+        putchar('\n');
         endGame(state);
         break;
     case RST_NOK:
     default:
-        printf("A problem has occurred or there is no hint image available for "
-               "this word.\n");
+        printf("A problem has occurred or no active or past games were found "
+               "for the specified PLID.\n");
         return;
     }
     printf("\nA copy of the above game state been saved at %s (%ld B).\n",

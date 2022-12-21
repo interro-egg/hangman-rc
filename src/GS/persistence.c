@@ -9,6 +9,8 @@
 #include <time.h>
 #include <unistd.h>
 
+const char *gameOutcomeStrings[] = {"ONGOING", "WIN", "FAIL", "QUIT"};
+
 int initPersistence() {
     if (ensureDirExists("GAMES") != 0 || ensureDirExists("SCORES") != 0) {
         return -1;
@@ -455,7 +457,130 @@ Score *loadScore(char *filePath) {
     return score;
 }
 
-ResponseFile *getFSFile(char *dirPath, char *fileName, char *responseFileName) {
+ResponseFile *getGameState(Game *game) {
+    if (game == NULL) {
+        return NULL;
+    }
+
+    char *fname = malloc((MAX_FNAME_LEN + 1) * sizeof(char));
+    if (fname == NULL ||
+        snprintf(fname, MAX_FNAME_LEN + 1, "STATE_%s.txt", game->PLID) <= 0) {
+        free(fname);
+        return NULL;
+    }
+
+    FILE *tmp = tmpfile();
+    if (tmp == NULL) {
+        free(fname);
+        return NULL;
+    }
+
+    if (fprintf(tmp, "\t%s game for player %s\n\tWord: %s; Hint file: %s",
+                game->outcome == OUTCOME_ONGOING ? "Active" : "Last finalized",
+                game->PLID, game->wordListEntry->word,
+                game->wordListEntry->hintFile) <= 0) {
+        free(fname);
+        fclose(tmp);
+        return NULL;
+    }
+
+    if (game->numTrials == 0) {
+        if (fprintf(tmp, "\n\tGame started - no trials found") <= 0) {
+            free(fname);
+            fclose(tmp);
+            return NULL;
+        }
+    } else {
+        if (fprintf(tmp, "\n\t--- Trials found: %u (%u successful) ---",
+                    game->numTrials, game->numSucc) <= 0) {
+            free(fname);
+            fclose(tmp);
+            return NULL;
+        }
+
+        for (unsigned int i = 0; i < game->numTrials; i++) {
+            GameTrial *trial = game->trials[i];
+            int r = 0;
+            if (trial->type == TRIAL_TYPE_LETTER) {
+                r = fprintf(tmp, "\n\tLetter trial: %c", trial->guess.letter);
+            } else if (trial->type == TRIAL_TYPE_WORD) {
+                r = fprintf(tmp, "\n\tWord guess: %s", trial->guess.word);
+            }
+            if (r <= 0) {
+                free(fname);
+                fclose(tmp);
+                return NULL;
+            }
+        }
+    }
+
+    int r = 0;
+    if (game->outcome == OUTCOME_ONGOING) {
+        r = fprintf(tmp, "\n\n\t%u guesses left",
+                    game->maxErrors - (game->numTrials - game->numSucc));
+    } else {
+        r = fprintf(tmp, "\n\n\tOutcome: %s",
+                    gameOutcomeStrings[game->outcome]);
+    }
+    if (r <= 0 || fflush(tmp) == EOF) {
+        free(fname);
+        fclose(tmp);
+        return NULL;
+    }
+
+    rewind(tmp);
+    return getResponseFile(tmp, fname);
+}
+
+// Closes file; takes ownership of responseFileName
+ResponseFile *getResponseFile(FILE *file, char *responseFileName) {
+    if (file == NULL || responseFileName == NULL ||
+        flock(fileno(file), LOCK_SH) == -1) {
+        fclose(file);
+        return NULL;
+    }
+
+    struct stat fileStat;
+    if (fstat(fileno(file), &fileStat) == -1) {
+        free(responseFileName);
+        fclose(file);
+        return NULL;
+    }
+
+    ResponseFile *resp = malloc(sizeof(ResponseFile));
+    if (resp == NULL) {
+        free(responseFileName);
+        fclose(file);
+        return NULL;
+    }
+
+    if (fileStat.st_size > MAX_FSIZE_NUM) {
+        free(responseFileName);
+        free(resp);
+        fclose(file);
+        return NULL;
+    }
+    resp->size = (size_t)fileStat.st_size;
+
+    resp->name = responseFileName;
+    resp->data = malloc(resp->size);
+    if (resp->data == NULL) {
+        destroyResponseFile(resp);
+        fclose(file);
+        return NULL;
+    }
+
+    if (fread(resp->data, sizeof(char), resp->size, file) < resp->size) {
+        destroyResponseFile(resp);
+        fclose(file);
+        return NULL;
+    }
+    fclose(file);
+    return resp;
+}
+
+ResponseFile *getFSResponseFile(char *dirPath, char *fileName,
+                                char *responseFileName) {
     if (dirPath == NULL || fileName == NULL) {
         return NULL;
     }
@@ -465,50 +590,14 @@ ResponseFile *getFSFile(char *dirPath, char *fileName, char *responseFileName) {
         free(filePath);
         return NULL;
     }
-
-    FILE *file = fopen(filePath, "r");
-    free(filePath);
-    if (file == NULL || flock(fileno(file), LOCK_SH) == -1) {
-        return NULL;
-    }
     if (responseFileName == NULL) {
         responseFileName = strndup(fileName, MAX_FNAME_LEN);
     }
 
-    struct stat fileStat;
-    if (fstat(fileno(file), &fileStat) == -1) {
-        fclose(file);
-        return NULL;
-    }
+    FILE *file = fopen(filePath, "r");
+    free(filePath);
 
-    ResponseFile *resp = malloc(sizeof(ResponseFile));
-    if (resp == NULL) {
-        fclose(file);
-        return NULL;
-    }
-
-    if (fileStat.st_size > MAX_FSIZE_NUM) {
-        fclose(file);
-        free(resp);
-        return NULL;
-    }
-    resp->size = (size_t)fileStat.st_size;
-
-    resp->name = responseFileName;
-    resp->data = malloc(resp->size);
-    if (resp->name == NULL || resp->data == NULL) {
-        fclose(file);
-        destroyResponseFile(resp);
-        return NULL;
-    }
-
-    if (fread(resp->data, 1, resp->size, file) < resp->size) {
-        fclose(file);
-        destroyResponseFile(resp);
-        return NULL;
-    }
-
-    return resp;
+    return getResponseFile(file, responseFileName);
 }
 
 ResponseFile *getScoreboard() {
@@ -519,7 +608,7 @@ ResponseFile *getScoreboard() {
         return NULL;
     }
 
-    return getFSFile(SCORES_DIR, SCOREBOARD_FILE_NAME, name);
+    return getFSResponseFile(SCORES_DIR, SCOREBOARD_FILE_NAME, name);
 }
 
 int generateScoreboard() {

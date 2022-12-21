@@ -40,6 +40,7 @@ enum GameOutcome {
     OUTCOME_FAIL = 'F',
     OUTCOME_QUIT = 'Q'
 };
+extern const char *gameOutcomeStrings[];
 
 enum GameTrialType {
     TRIAL_TYPE_LETTER = 'L',
@@ -106,7 +107,10 @@ void destroyScore(Score *score);
 int registerScore(Score *score);
 Score *loadScore(char *filePath);
 
-ResponseFile *getFSFile(char *dirPath, char *fileName, char *responseFileName);
+ResponseFile *getGameState(Game *game);
+ResponseFile *getResponseFile(FILE *file, char *responseFileName);
+ResponseFile *getFSResponseFile(char *dirPath, char *fileName,
+                                char *responseFileName);
 
 ResponseFile *getScoreboard();
 int generateScoreboard();
