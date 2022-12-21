@@ -40,7 +40,6 @@ const UDPCommandDescriptor QUTCmd = {"QUT",
                                      destroyRQTMessage,
                                      "RQT"};
 
-
 const UDPCommandDescriptor REVCmd = {"REV",
                                      deserializeREVMessage,
                                      destroyREVMessage,
