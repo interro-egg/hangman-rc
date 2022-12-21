@@ -412,7 +412,7 @@ int registerScore(Score *score) {
     }
 
     fclose(file);
-    return 0;
+    return generateScoreboard();
 }
 
 Score *loadScore(char *filePath) {
@@ -432,8 +432,18 @@ Score *loadScore(char *filePath) {
     }
     score->word = word;
 
-    if (sscanf(filePath, "%u_%s_%s.txt", &score->score, score->PLID,
-               score->finishStamp) != 3 ||
+    char *fileName = strrchr(filePath, '/') + 1;
+    if (fileName == NULL) {
+        free(score);
+        fclose(file);
+        return NULL;
+    }
+
+    char *scoreStr = strtok(fileName, "_");
+    score->PLID = strtok(NULL, "_");
+    score->finishStamp = strtok(NULL, ".");
+    if (scoreStr == NULL || score->PLID == NULL || score->finishStamp == NULL ||
+        sscanf(scoreStr, "%u", &score->score) != 1 ||
         fscanf(file, "%s %u %u", score->word, &score->numSucc,
                &score->numTrials) != 3) {
         free(score);
@@ -443,6 +453,54 @@ Score *loadScore(char *filePath) {
 
     fclose(file);
     return score;
+}
+
+int generateScoreboard() {
+    FILE *file = fopen(SCOREBOARD_FILE, "w");
+    if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
+        return -1;
+    }
+
+    struct dirent **namelist;
+    int n = scandir(SCORES_DIR, &namelist, isNotScoreboardFile, alphasort);
+    if (n <= 0) {
+        fclose(file);
+        unlink(SCOREBOARD_FILE);
+        return n;
+    }
+
+    fprintf(file, "------------------------------- TOP 10 SCORES "
+                  "-------------------------------\n\n");
+    fprintf(file,
+            "     SCORE  PLAYER  WORD                            GOOD TRIALS  "
+            "TOTAL TRIALS\n\n");
+
+    char filePath[MAX_FILE_PATH_SIZE];
+
+    for (int i = n - 1, c = 1; i >= MAX(0, n - SCOREBOARD_MAX_ITEMS);
+         i--, c++) {
+        if (snprintf(filePath, MAX_FILE_PATH_SIZE, "%s/%s", SCORES_DIR,
+                     namelist[i]->d_name) <= 0) {
+            continue;
+        }
+        free(namelist[i]);
+        Score *score = loadScore(filePath);
+        if (score == NULL) {
+            continue;
+        }
+        fprintf(file, "%2d - %5u  %-6s  %-30s  %11u  %12u\n", c, score->score,
+                score->PLID, score->word, score->numSucc, score->numTrials);
+        free(score);
+    }
+    free(namelist);
+
+    fclose(file);
+    return 0;
+}
+
+int isNotScoreboardFile(const struct dirent *entry) {
+    return entry->d_name[0] != '.' &&
+           strcmp(entry->d_name, SCOREBOARD_FILE_NAME) != 0;
 }
 
 int ensureDirExists(const char *path) {

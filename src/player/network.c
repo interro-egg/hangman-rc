@@ -1,5 +1,3 @@
-#define _GNU_SOURCE // needed for splice
-
 #include "network.h"
 #include "../common/common.h"
 #include <ctype.h>

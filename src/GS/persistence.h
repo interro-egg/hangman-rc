@@ -2,6 +2,7 @@
 #define PERSISTENCE_H
 
 #include "server_state.h"
+#include <dirent.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -10,6 +11,10 @@
 
 #define GAMES_DIR "GAMES"
 #define SCORES_DIR "SCORES"
+#define SCOREBOARD_FILE_NAME "SCOREBOARD.txt"
+#define SCOREBOARD_FILE SCORES_DIR "/" SCOREBOARD_FILE_NAME
+#define SCOREBOARD_MAX_ITEMS 10
+
 #define MAX_FILE_PATH_SIZE 37 + 1
 #define MAX_TIMESTAMP_SIZE (sizeof("YYYYMMDD_HHMMSS"))
 
@@ -95,6 +100,9 @@ void destroyScore(Score *score);
 int registerScore(Score *score);
 Score *loadScore(char *filePath);
 
+int generateScoreboard();
+
+int isNotScoreboardFile(const struct dirent *entry);
 int ensureDirExists(const char *path);
 char *formattedTimeStamp();
 

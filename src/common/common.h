@@ -15,6 +15,7 @@
 
 #define UNUSED __attribute__((unused))
 
+#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
 void lowercase(char *str);
