@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
 
 int initPersistence() {
@@ -227,14 +228,14 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     if (fscanf(file, "%ms %ms\n%c %u %d %u\n", &word, &hintFile, &outcome,
                &game->numSucc, &game->maxErrors,
                &game->remainingLetters) != 6) {
-        free(game);
+        destroyGame(game);
         fclose(file);
         return NULL;
     }
     game->outcome = (enum GameOutcome)outcome;
     game->wordListEntry = createWordListEntry(word, hintFile);
     if (game->wordListEntry == NULL) {
-        free(game);
+        destroyGame(game);
         fclose(file);
         return NULL;
     }
@@ -246,10 +247,10 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     size_t len = 0;
     ssize_t read;
     char type;
-    char *guess = malloc(sizeof(char) * (MAX_WORD_SIZE + 1));
+    char *guess = malloc((MAX_WORD_SIZE + 1) * sizeof(char));
     while ((read = getline(&line, &len, file)) != -1) {
         if (sscanf(line, "%c %s\n", &type, guess) != 2) {
-            free(game);
+            destroyGame(game);
             fclose(file);
             return NULL;
         }
@@ -261,7 +262,7 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
             trial->guess.word = guess;
         }
         if (registerGameTrial(game, trial) == -1) {
-            free(game);
+            destroyGame(game);
             fclose(file);
             return NULL;
         }
@@ -272,12 +273,15 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     return game;
 }
 
-unsigned long getScore(Game *game) {
-    if (game == NULL || game->numTrials == 0) {
+unsigned int calculateScore(Game *game) {
+    if (game == NULL || game->numSucc == 0 || game->numTrials == 0) {
         return 0;
     }
     // round(game->numSucc / game->numTrials)
-    return (game->numSucc + (game->numTrials / 2)) / game->numTrials;
+    unsigned int rounded =
+        ((100 * game->numSucc) + (game->numTrials / 2)) / game->numTrials;
+
+    return MIN(100, rounded);
 }
 
 int endGame(Game *game, enum GameOutcome outcome) {
@@ -286,7 +290,17 @@ int endGame(Game *game, enum GameOutcome outcome) {
     }
     game->outcome = outcome;
 
-    // TODO: make score
+    if (outcome == OUTCOME_WIN) {
+        Score *score = newScore(game);
+        if (score == NULL) {
+            return -1;
+        }
+        if (registerScore(score) == -1) {
+            destroyScore(score);
+            return -1;
+        }
+        destroyScore(score);
+    }
 
     // will save at new location
     if (saveGame(game) == -1) {
@@ -305,23 +319,21 @@ FILE *findGameFileForPlayer(char *PLID, bool ongoingOnly) {
         return NULL;
     }
     FILE *file = fopen(filePath, "r");
+    free(filePath);
     if (file == NULL) {
         if (errno != ENOENT || ongoingOnly) {
-            free(filePath);
             return NULL;
         }
         filePath = computeGameFilePath(PLID, false);
         if (filePath == NULL) {
-            free(filePath);
             return NULL;
         }
         file = fopen(filePath, "r");
         if (file == NULL) {
-            free(filePath);
             return NULL;
         }
     }
-    free(filePath);
+
     return file;
 }
 
@@ -338,6 +350,101 @@ char *computeGameFilePath(char *PLID, bool ongoing) {
     return filePath;
 }
 
+Score *newScore(Game *game) {
+    if (game == NULL || game->outcome == OUTCOME_ONGOING) {
+        return NULL;
+    }
+    Score *score = malloc(sizeof(Score));
+    if (score == NULL) {
+        return NULL;
+    }
+
+    score->score = calculateScore(game);
+    score->PLID = strdup(game->PLID);
+    score->finishStamp = formattedTimeStamp();
+    score->word = strdup(game->wordListEntry->word);
+    score->numSucc = game->numSucc;
+    score->numTrials = game->numTrials;
+
+    if (score->PLID == NULL || score->finishStamp == NULL ||
+        score->word == NULL) {
+        destroyScore(score);
+        return NULL;
+    }
+
+    return score;
+}
+
+void destroyScore(Score *score) {
+    if (score == NULL) {
+        return;
+    }
+    free(score->PLID);
+    free(score->finishStamp);
+    free(score->word);
+    free(score);
+}
+
+int registerScore(Score *score) {
+    if (score == NULL) {
+        return -1;
+    }
+    char *filePath = malloc(MAX_FILE_PATH_SIZE * sizeof(char));
+    if (filePath == NULL) {
+        return -1;
+    }
+    if (snprintf(filePath, MAX_FILE_PATH_SIZE, "%s/%03u_%s_%s.txt", SCORES_DIR,
+                 score->score, score->PLID, score->finishStamp) <= 0) {
+        free(filePath);
+        return -1;
+    }
+
+    FILE *file = fopen(filePath, "w");
+    free(filePath);
+
+    if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
+        return -1;
+    }
+    if (fprintf(file, "%s %u %u", score->word, score->numSucc,
+                score->numTrials) == -1) {
+        fclose(file);
+        return -1;
+    }
+
+    fclose(file);
+    return 0;
+}
+
+Score *loadScore(char *filePath) {
+    if (filePath == NULL) {
+        return NULL;
+    }
+    FILE *file = fopen(filePath, "r");
+    if (file == NULL || flock(fileno(file), LOCK_SH) == -1) {
+        return NULL;
+    }
+
+    Score *score = malloc(sizeof(Score));
+    char *word = malloc((MAX_WORD_SIZE + 1) * sizeof(char));
+    if (score == NULL || word == NULL) {
+        fclose(file);
+        return NULL;
+    }
+    score->word = word;
+
+    if (sscanf(filePath, "%u_%s_%s.txt", &score->score, score->PLID,
+               score->finishStamp) != 3 ||
+        fscanf(file, "%s %u %u", score->word, &score->numSucc,
+               &score->numTrials) != 3) {
+        free(score);
+        fclose(file);
+        return NULL;
+    }
+
+    fclose(file);
+    return score;
+}
+
 int ensureDirExists(const char *path) {
     // check if directory exists
     if (access(path, R_OK || W_OK) == -1) {
@@ -347,4 +454,18 @@ int ensureDirExists(const char *path) {
         }
     }
     return 0;
+}
+
+char *formattedTimeStamp() {
+    char *stamp = malloc(MAX_TIMESTAMP_SIZE * sizeof(char));
+    if (stamp == NULL) {
+        return NULL;
+    }
+    time_t now = time(NULL);
+    if (strftime(stamp, MAX_TIMESTAMP_SIZE, "%Y%m%d_%H%M%S", gmtime(&now)) <=
+        0) {
+        free(stamp);
+        return NULL;
+    }
+    return stamp;
 }

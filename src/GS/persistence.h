@@ -11,6 +11,7 @@
 #define GAMES_DIR "GAMES"
 #define SCORES_DIR "SCORES"
 #define MAX_FILE_PATH_SIZE 37 + 1
+#define MAX_TIMESTAMP_SIZE (sizeof("YYYYMMDD_HHMMSS"))
 
 typedef struct {
     char *word;
@@ -54,7 +55,7 @@ typedef struct {
 } Game;
 
 typedef struct {
-    unsigned long score;
+    unsigned int score;
     char *PLID;
     char *finishStamp;
     char *word;
@@ -88,6 +89,13 @@ Game *loadGame(char *PLID, bool ongoingOnly);
 int registerGameTrial(Game *game, GameTrial *trial);
 
 FILE *findGameFileForPlayer(char *PLID, bool ongoingOnly);
+
+Score *newScore(Game *game);
+void destroyScore(Score *score);
+int registerScore(Score *score);
+Score *loadScore(char *filePath);
+
 int ensureDirExists(const char *path);
+char *formattedTimeStamp();
 
 #endif // PERSISTENCE_H

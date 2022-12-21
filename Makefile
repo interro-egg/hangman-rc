@@ -24,6 +24,9 @@ SOURCES := $(PLAYER_SOURCES) $(GS_SOURCES) $(COMMON_SOURCES)
 OBJECTS := $(PLAYER_OBJECTS) $(GS_OBJECTS) $(COMMON_OBJECTS)
 TARGET_EXECS := $(PLAYER_EXEC) $(GS_EXEC)
 
+# Execution artifacts
+ARTIFACTS := $(filter-out word_eng.txt, $(wildcard *.txt)) $(wildcard *.jpeg) $(wildcard *.jpg) $(wildcard *.png) $(wildcard *.gif) $(wildcard *.svg) GAMES SCORES
+
 CFLAGS += -std=c17 -D_POSIX_C_SOURCE=200809L
 CFLAGS += $(INCLUDES)
 
@@ -62,6 +65,9 @@ $(GS_EXEC): $(GS_OBJECTS) $(COMMON_OBJECTS)
 
 clean: 
 	rm -f $(TARGET_EXECS) $(OBJECTS)
+
+clean-artifacts:
+	rm -rf $(ARTIFACTS)
 
 fmt: $(SOURCES) $(HEADERS)
 	$(FORMATTER) -i $^

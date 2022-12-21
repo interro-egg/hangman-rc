@@ -335,7 +335,7 @@ void *fulfillQUTRequest(void *req, UNUSED ServerState *state) {
     if (game == NULL) {
         rqt->status = RQT_NOK;
     } else {
-        if (endGame(game, OUTCOME_FAIL) != 0) {
+        if (endGame(game, OUTCOME_QUIT) != 0) {
             return NULL;
         }
         rqt->status = RQT_OK;
