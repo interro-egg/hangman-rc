@@ -54,7 +54,7 @@ LDFLAGS += $(EXTRA_LDFLAGS)
 %: src/%/$$@.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
 
-.PHONY: all clean fmt fmt-check
+.PHONY: all clean clean-artifacts fmt fmt-check release
 
 # must be the first target in the Makefile
 # (the name "all" is not special, just a convention)
@@ -74,3 +74,6 @@ fmt: $(SOURCES) $(HEADERS)
 
 fmt-check: $(SOURCES) $(HEADERS)
 	$(FORMATTER) --dry-run --Werror $^
+
+release: clean
+	git archive --format zip --output hangman_043.zip HEAD
