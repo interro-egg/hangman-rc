@@ -24,14 +24,15 @@ const UDPCommandDescriptor PLGCmd = {"PLG",
                                      destroyRLGMessage,
                                      "RLG"};
 
-/*
 const UDPCommandDescriptor PWGCmd = {"PWG",
                                      deserializePWGMessage,
                                      destroyPWGMessage,
                                      fulfillPWGRequest,
                                      serializeRWGMessage,
-                                     destroyRWGMessage};
+                                     destroyRWGMessage,
+                                     "RWG"};
 
+/*
 const UDPCommandDescriptor QUTCmd = {"QUT",
                                      deserializeQUTMessage,
                                      destroyQUTMessage,
@@ -46,9 +47,9 @@ const UDPCommandDescriptor REVCmd = {"REV",
                                      serializeRRVMessage,
                                      destroyRRVMessage};
 */
-const UDPCommandDescriptor UDP_COMMANDS[] = {SNGCmd, PLGCmd/*, PWGCmd, QUTCmd,
+const UDPCommandDescriptor UDP_COMMANDS[] = {SNGCmd, PLGCmd, PWGCmd/*, QUTCmd,
                                              REVCmd*/};
-const size_t UDP_COMMANDS_COUNT = 2;
+const size_t UDP_COMMANDS_COUNT = 3;
 
 const TCPCommandDescriptor GSBCmd = {"GSB",
                                      deserializeGSBMessage,
@@ -240,6 +241,76 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
         return NULL;
     }
     return rlg;
+}
+
+void *fulfillPWGRequest(void *req, UNUSED ServerState *state) {
+    PWGMessage *pwg = (PWGMessage *)req;
+    RWGMessage *rwg = (RWGMessage *)malloc(sizeof(RWGMessage));
+    if (rwg == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    Game *game = loadGame(pwg->PLID, true);
+    if (game == NULL) {
+        return NULL;
+    }
+    // If it's not repetition of last trial or current trial
+    if (pwg->trial != game->numTrials + 1 && pwg->trial != game->numTrials) {
+        rwg->status = RWG_INV;
+    }
+    // If it's a repetition of last trial
+    else if (pwg->trial == game->numTrials) {
+        // If word is different now
+        if (strcmp(pwg->word, game->trials[game->numTrials - 1]->guess.word) !=
+            0) {
+            rwg->status = RWG_INV;
+        }
+        // check if word has been already guessed up until last trial
+        else {
+            for (size_t i = 0; i < game->numTrials - 1; i++) {
+                if (strcmp(game->trials[i]->guess.word, pwg->word) == 0) {
+                    rwg->status = RWG_DUP;
+                    rwg->trials = game->numTrials;
+                    return rwg;
+                }
+            }
+            // No need to test/set anything else because it's a repetition
+            rwg->status = RWG_NOK;
+        }
+
+    } else {
+        // It's a new trial
+        for (size_t i = 0; i < game->numTrials; i++) {
+            if (strcmp(game->trials[i]->guess.word, pwg->word) == 0) {
+                rwg->status = RWG_DUP;
+                rwg->trials = game->numTrials;
+                return rwg;
+            }
+        }
+        if (strcmp(pwg->word, game->wordListEntry->word) != 0) {
+            rwg->status = RWG_NOK;
+            // check if it's a gameover
+            if (game->numTrials - game->numSucc >= game->maxErrors) {
+                rwg->status = RWG_OVR;
+            }
+        } else {
+            rwg->status = RWG_WIN;
+        }
+        GameTrial *newTrial = malloc(sizeof(GameTrial));
+        if (newTrial == NULL) {
+            return NULL;
+        }
+        newTrial->type = TRIAL_TYPE_WORD;
+        newTrial->guess.word = pwg->word;
+        if (registerGameTrial(game, newTrial) != 0) {
+            return NULL;
+        }
+    }
+    rwg->trials = game->numTrials;
+    if (saveGame(game) != 0) {
+        return NULL;
+    }
+    return rwg;
 }
 
 int fulfillGSBRequest(UNUSED void *req, UNUSED ServerState *state,
