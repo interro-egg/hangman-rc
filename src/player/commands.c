@@ -491,6 +491,7 @@ void scoreboardCallback(UNUSED void *req, int status, ReceivedFile *file,
                         UNUSED PlayerState *state) {
     switch (status) {
     case RSB_OK:
+        putchar('\n');
         displayFile(file);
         printf("\nA copy of this scoreboard has been saved at %s (%ld B).\n",
                file->fname, file->fsize);
@@ -542,7 +543,7 @@ void stateCallback(UNUSED void *req, int status, ReceivedFile *file,
                    PlayerState *state) {
     switch (status) {
     case RST_ACT:
-        printf("Here is a summary of the ongoing game:\n");
+        printf("Here is a summary of the ongoing game:\n\n");
         displayFile(file);
         break;
     case RST_FIN:
@@ -557,7 +558,7 @@ void stateCallback(UNUSED void *req, int status, ReceivedFile *file,
                "this word.\n");
         return;
     }
-    printf("A copy of the above game state been saved at %s (%ld B).\n",
+    printf("\nA copy of the above game state been saved at %s (%ld B).\n",
            file->fname, file->fsize);
 }
 
