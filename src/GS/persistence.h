@@ -40,7 +40,6 @@ enum GameOutcome {
     OUTCOME_FAIL = 'F',
     OUTCOME_QUIT = 'Q'
 };
-extern const char *gameOutcomeStrings[];
 
 enum GameTrialType {
     TRIAL_TYPE_LETTER = 'L',
@@ -76,6 +75,8 @@ typedef struct {
 } Score;
 
 int initPersistence();
+
+const char *translateGameOutcome(enum GameOutcome outcome);
 
 void destroyWordListEntry(WordListEntry *entry);
 

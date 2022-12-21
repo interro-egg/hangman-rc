@@ -11,6 +11,21 @@
 
 const char *gameOutcomeStrings[] = {"ONGOING", "WIN", "FAIL", "QUIT"};
 
+const char *translateGameOutcome(enum GameOutcome outcome) {
+    switch (outcome) {
+    case OUTCOME_ONGOING:
+        return "ONGOING";
+    case OUTCOME_WIN:
+        return "WIN";
+    case OUTCOME_FAIL:
+        return "FAIL";
+    case OUTCOME_QUIT:
+        return "QUIT";
+    default:
+        return "???";
+    }
+}
+
 int initPersistence() {
     if (ensureDirExists("GAMES") != 0 || ensureDirExists("SCORES") != 0) {
         return -1;
@@ -485,13 +500,13 @@ ResponseFile *getGameState(Game *game) {
     }
 
     if (game->numTrials == 0) {
-        if (fprintf(tmp, "\n\tGame started - no trials found") <= 0) {
+        if (fprintf(tmp, "\n\n\tGame started - no trials found") <= 0) {
             free(fname);
             fclose(tmp);
             return NULL;
         }
     } else {
-        if (fprintf(tmp, "\n\t--- Trials found: %u (%u successful) ---",
+        if (fprintf(tmp, "\n\n\t--- Trials found: %u (%u successful) ---",
                     game->numTrials, game->numSucc) <= 0) {
             free(fname);
             fclose(tmp);
@@ -516,11 +531,12 @@ ResponseFile *getGameState(Game *game) {
 
     int r = 0;
     if (game->outcome == OUTCOME_ONGOING) {
-        r = fprintf(tmp, "\n\n\t%u guesses left",
+        // Guessed so far: _____ (x letters, y remaining)
+        r = fprintf(tmp, "\n\n\t%u wrong guesses left",
                     game->maxErrors - (game->numTrials - game->numSucc));
     } else {
         r = fprintf(tmp, "\n\n\tOutcome: %s",
-                    gameOutcomeStrings[game->outcome]);
+                    translateGameOutcome(game->outcome));
     }
     if (r <= 0 || fflush(tmp) == EOF) {
         free(fname);
@@ -627,9 +643,9 @@ int generateScoreboard() {
 
     fprintf(file, "------------------------------- TOP 10 SCORES "
                   "-------------------------------\n\n");
-    fprintf(file,
-            "     SCORE  PLAYER  WORD                            GOOD TRIALS  "
-            "TOTAL TRIALS\n\n");
+    fprintf(file, "     SCORE  PLAYER  WORD                            "
+                  "GOOD TRIALS  "
+                  "TOTAL TRIALS\n\n");
 
     char filePath[MAX_FILE_PATH_SIZE];
 
