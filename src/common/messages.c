@@ -56,7 +56,7 @@ ssize_t serializeRSGMessage(void *ptr, char *outBuffer) {
     case RSG_NOK:
     case RSG_ERR:
     default:
-        return sprintf(outBuffer, "RSG %s",
+        return sprintf(outBuffer, "RSG %s\n",
                        RSGMessageStatusStrings[msg->status]);
     }
 }
@@ -165,8 +165,8 @@ ssize_t serializeRLGMessage(void *ptr, char *outBuffer) {
             cur += r;
         }
         int w = sprintf(outBuffer, "RLG %s %u %u%s\n",
-                    RLGMessageStatusStrings[msg->status], msg->trial, msg->n,
-                    posBuf);
+                        RLGMessageStatusStrings[msg->status], msg->trial,
+                        msg->n, posBuf);
         free(posBuf);
         if (w < 0) {
             return -1;
@@ -177,15 +177,14 @@ ssize_t serializeRLGMessage(void *ptr, char *outBuffer) {
     case RLG_NOK:
     case RLG_OVR:
     case RLG_INV:
-            free(posBuf);
+        free(posBuf);
         return sprintf(outBuffer, "RLG %s %u\n",
-                    RLGMessageStatusStrings[msg->status], msg->trial);
+                       RLGMessageStatusStrings[msg->status], msg->trial);
 
     case RLG_ERR:
     default:
-            free(posBuf);
+        free(posBuf);
         return sprintf(outBuffer, "RLG ERR\n");
-
     }
 }
 
