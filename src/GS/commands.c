@@ -313,7 +313,13 @@ void *fulfillPWGRequest(void *req, UNUSED ServerState *state) {
         }
     }
     rwg->trials = game->numTrials;
-    if (saveGame(game) != 0) {
+
+    if (rwg->status == RWG_OVR || rwg->status == RWG_WIN) {
+        if (endGame(game,
+                    rwg->status == RWG_WIN ? OUTCOME_WIN : OUTCOME_FAIL) != 0) {
+            return NULL;
+        }
+    } else if (saveGame(game) != 0) {
         return NULL;
     }
     return rwg;
@@ -330,6 +336,9 @@ void *fulfillQUTRequest(void *req, UNUSED ServerState *state) {
     if (game == NULL) {
         rqt->status = RQT_NOK;
     } else {
+        if (endGame(game, OUTCOME_FAIL) != 0) {
+            return NULL;
+        }
         rqt->status = RQT_OK;
     }
     return rqt;
