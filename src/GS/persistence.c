@@ -455,6 +455,56 @@ Score *loadScore(char *filePath) {
     return score;
 }
 
+ResponseFile *getScoreboard() {
+    FILE *file = fopen(SCOREBOARD_FILE, "r");
+    if (file == NULL || flock(fileno(file), LOCK_SH) == -1) {
+        return NULL;
+    }
+
+    struct stat fileStat;
+    if (fstat(fileno(file), &fileStat) == -1) {
+        fclose(file);
+        return NULL;
+    }
+
+    ResponseFile *resp = malloc(sizeof(ResponseFile));
+    if (resp == NULL) {
+        fclose(file);
+        return NULL;
+    }
+
+    if (fileStat.st_size > MAX_FSIZE_NUM) {
+        fclose(file);
+        free(resp);
+        return NULL;
+    }
+    resp->size = (size_t)fileStat.st_size;
+
+    resp->name = malloc((MAX_FNAME_LEN + 1) * sizeof(char));
+    resp->data = malloc(resp->size);
+    if (resp->name == NULL || resp->data == NULL) {
+        fclose(file);
+        destroyResponseFile(resp);
+        return NULL;
+    }
+
+    char *stamp = formattedTimeStamp();
+    if (stamp == NULL ||
+        snprintf(resp->name, MAX_FNAME_LEN + 1, "SB_%s.txt", stamp) <= 0) {
+        fclose(file);
+        destroyResponseFile(resp);
+        return NULL;
+    }
+
+    if (fread(resp->data, 1, resp->size, file) < resp->size) {
+        fclose(file);
+        destroyResponseFile(resp);
+        return NULL;
+    }
+
+    return resp;
+}
+
 int generateScoreboard() {
     FILE *file = fopen(SCOREBOARD_FILE, "w");
     if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
@@ -477,8 +527,7 @@ int generateScoreboard() {
 
     char filePath[MAX_FILE_PATH_SIZE];
 
-    for (int i = n - 1, c = 1; i >= MAX(0, n - SCOREBOARD_MAX_ITEMS);
-         i--, c++) {
+    for (int i = n - 1; i >= MAX(0, n - SCOREBOARD_MAX_ITEMS); i--) {
         if (snprintf(filePath, MAX_FILE_PATH_SIZE, "%s/%s", SCORES_DIR,
                      namelist[i]->d_name) <= 0) {
             continue;
@@ -488,8 +537,9 @@ int generateScoreboard() {
         if (score == NULL) {
             continue;
         }
-        fprintf(file, "%2d - %5u  %-6s  %-30s  %11u  %12u\n", c, score->score,
-                score->PLID, score->word, score->numSucc, score->numTrials);
+        fprintf(file, "%2d - %5u  %-6s  %-30s  %11u  %12u\n", n - i,
+                score->score, score->PLID, score->word, score->numSucc,
+                score->numTrials);
         free(score);
     }
     free(namelist);
@@ -501,6 +551,15 @@ int generateScoreboard() {
 int isNotScoreboardFile(const struct dirent *entry) {
     return entry->d_name[0] != '.' &&
            strcmp(entry->d_name, SCOREBOARD_FILE_NAME) != 0;
+}
+
+void destroyResponseFile(ResponseFile *resp) {
+    if (resp == NULL) {
+        return;
+    }
+    free(resp->name);
+    free(resp->data);
+    free(resp);
 }
 
 int ensureDirExists(const char *path) {

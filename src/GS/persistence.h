@@ -19,6 +19,12 @@
 #define MAX_TIMESTAMP_SIZE (sizeof("YYYYMMDD_HHMMSS"))
 
 typedef struct {
+    char *name;
+    size_t size;
+    char *data;
+} ResponseFile;
+
+typedef struct {
     char *word;
     char *hintFile;
 } WordListEntry;
@@ -100,9 +106,11 @@ void destroyScore(Score *score);
 int registerScore(Score *score);
 Score *loadScore(char *filePath);
 
+ResponseFile *getScoreboard();
 int generateScoreboard();
 
 int isNotScoreboardFile(const struct dirent *entry);
+void destroyResponseFile(ResponseFile *resp);
 int ensureDirExists(const char *path);
 char *formattedTimeStamp();
 

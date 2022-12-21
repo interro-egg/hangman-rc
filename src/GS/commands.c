@@ -118,7 +118,9 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, ServerState *state) {
         return HANDLER_ESERIALIZE;
     }
 
-    return replyTCP(file, state) == 0 ? HANDLER_SUCCESS : HANDLER_ECOMMS;
+    r = replyTCP(file, state) == 0 ? HANDLER_SUCCESS : HANDLER_ECOMMS;
+    destroyResponseFile(file);
+    return r;
 }
 
 void *fulfillSNGRequest(void *req, ServerState *state) {
@@ -364,19 +366,7 @@ void *fulfillREVRequest(void *req, UNUSED ServerState *state) {
 
 int fulfillGSBRequest(UNUSED void *req, UNUSED ServerState *state,
                       ResponseFile **fptr) {
-    ResponseFile *file = malloc(sizeof(ResponseFile));
-    if (file == NULL) {
-        return -1;
-    }
+    *fptr = getScoreboard();
 
-    // TODO: implement
-
-    file->name = "test.txt";
-    file->size = 4;
-    file->data = "abcd";
-    *fptr = file;
-
-    return RSB_OK;
-
-    return 0;
+    return (*fptr != NULL) ? RSB_OK : RSB_EMPTY;
 }

@@ -2,6 +2,7 @@
 #define COMMANDS_H
 
 #include "../common/messages.h"
+#include "persistence.h"
 #include "server_state.h"
 #include <sys/types.h>
 
@@ -15,12 +16,6 @@
 #define HANDLER_ESERIALIZE -5
 #define HANDLER_ECOMMS -6
 #define HANDLER_EFILE_REQUIRED -7
-
-typedef struct {
-    char *name;
-    size_t size;
-    char *data;
-} ResponseFile;
 
 typedef void *(*UDPRequestFulfiller)(void *req, ServerState *state);
 typedef int (*TCPRequestFulfiller)(void *req, ServerState *state,

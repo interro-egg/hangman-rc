@@ -186,11 +186,19 @@ void logTraffic(enum TrafficType type, char *proto, ResponseFile *file,
                     NI_NAMEREQD) == 0) {
         snprintf(playerHostname, MAX_HOSTNAME_SIZE + 3, "(%s) ", host);
     }
+
+    char *buf = type == T_REQUEST ? state->in_buffer : state->out_buffer;
     printf("[%s] [%s] [%s%s:%d]: %s", type == T_REQUEST ? "RCV" : "SND", proto,
            playerHostname, playerIpAddr, ntohs(state->player_addr->sin_port),
-           type == T_REQUEST ? state->in_buffer : state->out_buffer);
+           buf);
 
-    if (type == T_RESPONSE && strcmp(proto, "TCP") == 0 && file != NULL) {
-        printf(" %s %lu <data>\n", file->name, file->size);
+    if (type == T_RESPONSE && strcmp(proto, "TCP") == 0) {
+        if (file != NULL) {
+            printf(" %s %lu <data>\n", file->name, file->size);
+        } else {
+            putchar('\n');
+        }
+    } else if (buf[strlen(buf) - 1] != '\n') {
+        printf("§\n"); // indicate message had no newline
     }
 }

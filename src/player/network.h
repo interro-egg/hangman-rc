@@ -4,9 +4,6 @@
 #include "player_state.h"
 #include <sys/types.h>
 
-#define MAX_FNAME_LEN 24
-#define MAX_FSIZE_LEN 10
-#define MAX_FSIZE_NUM 0x40000000 // 1 GB
 #define FILE_TRANSFER_BLOCK_SIZE 512
 
 #define IN_BUFFER_SIZE 128 + 1
