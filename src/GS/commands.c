@@ -300,7 +300,7 @@ void *fulfillPWGRequest(void *req, UNUSED ServerState *state) {
                 rwg->status = RWG_OVR;
             }
         } else {
-            game->numSucc++;    
+            game->numSucc++;
             rwg->status = RWG_WIN;
         }
         GameTrial *newTrial = malloc(sizeof(GameTrial));
