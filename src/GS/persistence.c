@@ -23,7 +23,6 @@ Game *newGame(char *PLID, ServerState *state) {
     }
     game->PLID = PLID;
     game->outcome = OUTCOME_ONGOING;
-    game->finishStamp = NULL;
     if ((game->wordListEntry = chooseWordListEntry(state)) == NULL) {
         return NULL;
     }
@@ -40,7 +39,6 @@ void destroyGame(Game *game) {
         return;
     }
     free(game->PLID);
-    free(game->finishStamp);
     destroyWordListEntry(game->wordListEntry);
     for (size_t i = 0; i < game->numTrials; i++) {
         destroyGameTrial(game->trials[i]);
@@ -173,6 +171,7 @@ int saveGame(Game *game) {
     if (game == NULL) {
         return -1;
     }
+    printf("Outcome: %d\n", game->outcome);
     char *filePath =
         computeGameFilePath(game->PLID, game->outcome == OUTCOME_ONGOING);
     if (filePath == NULL) {
@@ -271,6 +270,21 @@ unsigned long getScore(Game *game) {
     }
     // round(game->numSucc / game->numTrials)
     return (game->numSucc + (game->numTrials / 2)) / game->numTrials;
+}
+
+int endGame(Game *game, enum GameOutcome outcome) {
+    if (game == NULL || game->outcome != OUTCOME_ONGOING) {
+        return -1;
+    }
+    game->outcome = outcome;
+
+    // TODO: make score
+
+    // will save at new location
+    if (saveGame(game) == -1) {
+        return -1;
+    }
+    return unlink(computeGameFilePath(game->PLID, true));
 }
 
 // Either ongoing or last game

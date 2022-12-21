@@ -38,7 +38,7 @@ enum GameTrialType {
 
 typedef struct {
     enum GameTrialType type;
-    union Guess{
+    union Guess {
         char letter;
         char *word;
     } guess;
@@ -47,7 +47,6 @@ typedef struct {
 typedef struct {
     char *PLID;
     enum GameOutcome outcome;
-    char *finishStamp;
     WordListEntry *wordListEntry;
     unsigned int numTrials;
     GameTrial **trials;
@@ -55,6 +54,15 @@ typedef struct {
     unsigned int maxErrors;
     unsigned int remainingLetters;
 } Game;
+
+typedef struct {
+    unsigned long score;
+    char *PLID;
+    char *finishStamp;
+    char *word;
+    unsigned int numSucc;
+    unsigned int numTrials;
+} Score;
 
 int initPersistence();
 
@@ -73,6 +81,8 @@ void destroyGameTrial(GameTrial *trial);
 
 Game *newGame(char *PLID, ServerState *state);
 void destroyGame(Game *game);
+
+int endGame(Game *game, enum GameOutcome outcome);
 
 char *computeGameFilePath(char *PLID, bool ongoing);
 int saveGame(Game *game);

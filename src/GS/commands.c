@@ -136,10 +136,7 @@ void *fulfillSNGRequest(void *req, ServerState *state) {
     }
     if (game == NULL) {
         game = newGame(sng->PLID, state);
-        if (game == NULL) {
-            return NULL;
-        }
-        if (saveGame(game) != 0) {
+        if (game == NULL || saveGame(game) != 0) {
             return NULL;
         }
     }
@@ -161,18 +158,17 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
     if (game == NULL) {
         return NULL;
     }
-    // If it's not repetition of last trial or current trial
+
     if (plg->trial != game->numTrials + 1 && plg->trial != game->numTrials) {
+        // If it's not repetition of last trial or current trial
         rlg->status = RLG_INV;
-    }
-    // If it's a repetition of last trial
-    else if (plg->trial == game->numTrials) {
-        // If letter is different now
+    } else if (plg->trial == game->numTrials) {
+        // If it's a repetition of last trial
         if (plg->letter != game->trials[plg->trial - 1]->guess.letter) {
+            // If letter is different now
             rlg->status = RLG_INV;
-        }
-        // check if letter has been already guessed up until last trial
-        else {
+        } else {
+            // check if letter has been already guessed up until last trial
             for (size_t i = 0; i < game->numTrials - 1; i++) {
                 if (game->trials[i]->guess.letter == plg->letter) {
                     rlg->status = RLG_DUP;
@@ -193,7 +189,6 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
             }
             // No need to test/set anything else because it's a repetition
         }
-
     } else {
         // It's a new trial
         for (size_t i = 0; i < game->numTrials; i++) {
@@ -213,13 +208,13 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
         if (rlg->n == 0) {
             rlg->status = RLG_NOK;
 
-            // check if it's a gameover
             if (game->numTrials - game->numSucc >= game->maxErrors) {
+                // It's Game Over
                 rlg->status = RLG_OVR;
             }
 
-        } // check if it's a win
-        else if (game->remainingLetters - rlg->n == 0) {
+        } else if (game->remainingLetters - rlg->n == 0) {
+            // It's a win
             rlg->status = RLG_WIN;
         } else {
             game->remainingLetters -= rlg->n;
@@ -238,7 +233,13 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
     }
     // n and pos are already set
     rlg->trial = game->numTrials;
-    if (saveGame(game) != 0) {
+
+    if (rlg->status == RLG_OVR || rlg->status == RLG_WIN) {
+        if (endGame(game,
+                    rlg->status == RLG_WIN ? OUTCOME_WIN : OUTCOME_FAIL) != 0) {
+            return NULL;
+        }
+    } else if (saveGame(game) != 0) {
         return NULL;
     }
     return rlg;
