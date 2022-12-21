@@ -44,6 +44,13 @@ Game *newGame(char *PLID, ServerState *state) {
     if ((game->wordListEntry = chooseWordListEntry(state)) == NULL) {
         return NULL;
     }
+    game->maskedWord = strdup(game->wordListEntry->word);
+    if (game->maskedWord == NULL) {
+        return NULL;
+    }
+    for (size_t i = 0; i < strlen(game->maskedWord); i++) {
+        game->maskedWord[i] = '_';
+    }
     game->numTrials = 0;
     game->trials = NULL;
     game->numSucc = 0;
@@ -58,6 +65,7 @@ void destroyGame(Game *game) {
     }
     free(game->PLID);
     destroyWordListEntry(game->wordListEntry);
+    free(game->maskedWord);
     for (size_t i = 0; i < game->numTrials; i++) {
         destroyGameTrial(game->trials[i]);
     }
@@ -198,9 +206,9 @@ int saveGame(Game *game) {
     if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
         return -1;
     }
-    if (fprintf(file, "%s %s\n%c %u %d %u\n", game->wordListEntry->word,
-                game->wordListEntry->hintFile, game->outcome, game->numSucc,
-                game->maxErrors, game->remainingLetters) <= 0) {
+    if (fprintf(file, "%s %s %s\n%c %u %d %u\n", game->wordListEntry->word,
+                game->maskedWord, game->wordListEntry->hintFile, game->outcome,
+                game->numSucc, game->maxErrors, game->remainingLetters) <= 0) {
         fclose(file);
         return -1;
     }
@@ -244,9 +252,9 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     char *word = NULL;
     char *hintFile = NULL;
     char outcome;
-    if (fscanf(file, "%ms %ms\n%c %u %d %u\n", &word, &hintFile, &outcome,
-               &game->numSucc, &game->maxErrors,
-               &game->remainingLetters) != 6) {
+    if (fscanf(file, "%ms %ms %ms\n%c %u %d %u\n", &word, &game->maskedWord,
+               &hintFile, &outcome, &game->numSucc, &game->maxErrors,
+               &game->remainingLetters) != 7) {
         destroyGame(game);
         fclose(file);
         return NULL;
@@ -537,9 +545,12 @@ ResponseFile *getGameState(Game *game) {
 
     int r = 0;
     if (game->outcome == OUTCOME_ONGOING) {
-        // TODO: Guessed so far: _____ (x letters, y remaining)
-        r = fprintf(tmp, "\n\n\t%u wrong guesses left",
-                    game->maxErrors - (game->numTrials - game->numSucc));
+        r = fprintf(
+            tmp,
+            "\n\n\tGuessed so far: %s (%lu letters, %u remaining)\n\t%u "
+            "wrong guesses left",
+            game->maskedWord, strlen(game->maskedWord), game->remainingLetters,
+            game->maxErrors - (game->numTrials - game->numSucc));
     } else {
         r = fprintf(tmp, "\n\n\tOutcome: %s",
                     translateGameOutcome(game->outcome));

@@ -59,6 +59,7 @@ typedef struct {
     char *PLID;
     enum GameOutcome outcome;
     WordListEntry *wordListEntry;
+    char *maskedWord;
     unsigned int numTrials;
     GameTrial **trials;
     unsigned int numSucc; // number of successful trials
