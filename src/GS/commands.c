@@ -59,8 +59,16 @@ const TCPCommandDescriptor GSBCmd = {"GSB",
                                      RSBMessageFileReceiveStatuses,
                                      "RSB"};
 
-const TCPCommandDescriptor TCP_COMMANDS[] = {GSBCmd};
-const size_t TCP_COMMANDS_COUNT = 1;
+const TCPCommandDescriptor GHLCmd = {"GHL",
+                                     deserializeGHLMessage,
+                                     destroyGHLMessage,
+                                     fulfillGHLRequest,
+                                     RHLMessageStatusStrings,
+                                     RHLMessageFileReceiveStatuses,
+                                     "RHL"};
+
+const TCPCommandDescriptor TCP_COMMANDS[] = {GSBCmd, GHLCmd};
+const size_t TCP_COMMANDS_COUNT = 2;
 
 int handleUDPCommand(const UDPCommandDescriptor *cmd, ServerState *state) {
     void *req = cmd->requestDeserializer(state->in_buffer);
@@ -369,4 +377,17 @@ int fulfillGSBRequest(UNUSED void *req, UNUSED ServerState *state,
     *fptr = getScoreboard();
 
     return (*fptr != NULL) ? RSB_OK : RSB_EMPTY;
+}
+
+int fulfillGHLRequest(void *req, UNUSED ServerState *state,
+                      ResponseFile **fptr) {
+    GHLMessage *ghl = (GHLMessage *)req;
+    Game *game = loadGame(ghl->PLID, true);
+    if (game == NULL) {
+        return RHL_NOK;
+    }
+
+    *fptr = getFSFile(HINTS_DIR, game->wordListEntry->hintFile, NULL);
+
+    return (*fptr != NULL) ? RHL_OK : RHL_NOK;
 }

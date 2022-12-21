@@ -57,5 +57,6 @@ void *fulfillQUTRequest(void *req, ServerState *state);
 void *fulfillREVRequest(void *req, ServerState *state);
 
 int fulfillGSBRequest(void *req, ServerState *state, ResponseFile **fptr);
+int fulfillGHLRequest(void *req, ServerState *state, ResponseFile **fptr);
 
 #endif // COMMANDS_H

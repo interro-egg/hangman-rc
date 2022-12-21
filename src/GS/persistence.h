@@ -9,10 +9,10 @@
 
 #define UMASK 0022
 
+#define HINTS_DIR "hints"
 #define GAMES_DIR "GAMES"
 #define SCORES_DIR "SCORES"
 #define SCOREBOARD_FILE_NAME "SCOREBOARD.txt"
-#define SCOREBOARD_FILE SCORES_DIR "/" SCOREBOARD_FILE_NAME
 #define SCOREBOARD_MAX_ITEMS 10
 
 #define MAX_FILE_PATH_SIZE 37 + 1
@@ -105,6 +105,8 @@ Score *newScore(Game *game);
 void destroyScore(Score *score);
 int registerScore(Score *score);
 Score *loadScore(char *filePath);
+
+ResponseFile *getFSFile(char *dirPath, char *fileName, char *responseFileName);
 
 ResponseFile *getScoreboard();
 int generateScoreboard();

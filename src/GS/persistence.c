@@ -455,10 +455,24 @@ Score *loadScore(char *filePath) {
     return score;
 }
 
-ResponseFile *getScoreboard() {
-    FILE *file = fopen(SCOREBOARD_FILE, "r");
+ResponseFile *getFSFile(char *dirPath, char *fileName, char *responseFileName) {
+    if (dirPath == NULL || fileName == NULL) {
+        return NULL;
+    }
+    char *filePath = malloc(MAX_FILE_PATH_SIZE * sizeof(char));
+    if (filePath == NULL ||
+        sprintf(filePath, "%s/%s", dirPath, fileName) <= 0) {
+        free(filePath);
+        return NULL;
+    }
+
+    FILE *file = fopen(filePath, "r");
+    free(filePath);
     if (file == NULL || flock(fileno(file), LOCK_SH) == -1) {
         return NULL;
+    }
+    if (responseFileName == NULL) {
+        responseFileName = strndup(fileName, MAX_FNAME_LEN);
     }
 
     struct stat fileStat;
@@ -480,17 +494,9 @@ ResponseFile *getScoreboard() {
     }
     resp->size = (size_t)fileStat.st_size;
 
-    resp->name = malloc((MAX_FNAME_LEN + 1) * sizeof(char));
+    resp->name = responseFileName;
     resp->data = malloc(resp->size);
     if (resp->name == NULL || resp->data == NULL) {
-        fclose(file);
-        destroyResponseFile(resp);
-        return NULL;
-    }
-
-    char *stamp = formattedTimeStamp();
-    if (stamp == NULL ||
-        snprintf(resp->name, MAX_FNAME_LEN + 1, "SB_%s.txt", stamp) <= 0) {
         fclose(file);
         destroyResponseFile(resp);
         return NULL;
@@ -505,8 +511,19 @@ ResponseFile *getScoreboard() {
     return resp;
 }
 
+ResponseFile *getScoreboard() {
+    char *name = malloc((MAX_FNAME_LEN + 1) * sizeof(char));
+    char *stamp = formattedTimeStamp();
+    if (name == NULL || stamp == NULL ||
+        snprintf(name, MAX_FNAME_LEN + 1, "SB_%s.txt", stamp) <= 0) {
+        return NULL;
+    }
+
+    return getFSFile(SCORES_DIR, SCOREBOARD_FILE_NAME, name);
+}
+
 int generateScoreboard() {
-    FILE *file = fopen(SCOREBOARD_FILE, "w");
+    FILE *file = fopen(SCORES_DIR "/" SCOREBOARD_FILE_NAME, "w");
     if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
         return -1;
     }
@@ -515,7 +532,7 @@ int generateScoreboard() {
     int n = scandir(SCORES_DIR, &namelist, isNotScoreboardFile, alphasort);
     if (n <= 0) {
         fclose(file);
-        unlink(SCOREBOARD_FILE);
+        unlink(SCORES_DIR "/" SCOREBOARD_FILE_NAME);
         return n;
     }
 
