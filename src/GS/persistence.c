@@ -161,7 +161,7 @@ int registerGameTrial(Game *game, GameTrial *trial) {
     }
     game->numTrials++;
     game->trials =
-        reallocarray(game->trials, game->numTrials, sizeof(GameTrial));
+        reallocarray(game->trials, game->numTrials, sizeof(GameTrial *));
     if (game->trials == NULL) {
         return -1;
     }
@@ -244,14 +244,14 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
             fclose(file);
             return NULL;
         }
-        GameTrial trial;
-        trial.type = type;
+        GameTrial *trial = malloc(sizeof(GameTrial));
+        trial->type = type;
         if (type == TRIAL_TYPE_LETTER) {
-            trial.guess.letter = guess[0];
+            trial->guess.letter = guess[0];
         } else if (type == TRIAL_TYPE_WORD) {
-            trial.guess.word = guess;
+            trial->guess.word = guess;
         }
-        if (registerGameTrial(game, &trial) == -1) {
+        if (registerGameTrial(game, trial) == -1) {
             free(game);
             fclose(file);
             return NULL;
