@@ -23,7 +23,8 @@ ServerState serverState = {NULL,  GS_DEFAULT_PORT,
 
 int main(int argc, char *argv[]) {
     signal(SIGINT, handleGracefulShutdownSignal);
-    signal(SIGPIPE, SIG_IGN);
+    signal(SIGPIPE, SIG_IGN); // ignore SIGPIPE to avoid crashing on write
+    signal(SIGCHLD, SIG_IGN); // explicitly ignore SIGCHLD to avoid zombies
 
     readOpts(argc, argv, &(serverState.word_file), &(serverState.port),
              &(serverState.verbose));
@@ -59,9 +60,6 @@ int main(int argc, char *argv[]) {
         destroyStateComponents(&serverState);
         exit(EXIT_FAILURE);
     }
-
-    // explicitly ignore SIGCHLD to avoid zombies
-    signal(SIGCHLD, SIG_IGN);
 
     pid_t pid = fork();
 
