@@ -187,6 +187,7 @@ void *deserializePLGMessage(char *inBuffer) {
         destroyPLGMessage(msg);
         return NULL;
     }
+    msg->letter = (char)tolower(msg->letter);
     msg->trial = (unsigned int)atoi(trial);
     if (msg->trial == 0 || msg->trial > 99) {
         destroyPLGMessage(msg);
@@ -414,6 +415,7 @@ void *deserializePWGMessage(char *inBuffer) {
             destroyPWGMessage(msg);
             return NULL;
         }
+        msg->word[i] = (char)tolower(msg->word[i]);
     }
     msg->trial = (unsigned int)atoi(trial);
     if (msg->trial == 0 || msg->trial > 99) {
@@ -674,6 +676,7 @@ void *deserializeRRVMessage(char *inBuffer) {
                 destroyRRVMessage(msg);
                 return NULL;
             }
+            msg->data.word[i] = (char)tolower(msg->data.word[i]);
         }
     }
     return msg;
