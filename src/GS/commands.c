@@ -113,24 +113,28 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, ServerState *state) {
         return HANDLER_EDESERIALIZE;
     }
 
-    ResponseFile *file;
+    ResponseFile *file = NULL;
 
     errno = 0;
     int status = cmd->requestFulfiller(req, state, &file);
     int r = errno == ENOMEM ? HANDLER_ENOMEM : HANDLER_EFULFILL;
     cmd->requestDestroyer(req);
     if (status < 0) {
+        destroyResponseFile(file);
         return r;
     }
 
     if (!cmd->fileSendStatuses[status]) {
+        destroyResponseFile(file);
         file = NULL;
     } else if (file == NULL) {
+        destroyResponseFile(file);
         return HANDLER_EFILE_REQUIRED;
     }
 
     if (sprintf(state->out_buffer, "%s %s", cmd->response,
                 cmd->statusEnumStrings[status]) <= 0) {
+        destroyResponseFile(file);
         return HANDLER_ESERIALIZE;
     }
 

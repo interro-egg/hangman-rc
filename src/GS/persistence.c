@@ -239,6 +239,8 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     }
     game->outcome = (enum GameOutcome)outcome;
     game->wordListEntry = createWordListEntry(word, hintFile);
+        free(word);
+        free(hintFile);
     if (game->wordListEntry == NULL) {
         destroyGame(game);
         fclose(file);
@@ -258,6 +260,7 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
         if (sscanf(line, "%c %s %d\n", &type, guess, &correct) != 3) {
             destroyGame(game);
             fclose(file);
+            free(guess);
             return NULL;
         }
         GameTrial *trial = malloc(sizeof(GameTrial));
@@ -271,10 +274,12 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
         if (registerGameTrial(game, trial) == -1) {
             destroyGame(game);
             fclose(file);
+            free(guess);
             return NULL;
         }
     }
 
+    free(guess);
     free(line);
     fclose(file);
     return game;
