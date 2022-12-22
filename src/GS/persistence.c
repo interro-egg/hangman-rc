@@ -264,6 +264,11 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     ssize_t read;
     char type;
     char *guess = malloc((MAX_WORD_SIZE + 1) * sizeof(char));
+    if (guess == NULL) {
+        destroyGame(game);
+        fclose(file);
+        return NULL;
+    }
     int correct;
     while ((read = getline(&line, &len, file)) != -1) {
         if (sscanf(line, "%c %s %d\n", &type, guess, &correct) != 3) {
@@ -276,9 +281,15 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
         trial->type = type;
         if (type == TRIAL_TYPE_LETTER) {
             trial->guess.letter = guess[0];
-            free(guess);
         } else if (type == TRIAL_TYPE_WORD) {
-            trial->guess.word = guess;
+            trial->guess.word = strdup(guess);
+            if (trial->guess.word == NULL) {
+                destroyGameTrial(trial);
+                destroyGame(game);
+                fclose(file);
+                free(guess);
+                return NULL;
+            }
         }
         trial->correct = (bool)correct;
         if (registerGameTrial(game, trial) == -1) {
@@ -291,6 +302,7 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     }
 
     free(line);
+    free(guess);
     fclose(file);
     return game;
 }
