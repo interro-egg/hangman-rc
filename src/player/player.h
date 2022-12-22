@@ -3,13 +3,12 @@
 
 #include "../common/common.h"
 #include "commands.h"
-#include "player_state.h"
 
 #define GS_DEFAULT_HOST "localhost"
 
 #define INPUT_PROMPT "> "
 #define MAX_COMMAND_NAME_SIZE 10 + 1
-#define MAX_COMMAND_NAME_SIZE_FMT "%11s"
+#define MAX_COMMAND_NAME_SIZE_FMT "%10s"
 
 #define EXIT_COMMAND "exit\n"
 
@@ -50,7 +49,6 @@
     "An invalid response was received from the game server. Please try "       \
     "again.\n"
 
-
 void readOpts(int argc, char *argv[], char **host, char **port);
 const void *getCommandDescriptor(char *cmd, const void *commandsArr,
                                  const size_t commandsCount,
@@ -59,6 +57,8 @@ const void *getCommandDescriptor(char *cmd, const void *commandsArr,
                                  CommandAliasesCountGetter aliasesCountGetter);
 void dispatch(char *line, PlayerState *state);
 char *findArgs(char *line, char *cmd);
+void displayTitle();
+void displayHelp();
 char *translateNetworkInitError(int result);
 char *translateHandlerError(int result);
 void gracefulShutdown(int retcode);

@@ -1,18 +1,12 @@
-#define _GNU_SOURCE // needed for splice
-
 #include "network.h"
 #include "../common/common.h"
-
 #include <ctype.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <netdb.h>
-#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 int initNetwork(PlayerState *state) {
@@ -39,11 +33,12 @@ int initNetwork(PlayerState *state) {
     }
     if (setsockopt(state->udp_socket, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
                    sizeof(*(state->timeout))) != 0) {
-        printf("Error: %d", errno);
+        close(state->udp_socket);
         return NINIT_ERCVTIMEO_UDP;
     }
     if (setsockopt(state->udp_socket, SOL_SOCKET, SO_SNDTIMEO, state->timeout,
                    sizeof(*(state->timeout))) != 0) {
+        close(state->udp_socket);
         return NINIT_ESNDTIMEO_UDP;
     }
 
@@ -75,10 +70,12 @@ int sendTCPMessage(PlayerState *state) {
 
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, state->timeout,
                    sizeof(*(state->timeout))) != 0) {
+        close(fd);
         return TCP_SND_ERCVTIMEO;
     }
     if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, state->timeout,
                    sizeof(*(state->timeout))) != 0) {
+        close(fd);
         return TCP_SND_ESNDTIMEO;
     }
 
@@ -104,9 +101,11 @@ int sendTCPMessage(PlayerState *state) {
 
 // maxLen does NOT include null terminator.
 // returns number of bytes read, including space (converted to \0)
-ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits) {
+ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits,
+                    bool *foundEOL) {
     size_t alreadyRead = 0;
     while (1) {
+        errno = 0;
         ssize_t n = read(fd, buf + alreadyRead, 1 * sizeof(char));
         if (n <= 0) {
             return (errno == EINPROGRESS) ? TCP_RCV_ETIMEO : TCP_RCV_EREAD;
@@ -114,6 +113,11 @@ ssize_t readWordTCP(int fd, char *buf, size_t maxLen, bool checkDigits) {
         alreadyRead += (size_t)n;
 
         if (buf[alreadyRead - 1] == ' ') {
+            break;
+        } else if (buf[alreadyRead - 1] == '\n') {
+            if (foundEOL != NULL) {
+                *foundEOL = true;
+            }
             break;
         } else if (alreadyRead >= maxLen + 1 ||
                    (checkDigits && !isdigit(buf[alreadyRead - 1]))) {
@@ -130,16 +134,17 @@ ReceivedFile *readFileTCP(int fd) {
     char fname[MAX_FNAME_LEN + 1];
     char fsize[MAX_FSIZE_LEN + 1];
     char transfBuf[FILE_TRANSFER_BLOCK_SIZE];
+    bool foundEOL = false;
 
-    ssize_t r = readWordTCP(fd, fname, MAX_FNAME_LEN, false);
-    if (r <= 0) {
+    ssize_t r = readWordTCP(fd, fname, MAX_FNAME_LEN, false, &foundEOL);
+    if (r <= 0 || foundEOL) {
         errno = (int)r;
         return NULL;
     }
     size_t fnameLen = (size_t)r - 1;
 
-    r = readWordTCP(fd, fsize, MAX_FSIZE_LEN, true);
-    if (r <= 0) {
+    r = readWordTCP(fd, fsize, MAX_FSIZE_LEN, true, &foundEOL);
+    if (r <= 0 || foundEOL) {
         errno = (int)r;
         return NULL;
     }
@@ -155,11 +160,13 @@ ReceivedFile *readFileTCP(int fd) {
     file->fsize = (size_t)strtoul(fsize, &end, 10);
     if (errno != 0 || *end != '\0' || file->fsize > MAX_FSIZE_NUM) {
         errno = TCP_RCV_EINV;
+        free(file);
         return NULL;
     }
 
     file->fname = malloc((fnameLen + 1) * sizeof(char));
     if (file->fname == NULL) {
+        free(file);
         errno = TCP_RCV_ENOMEM;
         return NULL;
     }
@@ -167,6 +174,7 @@ ReceivedFile *readFileTCP(int fd) {
 
     FILE *fileFd = fopen(file->fname, "w");
     if (fileFd == NULL) {
+        destroyReceivedFile(file);
         errno = TCP_RCV_EFOPEN;
         return NULL;
     }

@@ -1,7 +1,5 @@
 #include "commands.h"
-#include "../common/messages.h"
-#include "parsers.h"
-
+#include "../common/common.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -10,42 +8,67 @@
 #include <unistd.h>
 
 char *startCmdAliases[] = {"start", "sg"};
-const UDPCommandDescriptor startCmd = {startCmdAliases,       2,
-                                       parseSNGArgs,          startPreHook,
-                                       serializeSNGMessage,   destroySNGMessage,
-                                       deserializeRSGMessage, destroyRSGMessage,
-                                       startCallback};
+const UDPCommandDescriptor startCmd = {
+    startCmdAliases,       2,
+    "start PLID",          "Start a new hangman game",
+    parseSNGArgs,          startPreHook,
+    serializeSNGMessage,   destroySNGMessage,
+    deserializeRSGMessage, destroyRSGMessage,
+    startCallback};
 char *playCmdAliases[] = {"play", "pl"};
-const UDPCommandDescriptor playCmd = {playCmdAliases,        2,
-                                      parsePLGArgs,          playPreHook,
-                                      serializePLGMessage,   destroyPLGMessage,
-                                      deserializeRLGMessage, destroyRLGMessage,
-                                      playCallback};
+const UDPCommandDescriptor playCmd = {
+    playCmdAliases,        2,
+    "play letter",         "Guess a letter that might be in the word",
+    parsePLGArgs,          playPreHook,
+    serializePLGMessage,   destroyPLGMessage,
+    deserializeRLGMessage, destroyRLGMessage,
+    playCallback};
 char *guessCmdAliases[] = {"guess", "gw"};
-const UDPCommandDescriptor guessCmd = {guessCmdAliases,       2,
-                                       parsePWGArgs,          guessPreHook,
-                                       serializePWGMessage,   destroyPWGMessage,
-                                       deserializeRWGMessage, destroyRWGMessage,
-                                       guessCallback};
+const UDPCommandDescriptor guessCmd = {
+    guessCmdAliases,       2,
+    "guess word",          "Guess what the word might be",
+    parsePWGArgs,          guessPreHook,
+    serializePWGMessage,   destroyPWGMessage,
+    deserializeRWGMessage, destroyRWGMessage,
+    guessCallback};
 char *quitCmdAliases[] = {"quit"};
-const UDPCommandDescriptor quitCmd = {quitCmdAliases,        1,
-                                      parseQUTArgs,          quitPreHook,
-                                      serializeQUTMessage,   destroyQUTMessage,
-                                      deserializeRQTMessage, destroyRQTMessage,
+const UDPCommandDescriptor quitCmd = {quitCmdAliases,
+                                      1,
+                                      "quit",
+                                      "Give up and quit from the current game",
+                                      parseQUTArgs,
+                                      quitPreHook,
+                                      serializeQUTMessage,
+                                      destroyQUTMessage,
+                                      deserializeRQTMessage,
+                                      destroyRQTMessage,
                                       quitCallback};
 char *exitCmdAliases[] = {"exit"};
-const UDPCommandDescriptor exitCmd = {exitCmdAliases,        1,
-                                      parseQUTArgs,          exitPreHook,
-                                      serializeQUTMessage,   destroyQUTMessage,
-                                      deserializeRQTMessage, destroyRQTMessage,
-                                      exitCallback};
+const UDPCommandDescriptor exitCmd = {
+    exitCmdAliases,
+    1,
+    "exit",
+    "Quit the current game and exit this application",
+    parseQUTArgs,
+    exitPreHook,
+    serializeQUTMessage,
+    destroyQUTMessage,
+    deserializeRQTMessage,
+    destroyRQTMessage,
+    exitCallback};
 
 char *revealCmdAliases[] = {"reveal", "rev"};
 const UDPCommandDescriptor revealCmd = {
-    revealCmdAliases,      2,
-    parseREVArgs,          revealPreHook,
-    serializeREVMessage,   destroyREVMessage,
-    deserializeRRVMessage, destroyRRVMessage,
+    revealCmdAliases,
+    2,
+    "reveal",
+    "Reveal the word, if the game server supports this feature",
+    parseREVArgs,
+    revealPreHook,
+    serializeREVMessage,
+    destroyREVMessage,
+    deserializeRRVMessage,
+    destroyRRVMessage,
     revealCallback};
 
 const UDPCommandDescriptor UDP_COMMANDS[] = {startCmd, playCmd, guessCmd,
@@ -53,34 +76,42 @@ const UDPCommandDescriptor UDP_COMMANDS[] = {startCmd, playCmd, guessCmd,
 const size_t UDP_COMMANDS_COUNT = 6;
 
 char *scoreboardCmdAliases[] = {"scoreboard", "sb"};
-const TCPCommandDescriptor scoreboardCmd = {scoreboardCmdAliases,
-                                            2,
-                                            parseGSBArgs,
-                                            NULL,
-                                            serializeGSBMessage,
-                                            destroyGSBMessage,
-                                            "RSB",
-                                            RSBMessageStatusStrings,
-                                            5,
-                                            RSBMessageFileReceiveStatuses,
-                                            scoreboardCallback};
+const TCPCommandDescriptor scoreboardCmd = {
+    scoreboardCmdAliases,
+    2,
+    "scoreboard",
+    "Show the game server's top 10 recorded scores",
+    parseGSBArgs,
+    NULL,
+    serializeGSBMessage,
+    destroyGSBMessage,
+    "RSB",
+    RSBMessageStatusStrings,
+    5,
+    RSBMessageFileReceiveStatuses,
+    scoreboardCallback};
 
 char *hintCmdAliases[] = {"hint", "h"};
-const TCPCommandDescriptor hintCmd = {hintCmdAliases,
-                                      2,
-                                      parseGHLArgs,
-                                      hintPreHook,
-                                      serializeGHLMessage,
-                                      destroyGHLMessage,
-                                      "RHL",
-                                      RHLMessageStatusStrings,
-                                      3,
-                                      RHLMessageFileReceiveStatuses,
-                                      hintCallback};
+const TCPCommandDescriptor hintCmd = {
+    hintCmdAliases,
+    2,
+    "hint",
+    "Request a hint image from the game server",
+    parseGHLArgs,
+    hintPreHook,
+    serializeGHLMessage,
+    destroyGHLMessage,
+    "RHL",
+    RHLMessageStatusStrings,
+    3,
+    RHLMessageFileReceiveStatuses,
+    hintCallback};
 
 char *stateCmdAliases[] = {"state", "st"};
 const TCPCommandDescriptor stateCmd = {stateCmdAliases,
                                        2,
+                                       "state",
+                                       "Show the current game state",
                                        parseSTAArgs,
                                        statePreHook,
                                        serializeSTAMessage,
@@ -96,6 +127,7 @@ const size_t TCP_COMMANDS_COUNT = 3;
 
 int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
                      PlayerState *state) {
+    errno = 0;
     void *parsed = cmd->argsParser(args);
     if (parsed == NULL) {
         return (errno == ENOMEM) ? HANDLER_ENOMEM : HANDLER_EPARSE;
@@ -112,8 +144,9 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
 
     errno = 0;
     if (sendUDPMessage(state) == -1) {
-        int r = (errno == EAGAIN || errno == ETIMEDOUT) ? HANDLER_ECOMMS_TIMEO
-                                                        : HANDLER_ECOMMS_UDP;
+        int r = (errno == EAGAIN || errno == EWOULDBLOCK || errno == ETIMEDOUT)
+                    ? HANDLER_ECOMMS_TIMEO
+                    : HANDLER_ECOMMS_UDP;
         cmd->requestDestroyer(parsed);
         return r;
     }
@@ -136,6 +169,7 @@ int handleUDPCommand(const UDPCommandDescriptor *cmd, char *args,
 
 int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
                      PlayerState *state) {
+    errno = 0;
     void *parsed = cmd->argsParser(args);
     if (parsed == NULL) {
         return (errno == ENOMEM) ? HANDLER_ENOMEM : HANDLER_EPARSE;
@@ -164,10 +198,14 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
         }
     }
 
-    ssize_t r = readWordTCP(fd, state->in_buffer, MESSAGE_COMMAND_SIZE, false);
-    if (r <= 0) {
+    bool foundEOL = false;
+    ssize_t r = readWordTCP(fd, state->in_buffer, MESSAGE_COMMAND_SIZE, false,
+                            &foundEOL);
+    if (r <= 0 || foundEOL) {
         errno = (int)r;
         cmd->requestDestroyer(parsed);
+        close(fd);
+        state->tcp_socket = -1;
         switch (errno) {
         case TCP_RCV_EINV:
             return HANDLER_EDESERIALIZE;
@@ -178,13 +216,18 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
     }
     if (strcmp(state->in_buffer, cmd->expectedResponse) != 0) {
         cmd->requestDestroyer(parsed);
+        close(fd);
+        state->tcp_socket = -1;
         return HANDLER_EDESERIALIZE;
     }
 
-    r = readWordTCP(fd, state->in_buffer, cmd->maxStatusEnumLen, false);
+    r = readWordTCP(fd, state->in_buffer, cmd->maxStatusEnumLen, false,
+                    &foundEOL);
     if (r <= 0) {
         errno = (int)r;
         cmd->requestDestroyer(parsed);
+        close(fd);
+        state->tcp_socket = -1;
         switch (errno) {
         case TCP_RCV_EINV:
             return HANDLER_EDESERIALIZE;
@@ -197,6 +240,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
     int status = parseEnum(cmd->statusEnumStrings, state->in_buffer);
     if (status == -1) {
         cmd->requestDestroyer(parsed);
+        close(fd);
+        state->tcp_socket = -1;
         return HANDLER_EDESERIALIZE;
     }
 
@@ -205,6 +250,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
         errno = 0;
         if ((file = readFileTCP(fd)) == NULL) {
             cmd->requestDestroyer(parsed);
+            close(fd);
+            state->tcp_socket = -1;
             switch (errno) {
             case TCP_RCV_ENOMEM:
                 return HANDLER_ENOMEM;
@@ -216,17 +263,24 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
                 return HANDLER_ECOMMS_TCP;
             }
         }
-    }
 
-    if (checkNewline(fd) != 0) {
-        bool timedOut = errno == EINPROGRESS;
-        if (file != NULL) {
+        errno = 0;
+        if (checkNewline(fd) != 0) {
+            bool timedOut = errno == EINPROGRESS;
             unlink(file->fname);
             // no need to check for error as we're already returning error;
             // this is a best-effort attempt
             destroyReceivedFile(file);
+            cmd->requestDestroyer(parsed);
+            close(fd);
+            state->tcp_socket = -1;
+            return timedOut ? HANDLER_ECOMMS_TIMEO : HANDLER_EDESERIALIZE;
         }
-        return timedOut ? HANDLER_ECOMMS_TIMEO : HANDLER_EDESERIALIZE;
+    } else if (!foundEOL) {
+        cmd->requestDestroyer(parsed);
+        close(fd);
+        state->tcp_socket = -1;
+        return HANDLER_EDESERIALIZE;
     }
 
     if (cmd->callback != NULL) {
@@ -234,6 +288,8 @@ int handleTCPCommand(const TCPCommandDescriptor *cmd, char *args,
     }
 
     cmd->requestDestroyer(parsed);
+    close(fd);
+    state->tcp_socket = -1;
     destroyReceivedFile(file);
     return HANDLER_SUCCESS;
 }
@@ -264,7 +320,8 @@ void startCallback(void *req, void *resp, PlayerState *state) {
     case RSG_ERR:
     default:
         printf("A game could not be started. You might have specified an "
-               "invalid PLID; please try again.\n");
+               "invalid PLID or a game for that PLID might already be ongoing; "
+               "please try again.\n");
         return;
     }
 }
@@ -320,7 +377,8 @@ void playCallback(void *req, void *resp, PlayerState *state) {
         return;
     case RLG_ERR:
     default:
-        printf("An error occurred. Please try again.\n");
+        printf("An error occurred. Please try again. You can run 'state' to "
+               "check the current game state.\n");
         state->trial--;
         return;
     }
@@ -378,7 +436,8 @@ void guessCallback(void *req, void *resp, PlayerState *state) {
         break;
     case RWG_ERR:
     default:
-        printf("An error occurred. Please try again.\n");
+        printf("An error occurred. Please try again. You can run 'state' to "
+               "check the current game state.\n");
         state->trial--;
         return;
     }
@@ -423,8 +482,7 @@ int exitPreHook(void *req, PlayerState *state) {
     return 0;
 }
 
-void exitCallback(UNUSED void *req, UNUSED void *resp,
-                  UNUSED PlayerState *state) {
+void exitCallback(UNUSED void *req, UNUSED void *resp, PlayerState *state) {
     endGame(state);
     state->shutdown = true;
 }
@@ -444,15 +502,15 @@ void revealCallback(UNUSED void *req, void *resp, UNUSED PlayerState *state) {
     switch (rrv->type) {
     case RRV_WORD:
         printf("The word is: ");
-        for (size_t i = 0; i < strlen(rrv->word); i++) {
-            rrv->word[i] = (char)toupper(rrv->word[i]);
+        for (size_t i = 0; i < strlen(rrv->data.word); i++) {
+            rrv->data.word[i] = (char)toupper(rrv->data.word[i]);
         }
-        displayWord(rrv->word);
+        displayWord(rrv->data.word);
         putchar('\n');
         return;
     case RRV_STATUS:
     default:
-        switch (rrv->status) {
+        switch (rrv->data.status) {
         case RRV_OK:
             printf("This feature is not currently enabled.\n");
             return;
@@ -467,6 +525,7 @@ void scoreboardCallback(UNUSED void *req, int status, ReceivedFile *file,
                         UNUSED PlayerState *state) {
     switch (status) {
     case RSB_OK:
+        putchar('\n');
         displayFile(file);
         printf("\nA copy of this scoreboard has been saved at %s (%ld B).\n",
                file->fname, file->fsize);
@@ -518,22 +577,24 @@ void stateCallback(UNUSED void *req, int status, ReceivedFile *file,
                    PlayerState *state) {
     switch (status) {
     case RST_ACT:
-        printf("Here is a summary of the ongoing game:\n");
+        printf("Here is a summary of the ongoing game:\n\n");
         displayFile(file);
+        putchar('\n');
         break;
     case RST_FIN:
         printf("There is no ongoing game, so here is a summary of the most "
-               "recently finished game for the specified PLID:\n");
+               "recently finished game for the specified PLID:\n\n");
         displayFile(file);
+        putchar('\n');
         endGame(state);
         break;
     case RST_NOK:
     default:
-        printf("A problem has occurred or there is no hint image available for "
-               "this word.\n");
+        printf("A problem has occurred or no active or past games were found "
+               "for the specified PLID.\n");
         return;
     }
-    printf("A copy of the above game state been saved at %s (%ld B).\n",
+    printf("\nA copy of the above game state been saved at %s (%ld B).\n",
            file->fname, file->fsize);
 }
 

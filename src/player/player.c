@@ -5,13 +5,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 PlayerState playerState = {NULL, NULL, NULL,  NULL, NULL, -1, -1, NULL,
                            NULL, NULL, false, NULL, NULL, 0,  0,  false};
 
 int main(int argc, char *argv[]) {
     signal(SIGINT, handleGracefulShutdownSignal);
+    signal(SIGPIPE, SIG_IGN);
 
     char *host = GS_DEFAULT_HOST;
     char *port = GS_DEFAULT_PORT;
@@ -33,6 +33,9 @@ int main(int argc, char *argv[]) {
         destroyStateComponents(&playerState);
         exit(EXIT_FAILURE);
     }
+
+    displayTitle();
+    displayHelp();
 
     while (!(playerState.shutdown) && printf(INPUT_PROMPT) >= 0 &&
            (getline(&playerState.line, &bufSize, stdin) != -1)) {
@@ -76,7 +79,10 @@ void dispatch(char *line, PlayerState *state) {
     int result = HANDLER_EUNKNOWN;
 
     if (sscanf(line, MAX_COMMAND_NAME_SIZE_FMT, cmd) != 1) {
-        printf(MSG_PARSE_ERROR);
+        fprintf(stderr, MSG_PARSE_ERROR);
+    } else if (strcmp(line, "help") == 0) {
+        displayHelp();
+        return;
     } else if ((descUDP = getCommandDescriptor(
                     cmd, (const void *)UDP_COMMANDS, UDP_COMMANDS_COUNT,
                     UDPCommandDescriptorsIndexer, getUDPCommandAliases,
@@ -88,7 +94,7 @@ void dispatch(char *line, PlayerState *state) {
                     getTCPCommandAliasesCount)) != NULL) {
         result = handleTCPCommand(descTCP, findArgs(line, cmd), state);
     } else {
-        printf(MSG_UNKNOWN_COMMAND);
+        fprintf(stderr, MSG_UNKNOWN_COMMAND);
         return;
     }
 
@@ -96,6 +102,8 @@ void dispatch(char *line, PlayerState *state) {
         fprintf(stderr, "%s", translateHandlerError(result));
 
         if (result == HANDLER_ENOMEM) {
+            // no memory to dispatch an EXIT_COMMAND
+            destroyStateComponents(state);
             exit(EXIT_FAILURE);
         }
     }
@@ -126,6 +134,27 @@ char *findArgs(char *line, char *cmd) {
     } else {
         return NULL;
     }
+}
+
+void displayTitle() {
+    printf(
+        " _   _    _    _   _  ____ __  __    _    _   _           ____   "
+        "____\n| | | |  / \\  | \\ | |/ ___|  \\/  |  / \\  | \\ | |         | "
+        " "
+        "_ \\ / ___|\n| |_| | / _ \\ |  \\| | |  _| |\\/| | / _ \\ |  \\| |  "
+        "_____  | |_) | |    \n|  _  |/ ___ \\| |\\  | |_| | |  | |/ ___ \\| "
+        "|\\  | |_____| |  _ <| |___ \n|_| |_/_/   \\_\\_| \\_|\\____|_|  "
+        "|_/_/  "
+        " \\_\\_| \\_|         |_| \\_\\____|\n");
+}
+
+void displayHelp() {
+    printf("\nAvailable commands:\n");
+    for (size_t i = 0; i < UDP_COMMANDS_COUNT; i++) {
+        UDPCommandDescriptor desc = UDP_COMMANDS[i];
+        printf("\t- %s: %s\n", desc.usage, desc.description);
+    }
+    printf("\t- help: Display this list of commands\n\n");
 }
 
 char *translateNetworkInitError(int result) {

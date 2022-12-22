@@ -24,6 +24,9 @@ SOURCES := $(PLAYER_SOURCES) $(GS_SOURCES) $(COMMON_SOURCES)
 OBJECTS := $(PLAYER_OBJECTS) $(GS_OBJECTS) $(COMMON_OBJECTS)
 TARGET_EXECS := $(PLAYER_EXEC) $(GS_EXEC)
 
+# Execution artifacts
+ARTIFACTS := $(filter-out word_eng.txt, $(wildcard *.txt)) $(wildcard *.jpeg) $(wildcard *.jpg) $(wildcard *.png) $(wildcard *.gif) $(wildcard *.svg) GAMES SCORES
+
 CFLAGS += -std=c17 -D_POSIX_C_SOURCE=200809L
 CFLAGS += $(INCLUDES)
 
@@ -32,7 +35,7 @@ CFLAGS += -fdiagnostics-color=always -Wall -Werror -Wextra -Wcast-align -Wconver
 
 # optional debug symbols: run make DEBUG=yes to activate them
 ifeq ($(strip $(DEBUG)), yes)
-  CFLAGS += -g
+  CFLAGS += -g -fsanitize=address
 endif
 
 # optional O3 optimization symbols: run make OPTIM=no to deactivate them
@@ -51,18 +54,26 @@ LDFLAGS += $(EXTRA_LDFLAGS)
 %: src/%/$$@.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
 
+.PHONY: all clean clean-artifacts fmt fmt-check release
+
+# must be the first target in the Makefile
+# (the name "all" is not special, just a convention)
+all: $(TARGET_EXECS)
+
 $(PLAYER_EXEC): $(PLAYER_OBJECTS) $(COMMON_OBJECTS)
 $(GS_EXEC): $(GS_OBJECTS) $(COMMON_OBJECTS)
 
-.PHONY: all clean fmt
-
-all: $(TARGET_EXECS)
-
 clean: 
 	rm -f $(TARGET_EXECS) $(OBJECTS)
+
+clean-artifacts:
+	rm -rf $(ARTIFACTS)
 
 fmt: $(SOURCES) $(HEADERS)
 	$(FORMATTER) -i $^
 
 fmt-check: $(SOURCES) $(HEADERS)
 	$(FORMATTER) --dry-run --Werror $^
+
+release: clean clean-artifacts
+	git archive --format zip --prefix proj_043/ --output proj_043.zip HEAD src Makefile README.md word_eng.txt hints .clang-format
