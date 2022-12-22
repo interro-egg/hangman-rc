@@ -139,19 +139,22 @@ Game *newGame(char *PLID, ServerState *state) {
     }
     game->PLID = PLID;
     game->outcome = OUTCOME_ONGOING;
+    game->numTrials = 0;
+    game->trials = NULL;
+    game->numSucc = 0;
+    game->maskedWord = NULL;
     if ((game->wordListEntry = chooseWordListEntry(state)) == NULL) {
+        destroyGame(game);
         return NULL;
     }
     game->maskedWord = strdup(game->wordListEntry->word);
     if (game->maskedWord == NULL) {
+        destroyGame(game);
         return NULL;
     }
     for (size_t i = 0; i < strlen(game->maskedWord); i++) {
         game->maskedWord[i] = '_';
     }
-    game->numTrials = 0;
-    game->trials = NULL;
-    game->numSucc = 0;
     game->maxErrors = calculateMaxErrors(game->wordListEntry->word);
     game->remainingLetters = (unsigned int)strlen(game->wordListEntry->word);
     return game;
@@ -471,6 +474,8 @@ Score *loadScore(char *filePath) {
     char *word = malloc((MAX_WORD_SIZE + 1) * sizeof(char));
     if (score == NULL || word == NULL) {
         fclose(file);
+        free(score);
+        free(word);
         return NULL;
     }
     score->word = word;
@@ -478,6 +483,7 @@ Score *loadScore(char *filePath) {
     char *fileName = strrchr(filePath, '/') + 1;
     if (fileName == NULL) {
         free(score);
+        free(word);
         fclose(file);
         return NULL;
     }
@@ -489,7 +495,7 @@ Score *loadScore(char *filePath) {
         sscanf(scoreStr, "%u", &score->score) != 1 ||
         fscanf(file, "%s %u %u", score->word, &score->numSucc,
                &score->numTrials) != 3) {
-        free(score);
+        destroyScore(score);
         fclose(file);
         return NULL;
     }
@@ -547,6 +553,7 @@ ResponseFile *getScoreboard() {
     if (name == NULL || stamp == NULL ||
         snprintf(name, MAX_FNAME_LEN + 1, "SB_%s.txt", stamp) <= 0) {
         free(stamp);
+        free(name);
         return NULL;
     }
     free(stamp);
@@ -687,7 +694,6 @@ ResponseFile *getResponseFile(FILE *file, char *responseFileName) {
 
     if (fread(resp->data, sizeof(char), resp->size, file) < resp->size) {
         destroyResponseFile(resp);
-        free(responseFileName);
         fclose(file);
         return NULL;
     }
@@ -714,6 +720,7 @@ ResponseFile *getFSResponseFile(char *dirPath, char *fileName,
     if (filePath == NULL ||
         sprintf(filePath, "%s/%s", dirPath, fileName) <= 0) {
         free(filePath);
+        free(responseFileName);
         return NULL;
     }
     if (responseFileName == NULL) {

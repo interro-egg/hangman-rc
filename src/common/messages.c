@@ -20,7 +20,6 @@ ssize_t serializeSNGMessage(void *ptr, char *outBuffer) {
 void *deserializeSNGMessage(char *inBuffer) {
     SNGMessage *msg = malloc(sizeof(SNGMessage));
     if (msg == NULL) {
-        destroySNGMessage(msg);
         return NULL;
     }
     msg->PLID = malloc(7 * sizeof(char));
@@ -163,7 +162,6 @@ ssize_t serializePLGMessage(void *ptr, char *outBuffer) {
 void *deserializePLGMessage(char *inBuffer) {
     PLGMessage *msg = malloc(sizeof(PLGMessage));
     if (msg == NULL) {
-        destroyPLGMessage(msg);
         return NULL;
     }
     msg->PLID = malloc(7 * sizeof(char));
@@ -254,6 +252,7 @@ void *deserializeRLGMessage(char *inBuffer) {
         free(statusStr);
         return NULL;
     }
+    msg->pos = NULL;
     char whitespace = 0;
     if (sscanf(inBuffer, "RLG%1c%3[^\n]", &whitespace, statusStr) != 2) {
         destroyRLGMessage(msg);
@@ -383,7 +382,6 @@ ssize_t serializePWGMessage(void *ptr, char *outBuffer) {
 void *deserializePWGMessage(char *inBuffer) {
     PWGMessage *msg = malloc(sizeof(PWGMessage));
     if (msg == NULL) {
-        destroyPWGMessage(msg);
         return NULL;
     }
     msg->PLID = malloc(7 * sizeof(char));
@@ -605,7 +603,6 @@ ssize_t serializeREVMessage(void *ptr, char *outBuffer) {
 void *deserializeREVMessage(char *inBuffer) {
     REVMessage *msg = malloc(sizeof(REVMessage));
     if (msg == NULL) {
-        destroyREVMessage(msg);
         return NULL;
     }
     msg->PLID = malloc(7 * sizeof(char));
@@ -713,7 +710,6 @@ ssize_t serializeGHLMessage(void *ptr, char *outBuffer) {
 void *deserializeGHLMessage(char *inBuffer) {
     GHLMessage *msg = malloc(sizeof(GHLMessage));
     if (msg == NULL) {
-        destroyGHLMessage(msg);
         return NULL;
     }
     msg->PLID = malloc(7 * sizeof(char));
@@ -751,7 +747,6 @@ ssize_t serializeSTAMessage(void *ptr, char *outBuffer) {
 void *deserializeSTAMessage(char *inBuffer) {
     STAMessage *msg = malloc(sizeof(STAMessage));
     if (msg == NULL) {
-        destroySTAMessage(msg);
         return NULL;
     }
     msg->PLID = malloc(7 * sizeof(char));

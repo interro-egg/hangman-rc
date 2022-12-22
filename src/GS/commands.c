@@ -171,11 +171,11 @@ void *fulfillSNGRequest(void *req, ServerState *state) {
 void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
     PLGMessage *plg = (PLGMessage *)req;
     RLGMessage *rlg = (RLGMessage *)malloc(sizeof(RLGMessage));
-    rlg->pos = NULL;
     if (rlg == NULL) {
         errno = ENOMEM;
         return NULL;
     }
+    rlg->pos = NULL;
     Game *game = loadGame(plg->PLID, true);
     if (game == NULL) {
         destroyRLGMessage(rlg);
