@@ -241,7 +241,7 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
             game->remainingLetters -= rlg->n;
             game->numSucc++;
             for (size_t i = 0; i < rlg->n; i++) {
-                game->maskedWord[rlg->pos[i]] = plg->letter;
+                game->maskedWord[rlg->pos[i] - 1] = plg->letter;
             }
             rlg->status = RLG_OK;
         }
