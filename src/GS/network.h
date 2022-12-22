@@ -8,6 +8,8 @@
 #define OUT_BUFFER_SIZE 128 + 1
 #define TCP_MAX_BLOCK_SIZE 512
 
+// The combination of TIMEOUT_SECS and TIMEOUT_MICROSECS forms the timeout value
+// If the timeout value is zero, requests will never timeout
 #define TIMEOUT_SECS 5
 #define TIMEOUT_MICROSECS 0
 
