@@ -502,9 +502,16 @@ ResponseFile *getGameState(Game *game) {
         return NULL;
     }
 
-    if (fprintf(tmp, "\t%s game for player %s\n\tWord: %s; Hint file: %s",
+    if (fprintf(tmp, "\t%s game for player %s",
                 game->outcome == OUTCOME_ONGOING ? "Active" : "Last finalized",
-                game->PLID, game->wordListEntry->word,
+                game->PLID) <= 0) {
+        free(fname);
+        fclose(tmp);
+        return NULL;
+    }
+
+    if (game->outcome != OUTCOME_ONGOING &&
+        fprintf(tmp, "\n\tWord: %s; Hint file: %s", game->wordListEntry->word,
                 game->wordListEntry->hintFile) <= 0) {
         free(fname);
         fclose(tmp);
