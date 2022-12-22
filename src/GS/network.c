@@ -180,7 +180,7 @@ void logTraffic(enum TrafficType type, char *proto, ResponseFile *file,
               INET_ADDRSTRLEN); // no need to check error
 
     char host[MAX_HOSTNAME_SIZE];
-    char playerHostname[MAX_HOSTNAME_SIZE + 3];
+    char playerHostname[MAX_HOSTNAME_SIZE + 3] = {0};
     if (getnameinfo((struct sockaddr *)state->player_addr,
                     state->player_addr_len, host, MAX_HOSTNAME_SIZE, NULL, 0,
                     NI_NAMEREQD) == 0) {
