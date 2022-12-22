@@ -565,10 +565,13 @@ ResponseFile *getGameState(Game *game) {
     return getResponseFile(tmp, fname);
 }
 
-// Closes file; takes ownership of responseFileName
+// Closes file if not NULL; takes ownership of responseFileName
 ResponseFile *getResponseFile(FILE *file, char *responseFileName) {
-    if (file == NULL || responseFileName == NULL ||
-        flock(fileno(file), LOCK_SH) == -1) {
+    if (file == NULL) {
+        return NULL;
+    }
+
+    if (responseFileName == NULL || flock(fileno(file), LOCK_SH) == -1) {
         fclose(file);
         return NULL;
     }
