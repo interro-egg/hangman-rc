@@ -96,7 +96,7 @@ void *deserializeRSGMessage(char *inBuffer) {
     }
     msg->status = status;
     switch (msg->status) {
-    case RSG_OK:
+    case RSG_OK:;
         char newline = 0;
         char n_letters[3] = {0};
         char max_errors[2] = {0};
@@ -279,7 +279,7 @@ void *deserializeRLGMessage(char *inBuffer) {
     msg->status = status;
     msg->pos = NULL;
     switch (msg->status) {
-    case RLG_OK:
+    case RLG_OK:;
         char whitespaces[3] = {0};
         char trial[3] = {0};
         char n[3] = {0};
@@ -333,7 +333,7 @@ void *deserializeRLGMessage(char *inBuffer) {
     case RLG_DUP:
     case RLG_NOK:
     case RLG_OVR:
-    case RLG_INV:
+    case RLG_INV:;
         char newline = 0;
         char trials[3] = {0};
         if (sscanf(inBuffer, "RLG%1c%3[^ ]%1c%2[^\n]%1c", whitespaces,
@@ -481,7 +481,7 @@ void *deserializeRWGMessage(char *inBuffer) {
     case RWG_DUP:
     case RWG_NOK:
     case RWG_OVR:
-    case RWG_INV:
+    case RWG_INV:;
         char newline = 0;
         char trials[3] = {0};
         char whitespaces[2] = {0};
