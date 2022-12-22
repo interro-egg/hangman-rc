@@ -117,8 +117,10 @@ int main(int argc, char *argv[]) {
                 continue;
             }
 
-            result = handleUDPCommand(descr, &serverState);
-            if (result != HANDLER_SUCCESS) {
+            char *EOL = strchr(serverState.in_buffer, '\n');
+            if (EOL == NULL || strlen(EOL) != 1 ||
+                (result = handleUDPCommand(descr, &serverState)) !=
+                    HANDLER_SUCCESS) {
                 if (sprintf(serverState.out_buffer, "%s ERR\n",
                             descr->response) > 0) {
                     replyUDP(&serverState);
