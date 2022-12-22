@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
 
                 result = handleTCPCommand(descr, &serverState);
                 if (result != HANDLER_SUCCESS) {
-                    if (sprintf(serverState.out_buffer, "%s ERR",
+                    if (sprintf(serverState.out_buffer, "%s NOK",
                                 descr->response) > 0) {
                         replyTCP(NULL, &serverState);
                     }
