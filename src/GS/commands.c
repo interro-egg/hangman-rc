@@ -178,6 +178,7 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
     }
     Game *game = loadGame(plg->PLID, true);
     if (game == NULL) {
+        destroyRLGMessage(rlg);
         return NULL;
     }
 
@@ -203,6 +204,8 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
             rlg->n = getLetterPositions(plg->letter, game->wordListEntry->word,
                                         &rlg->pos);
             if (rlg->n == 0 && errno == ENOMEM) {
+                destroyRLGMessage(rlg);
+                destroyGame(game);
                 return NULL;
             }
             if (rlg->n == 0) {
@@ -227,6 +230,8 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
                                     &rlg->pos);
 
         if (rlg->n == 0 && errno == ENOMEM) {
+            destroyRLGMessage(rlg);
+            destroyGame(game);
             return NULL;
         }
         if (rlg->n == 0) {
@@ -252,12 +257,17 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
         }
         GameTrial *newTrial = malloc(sizeof(GameTrial));
         if (newTrial == NULL) {
+            destroyRLGMessage(rlg);
+            destroyGame(game);
             return NULL;
         }
         newTrial->type = TRIAL_TYPE_LETTER;
         newTrial->guess.letter = plg->letter;
         newTrial->correct = rlg->status == RLG_OK || rlg->status == RLG_WIN;
         if (registerGameTrial(game, newTrial) != 0) {
+            destroyRLGMessage(rlg);
+            destroyGameTrial(newTrial);
+            destroyGame(game);
             return NULL;
         }
     }
@@ -267,9 +277,13 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
     if (rlg->status == RLG_OVR || rlg->status == RLG_WIN) {
         if (endGame(game,
                     rlg->status == RLG_WIN ? OUTCOME_WIN : OUTCOME_FAIL) != 0) {
+            destroyRLGMessage(rlg);
+            destroyGame(game);
             return NULL;
         }
     } else if (saveGame(game) != 0) {
+        destroyRLGMessage(rlg);
+        destroyGame(game);
         return NULL;
     }
     destroyGame(game);

@@ -226,7 +226,16 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
         fclose(file);
         return NULL;
     }
-
+    game->numTrials = 0;
+    game->trials = NULL;
+    game->PLID = strdup(PLID);
+    game->wordListEntry = NULL;
+    game->maskedWord = NULL;
+    if (game->PLID == NULL) {
+        destroyGame(game);
+        fclose(file);
+        return NULL;
+    }
     char *word = NULL;
     char *hintFile = NULL;
     char outcome;
@@ -239,16 +248,13 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     }
     game->outcome = (enum GameOutcome)outcome;
     game->wordListEntry = createWordListEntry(word, hintFile);
-        free(word);
-        free(hintFile);
+    free(word);
+    free(hintFile);
     if (game->wordListEntry == NULL) {
         destroyGame(game);
         fclose(file);
         return NULL;
     }
-    game->numTrials = 0;
-    game->trials = NULL;
-    game->PLID = strdup(PLID);
 
     char *line = NULL;
     size_t len = 0;
@@ -267,11 +273,13 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
         trial->type = type;
         if (type == TRIAL_TYPE_LETTER) {
             trial->guess.letter = guess[0];
+            free(guess);
         } else if (type == TRIAL_TYPE_WORD) {
             trial->guess.word = guess;
         }
         trial->correct = (bool)correct;
         if (registerGameTrial(game, trial) == -1) {
+            destroyGameTrial(trial);
             destroyGame(game);
             fclose(file);
             free(guess);
@@ -279,7 +287,6 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
         }
     }
 
-    free(guess);
     free(line);
     fclose(file);
     return game;
