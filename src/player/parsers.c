@@ -15,7 +15,6 @@ void *parseSNGArgs(char *args) {
     SNGMessage *sng = malloc(sizeof(SNGMessage));
     if (sng == NULL) {
         errno = ENOMEM;
-        destroySNGMessage(sng);
         return NULL;
     }
     sng->PLID = malloc(7 * sizeof(char));
@@ -71,9 +70,10 @@ void *parsePWGArgs(char *args) {
     PWGMessage *pwg = malloc(sizeof(PWGMessage));
     if (pwg == NULL) {
         errno = ENOMEM;
-        destroyPWGMessage(pwg);
         return NULL;
     }
+    pwg->PLID = NULL; // init for destroyer if other malloc fails
+    pwg->word = NULL;
     pwg->PLID = malloc(7 * sizeof(char));
     pwg->word = malloc(31 * sizeof(char));
     if (pwg->PLID == NULL || pwg->word == NULL) {

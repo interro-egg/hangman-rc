@@ -160,11 +160,13 @@ ReceivedFile *readFileTCP(int fd) {
     file->fsize = (size_t)strtoul(fsize, &end, 10);
     if (errno != 0 || *end != '\0' || file->fsize > MAX_FSIZE_NUM) {
         errno = TCP_RCV_EINV;
+        free(file);
         return NULL;
     }
 
     file->fname = malloc((fnameLen + 1) * sizeof(char));
     if (file->fname == NULL) {
+        free(file);
         errno = TCP_RCV_ENOMEM;
         return NULL;
     }
@@ -172,6 +174,7 @@ ReceivedFile *readFileTCP(int fd) {
 
     FILE *fileFd = fopen(file->fname, "w");
     if (fileFd == NULL) {
+        destroyReceivedFile(file);
         errno = TCP_RCV_EFOPEN;
         return NULL;
     }
