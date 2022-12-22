@@ -185,6 +185,10 @@ void *deserializePLGMessage(char *inBuffer) {
         return NULL;
     }
     msg->trial = (unsigned int)atoi(trial);
+    if (msg->trial == 0 || msg->trial > 99) {
+        destroyPLGMessage(msg);
+        return NULL;
+    }
     return msg;
 }
 
@@ -295,7 +299,8 @@ void *deserializeRLGMessage(char *inBuffer) {
         }
         msg->trial = (unsigned int)atoi(trial);
         msg->n = (unsigned int)atoi(n);
-        if (msg->trial < 1 || msg->n < 1 || msg->n > MAX_WORD_SIZE) {
+        if (msg->trial == 0 || msg->trial > 99 || msg->n < 1 ||
+            msg->n > MAX_WORD_SIZE) {
             destroyRLGMessage(msg);
             return NULL;
         }
@@ -340,6 +345,10 @@ void *deserializeRLGMessage(char *inBuffer) {
             return NULL;
         }
         msg->trial = (unsigned int)atoi(trials);
+        if (msg->trial == 0 || msg->trial > 99) {
+            destroyRLGMessage(msg);
+            return NULL;
+        }
         break;
     case RLG_ERR:
     default:
@@ -404,6 +413,10 @@ void *deserializePWGMessage(char *inBuffer) {
         }
     }
     msg->trial = (unsigned int)atoi(trial);
+    if (msg->trial == 0 || msg->trial > 99) {
+        destroyPWGMessage(msg);
+        return NULL;
+    }
     return msg;
 }
 
@@ -480,6 +493,10 @@ void *deserializeRWGMessage(char *inBuffer) {
             return NULL;
         }
         msg->trials = (unsigned int)atoi(trials);
+        if (msg->trials == 0 || msg->trials > 99) {
+            destroyRWGMessage(msg);
+            return NULL;
+        }
         break;
     case RWG_ERR:
     default:
