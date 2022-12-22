@@ -37,6 +37,8 @@ A value of 0 means that requests will never timeout.
 -   `make GS` - compiles the GS executable.
 -   `make clean` - removes all object files and executables.
 -   `make clean-artifacts` - removes all game state files and potential files received by the player via TCP (using an assumption of common file extensions).
--   `make fmt` - formats all source files.
--   `make fmt-check` - checks if all source files are formatted correctly.
+-   `make fmt` - formats all source files (requires `clang-format`).
+-   `make fmt-check` - checks if all source files are formatted correctly (requires `clang-format`).
 -   `make release` - creates a `proj_043.zip` file to be submitted.
+
+You can pass `DEBUG=yes` and `OPTIM=no` as environment variables to the `make` command to compile with debug symbols and without optimization (`-O0` instead of `-O3`), respectively. The opposite behavior is the default.
