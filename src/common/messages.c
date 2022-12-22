@@ -130,12 +130,15 @@ void *deserializeRSGMessage(char *inBuffer) {
     case RSG_NOK:
     case RSG_ERR:
     default:
-        if (sscanf(inBuffer, "RSG%1c%3[^\n]%1c", whitespaces, whitespaces + 1,
+        if (sscanf(inBuffer, "RSG%1c%3[^\n]%1c", whitespaces, statusStr,
                    &newline) != 3) {
             destroyRSGMessage(msg);
+            free(statusStr);
             return NULL;
         }
-        if (whitespaces[0] != ' ' || whitespaces[1] != ' ' || newline != '\n') {
+        free(statusStr);
+
+        if (whitespaces[0] != ' ' || newline != '\n') {
             destroyRSGMessage(msg);
             return NULL;
         }
