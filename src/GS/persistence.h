@@ -76,50 +76,47 @@ typedef struct {
     unsigned int numTrials;
 } Score;
 
-int initPersistence();
-
 const char *translateGameOutcome(enum GameOutcome outcome);
 
-void destroyWordListEntry(WordListEntry *entry);
+int initPersistence();
+
+WordList *parseWordListFile(char *wordFile);
+void destroyWordList(WordList *list);
 
 WordListEntry *createWordListEntry(char *word, char *hintFile);
-WordList *parseWordListFile(char *wordFile);
+void destroyWordListEntry(WordListEntry *entry);
 
-// TODO: delete this comment, reorder
-void destroyWordList(WordList *list);
 WordListEntry *chooseWordListEntry(ServerState *state);
 WordListEntry *chooseRandomWordListEntry(WordList *list);
 WordListEntry *chooseSequentialWordListEntry(WordList *list, size_t *seqPtr);
 
-void destroyGameTrial(GameTrial *trial);
-
 Game *newGame(char *PLID, ServerState *state);
 void destroyGame(Game *game);
 
-int endGame(Game *game, enum GameOutcome outcome);
-
-char *computeGameFilePath(char *PLID, bool ongoing);
 int saveGame(Game *game);
 Game *loadGame(char *PLID, bool ongoingOnly);
-int registerGameTrial(Game *game, GameTrial *trial);
-
+char *computeGameFilePath(char *PLID, bool ongoing);
 FILE *findGameFileForPlayer(char *PLID, bool ongoingOnly);
+int endGame(Game *game, enum GameOutcome outcome);
+
+int registerGameTrial(Game *game, GameTrial *trial);
+void destroyGameTrial(GameTrial *trial);
 
 Score *newScore(Game *game);
 void destroyScore(Score *score);
+unsigned int calculateScore(Game *game);
 int registerScore(Score *score);
 Score *loadScore(char *filePath);
 
+int generateScoreboard();
+ResponseFile *getScoreboard();
 ResponseFile *getGameState(Game *game);
 ResponseFile *getResponseFile(FILE *file, char *responseFileName);
+void destroyResponseFile(ResponseFile *resp);
 ResponseFile *getFSResponseFile(char *dirPath, char *fileName,
                                 char *responseFileName);
 
-ResponseFile *getScoreboard();
-int generateScoreboard();
-
 int isNotScoreboardFile(const struct dirent *entry);
-void destroyResponseFile(ResponseFile *resp);
 int ensureDirExists(const char *path);
 char *formattedTimeStamp();
 

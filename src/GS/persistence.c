@@ -34,115 +34,6 @@ int initPersistence() {
     return 0;
 }
 
-Game *newGame(char *PLID, ServerState *state) {
-    Game *game = malloc(sizeof(Game));
-    if (game == NULL) {
-        return NULL;
-    }
-    game->PLID = PLID;
-    game->outcome = OUTCOME_ONGOING;
-    if ((game->wordListEntry = chooseWordListEntry(state)) == NULL) {
-        return NULL;
-    }
-    game->maskedWord = strdup(game->wordListEntry->word);
-    if (game->maskedWord == NULL) {
-        return NULL;
-    }
-    for (size_t i = 0; i < strlen(game->maskedWord); i++) {
-        game->maskedWord[i] = '_';
-    }
-    game->numTrials = 0;
-    game->trials = NULL;
-    game->numSucc = 0;
-    game->maxErrors = calculateMaxErrors(game->wordListEntry->word);
-    game->remainingLetters = (unsigned int)strlen(game->wordListEntry->word);
-    return game;
-}
-
-void destroyGame(Game *game) {
-    if (game == NULL) {
-        return;
-    }
-    free(game->PLID);
-    destroyWordListEntry(game->wordListEntry);
-    free(game->maskedWord);
-    for (size_t i = 0; i < game->numTrials; i++) {
-        destroyGameTrial(game->trials[i]);
-    }
-    free(game->trials);
-    free(game);
-}
-
-void destroyWordListEntry(WordListEntry *entry) {
-    if (entry == NULL) {
-        return;
-    }
-    free(entry->word);
-    free(entry->hintFile);
-    free(entry);
-}
-
-void destroyWordList(WordList *list) {
-    if (list == NULL) {
-        return;
-    }
-    for (size_t i = 0; i < list->numEntries; i++) {
-        destroyWordListEntry(list->entries[i]);
-    }
-    free(list->entries);
-    free(list);
-}
-
-void destroyGameTrial(GameTrial *trial) {
-    if (trial == NULL) {
-        return;
-    }
-    if (trial->type == TRIAL_TYPE_WORD) {
-        free(trial->guess.word);
-    }
-    free(trial);
-}
-
-WordListEntry *chooseWordListEntry(ServerState *state) {
-    if (state->sequential_word_selection) {
-        return chooseSequentialWordListEntry(state->word_list,
-                                             &state->word_list_seq_ptr);
-    } else {
-        return chooseRandomWordListEntry(state->word_list);
-    }
-}
-
-WordListEntry *chooseRandomWordListEntry(WordList *list) {
-    if (list == NULL || list->numEntries == 0) {
-        return NULL;
-    }
-    size_t index = (size_t)rand() % list->numEntries;
-    return list->entries[index];
-}
-
-WordListEntry *chooseSequentialWordListEntry(WordList *list, size_t *seqPtr) {
-    if (list == NULL || list->numEntries == 0) {
-        return NULL;
-    }
-    *seqPtr = (*seqPtr) % list->numEntries;
-    return list->entries[(*seqPtr)++]; // 🤯
-}
-
-WordListEntry *createWordListEntry(char *word, char *hintFile) {
-    WordListEntry *entry = malloc(sizeof(WordListEntry));
-    if (entry == NULL || word == NULL || hintFile == NULL) {
-        return NULL;
-    }
-    entry->word = strdup(word);
-    entry->hintFile = strdup(hintFile);
-    if (entry->word == NULL || entry->hintFile == NULL) {
-        free(entry->word);
-        free(entry->hintFile);
-        return NULL;
-    }
-    return entry;
-}
-
 WordList *parseWordListFile(char *wordFile) {
     FILE *file = fopen(wordFile, "r");
     if (file == NULL) {
@@ -181,18 +72,103 @@ WordList *parseWordListFile(char *wordFile) {
     return list;
 }
 
-int registerGameTrial(Game *game, GameTrial *trial) {
-    if (game == NULL || trial == NULL) {
-        return -1;
+void destroyWordList(WordList *list) {
+    if (list == NULL) {
+        return;
     }
-    game->numTrials++;
-    game->trials =
-        reallocarray(game->trials, game->numTrials, sizeof(GameTrial *));
-    if (game->trials == NULL) {
-        return -1;
+    for (size_t i = 0; i < list->numEntries; i++) {
+        destroyWordListEntry(list->entries[i]);
     }
-    game->trials[game->numTrials - 1] = trial;
-    return 0;
+    free(list->entries);
+    free(list);
+}
+
+WordListEntry *createWordListEntry(char *word, char *hintFile) {
+    WordListEntry *entry = malloc(sizeof(WordListEntry));
+    if (entry == NULL || word == NULL || hintFile == NULL) {
+        return NULL;
+    }
+    entry->word = strdup(word);
+    entry->hintFile = strdup(hintFile);
+    if (entry->word == NULL || entry->hintFile == NULL) {
+        free(entry->word);
+        free(entry->hintFile);
+        return NULL;
+    }
+    return entry;
+}
+
+void destroyWordListEntry(WordListEntry *entry) {
+    if (entry == NULL) {
+        return;
+    }
+    free(entry->word);
+    free(entry->hintFile);
+    free(entry);
+}
+
+WordListEntry *chooseWordListEntry(ServerState *state) {
+    if (state->sequential_word_selection) {
+        return chooseSequentialWordListEntry(state->word_list,
+                                             &state->word_list_seq_ptr);
+    } else {
+        return chooseRandomWordListEntry(state->word_list);
+    }
+}
+
+WordListEntry *chooseRandomWordListEntry(WordList *list) {
+    if (list == NULL || list->numEntries == 0) {
+        return NULL;
+    }
+    size_t index = (size_t)rand() % list->numEntries;
+    return list->entries[index];
+}
+
+WordListEntry *chooseSequentialWordListEntry(WordList *list, size_t *seqPtr) {
+    if (list == NULL || list->numEntries == 0) {
+        return NULL;
+    }
+    *seqPtr = (*seqPtr) % list->numEntries;
+    return list->entries[(*seqPtr)++]; // 🤯
+}
+
+Game *newGame(char *PLID, ServerState *state) {
+    Game *game = malloc(sizeof(Game));
+    if (game == NULL) {
+        return NULL;
+    }
+    game->PLID = PLID;
+    game->outcome = OUTCOME_ONGOING;
+    if ((game->wordListEntry = chooseWordListEntry(state)) == NULL) {
+        return NULL;
+    }
+    game->maskedWord = strdup(game->wordListEntry->word);
+    if (game->maskedWord == NULL) {
+        return NULL;
+    }
+    for (size_t i = 0; i < strlen(game->maskedWord); i++) {
+        game->maskedWord[i] = '_';
+    }
+    game->numTrials = 0;
+    game->trials = NULL;
+    game->numSucc = 0;
+    game->maxErrors = calculateMaxErrors(game->wordListEntry->word);
+    game->remainingLetters = (unsigned int)strlen(game->wordListEntry->word);
+    return game;
+}
+
+void destroyGame(Game *game) {
+    if (game == NULL) {
+        return;
+    }
+    free(game->PLID);
+    destroyWordListEntry(game->wordListEntry);
+    free(game->maskedWord);
+    for (size_t i = 0; i < game->numTrials; i++) {
+        destroyGameTrial(game->trials[i]);
+    }
+    free(game->trials);
+    free(game);
 }
 
 int saveGame(Game *game) {
@@ -304,40 +280,17 @@ Game *loadGame(char *PLID, bool ongoingOnly) {
     return game;
 }
 
-unsigned int calculateScore(Game *game) {
-    if (game == NULL || game->numSucc == 0 || game->numTrials == 0) {
-        return 0;
+char *computeGameFilePath(char *PLID, bool ongoing) {
+    if (PLID == NULL) {
+        return NULL;
     }
-    // round(game->numSucc / game->numTrials)
-    unsigned int rounded =
-        ((100 * game->numSucc) + (game->numTrials / 2)) / game->numTrials;
-
-    return MIN(100, rounded);
-}
-
-int endGame(Game *game, enum GameOutcome outcome) {
-    if (game == NULL || game->outcome != OUTCOME_ONGOING) {
-        return -1;
+    char *filePath = malloc(MAX_FILE_PATH_SIZE * sizeof(char));
+    if (filePath == NULL) {
+        return NULL;
     }
-    game->outcome = outcome;
-
-    if (outcome == OUTCOME_WIN) {
-        Score *score = newScore(game);
-        if (score == NULL) {
-            return -1;
-        }
-        if (registerScore(score) == -1) {
-            destroyScore(score);
-            return -1;
-        }
-        destroyScore(score);
-    }
-
-    // will save at new location
-    if (saveGame(game) == -1) {
-        return -1;
-    }
-    return unlink(computeGameFilePath(game->PLID, true));
+    snprintf(filePath, MAX_FILE_PATH_SIZE,
+             ongoing ? "%s/%s.txt" : "%s/%s_last.txt", GAMES_DIR, PLID);
+    return filePath;
 }
 
 // Either ongoing or last game
@@ -368,17 +321,53 @@ FILE *findGameFileForPlayer(char *PLID, bool ongoingOnly) {
     return file;
 }
 
-char *computeGameFilePath(char *PLID, bool ongoing) {
-    if (PLID == NULL) {
-        return NULL;
+int endGame(Game *game, enum GameOutcome outcome) {
+    if (game == NULL || game->outcome != OUTCOME_ONGOING) {
+        return -1;
     }
-    char *filePath = malloc(MAX_FILE_PATH_SIZE * sizeof(char));
-    if (filePath == NULL) {
-        return NULL;
+    game->outcome = outcome;
+
+    if (outcome == OUTCOME_WIN) {
+        Score *score = newScore(game);
+        if (score == NULL) {
+            return -1;
+        }
+        if (registerScore(score) == -1) {
+            destroyScore(score);
+            return -1;
+        }
+        destroyScore(score);
     }
-    snprintf(filePath, MAX_FILE_PATH_SIZE,
-             ongoing ? "%s/%s.txt" : "%s/%s_last.txt", GAMES_DIR, PLID);
-    return filePath;
+
+    // will save at new location
+    if (saveGame(game) == -1) {
+        return -1;
+    }
+    return unlink(computeGameFilePath(game->PLID, true));
+}
+
+int registerGameTrial(Game *game, GameTrial *trial) {
+    if (game == NULL || trial == NULL) {
+        return -1;
+    }
+    game->numTrials++;
+    game->trials =
+        reallocarray(game->trials, game->numTrials, sizeof(GameTrial *));
+    if (game->trials == NULL) {
+        return -1;
+    }
+    game->trials[game->numTrials - 1] = trial;
+    return 0;
+}
+
+void destroyGameTrial(GameTrial *trial) {
+    if (trial == NULL) {
+        return;
+    }
+    if (trial->type == TRIAL_TYPE_WORD) {
+        free(trial->guess.word);
+    }
+    free(trial);
 }
 
 Score *newScore(Game *game) {
@@ -414,6 +403,17 @@ void destroyScore(Score *score) {
     free(score->finishStamp);
     free(score->word);
     free(score);
+}
+
+unsigned int calculateScore(Game *game) {
+    if (game == NULL || game->numSucc == 0 || game->numTrials == 0) {
+        return 0;
+    }
+    // round(game->numSucc / game->numTrials)
+    unsigned int rounded =
+        ((100 * game->numSucc) + (game->numTrials / 2)) / game->numTrials;
+
+    return MIN(100, rounded);
 }
 
 int registerScore(Score *score) {
@@ -484,6 +484,62 @@ Score *loadScore(char *filePath) {
 
     fclose(file);
     return score;
+}
+
+int generateScoreboard() {
+    FILE *file = fopen(SCORES_DIR "/" SCOREBOARD_FILE_NAME, "w");
+    if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
+        return -1;
+    }
+
+    struct dirent **namelist;
+    int n = scandir(SCORES_DIR, &namelist, isNotScoreboardFile, alphasort);
+    if (n <= 0) {
+        fclose(file);
+        unlink(SCORES_DIR "/" SCOREBOARD_FILE_NAME);
+        return n;
+    }
+
+    fprintf(file, "------------------------------- TOP 10 SCORES "
+                  "-------------------------------\n\n");
+    fprintf(file, "     SCORE  PLAYER  WORD                            "
+                  "GOOD TRIALS  "
+                  "TOTAL TRIALS\n\n");
+
+    char filePath[MAX_FILE_PATH_SIZE];
+
+    for (int i = n - 1; i >= MAX(0, n - SCOREBOARD_MAX_ITEMS); i--) {
+        if (snprintf(filePath, MAX_FILE_PATH_SIZE, "%s/%s", SCORES_DIR,
+                     namelist[i]->d_name) <= 0) {
+            continue;
+        }
+        free(namelist[i]);
+        Score *score = loadScore(filePath);
+        if (score == NULL) {
+            continue;
+        }
+        fprintf(file, "%2d - %5u  %-6s  %-30s  %11u  %12u\n", n - i,
+                score->score, score->PLID, score->word, score->numSucc,
+                score->numTrials);
+        free(score);
+    }
+    free(namelist);
+
+    fclose(file);
+    return 0;
+}
+
+ResponseFile *getScoreboard() {
+    char *name = malloc((MAX_FNAME_LEN + 1) * sizeof(char));
+    char *stamp = formattedTimeStamp();
+    if (name == NULL || stamp == NULL ||
+        snprintf(name, MAX_FNAME_LEN + 1, "SB_%s.txt", stamp) <= 0) {
+        free(stamp);
+        return NULL;
+    }
+    free(stamp);
+
+    return getFSResponseFile(SCORES_DIR, SCOREBOARD_FILE_NAME, name);
 }
 
 ResponseFile *getGameState(Game *game) {
@@ -628,6 +684,15 @@ ResponseFile *getResponseFile(FILE *file, char *responseFileName) {
     return resp;
 }
 
+void destroyResponseFile(ResponseFile *resp) {
+    if (resp == NULL) {
+        return;
+    }
+    free(resp->name);
+    free(resp->data);
+    free(resp);
+}
+
 ResponseFile *getFSResponseFile(char *dirPath, char *fileName,
                                 char *responseFileName) {
     if (dirPath == NULL || fileName == NULL) {
@@ -649,74 +714,9 @@ ResponseFile *getFSResponseFile(char *dirPath, char *fileName,
     return getResponseFile(file, responseFileName);
 }
 
-ResponseFile *getScoreboard() {
-    char *name = malloc((MAX_FNAME_LEN + 1) * sizeof(char));
-    char *stamp = formattedTimeStamp();
-    if (name == NULL || stamp == NULL ||
-        snprintf(name, MAX_FNAME_LEN + 1, "SB_%s.txt", stamp) <= 0) {
-        free(stamp);
-        return NULL;
-    }
-    free(stamp);
-
-    return getFSResponseFile(SCORES_DIR, SCOREBOARD_FILE_NAME, name);
-}
-
-int generateScoreboard() {
-    FILE *file = fopen(SCORES_DIR "/" SCOREBOARD_FILE_NAME, "w");
-    if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
-        return -1;
-    }
-
-    struct dirent **namelist;
-    int n = scandir(SCORES_DIR, &namelist, isNotScoreboardFile, alphasort);
-    if (n <= 0) {
-        fclose(file);
-        unlink(SCORES_DIR "/" SCOREBOARD_FILE_NAME);
-        return n;
-    }
-
-    fprintf(file, "------------------------------- TOP 10 SCORES "
-                  "-------------------------------\n\n");
-    fprintf(file, "     SCORE  PLAYER  WORD                            "
-                  "GOOD TRIALS  "
-                  "TOTAL TRIALS\n\n");
-
-    char filePath[MAX_FILE_PATH_SIZE];
-
-    for (int i = n - 1; i >= MAX(0, n - SCOREBOARD_MAX_ITEMS); i--) {
-        if (snprintf(filePath, MAX_FILE_PATH_SIZE, "%s/%s", SCORES_DIR,
-                     namelist[i]->d_name) <= 0) {
-            continue;
-        }
-        free(namelist[i]);
-        Score *score = loadScore(filePath);
-        if (score == NULL) {
-            continue;
-        }
-        fprintf(file, "%2d - %5u  %-6s  %-30s  %11u  %12u\n", n - i,
-                score->score, score->PLID, score->word, score->numSucc,
-                score->numTrials);
-        free(score);
-    }
-    free(namelist);
-
-    fclose(file);
-    return 0;
-}
-
 int isNotScoreboardFile(const struct dirent *entry) {
     return entry->d_name[0] != '.' &&
            strcmp(entry->d_name, SCOREBOARD_FILE_NAME) != 0;
-}
-
-void destroyResponseFile(ResponseFile *resp) {
-    if (resp == NULL) {
-        return;
-    }
-    free(resp->name);
-    free(resp->data);
-    free(resp);
 }
 
 int ensureDirExists(const char *path) {
