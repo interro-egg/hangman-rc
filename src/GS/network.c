@@ -179,12 +179,12 @@ void logTraffic(enum TrafficType type, char *proto, ResponseFile *file,
               playerIpAddr,
               INET_ADDRSTRLEN); // no need to check error
 
-    char host[MAX_HOSTNAME_SIZE];
-    char playerHostname[MAX_HOSTNAME_SIZE + 3] = {0};
+    char host[NI_MAXHOST];
+    char playerHostname[NI_MAXHOST + 3] = {0};
     if (getnameinfo((struct sockaddr *)state->player_addr,
-                    state->player_addr_len, host, MAX_HOSTNAME_SIZE, NULL, 0,
+                    state->player_addr_len, host, NI_MAXHOST, NULL, 0,
                     NI_NAMEREQD) == 0) {
-        snprintf(playerHostname, MAX_HOSTNAME_SIZE + 3, "(%s) ", host);
+        snprintf(playerHostname, NI_MAXHOST + 3, "(%s) ", host);
     }
 
     char *buf = type == T_REQUEST ? state->in_buffer : state->out_buffer;

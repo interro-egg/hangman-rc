@@ -13,8 +13,6 @@
 #define TIMEOUT_SECS 5
 #define TIMEOUT_MICROSECS 0
 
-#define MAX_HOSTNAME_SIZE 64 + 1
-
 #define TCP_SOCKET_BACKLOG 5
 
 #define NINIT_SUCCESS 0
