@@ -287,7 +287,8 @@ void startCallback(void *req, void *resp, PlayerState *state) {
     case RSG_ERR:
     default:
         printf("A game could not be started. You might have specified an "
-               "invalid PLID; please try again.\n");
+               "invalid PLID or a game for that PLID might already be ongoing; "
+               "please try again.\n");
         return;
     }
 }
