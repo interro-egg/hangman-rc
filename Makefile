@@ -75,5 +75,5 @@ fmt: $(SOURCES) $(HEADERS)
 fmt-check: $(SOURCES) $(HEADERS)
 	$(FORMATTER) --dry-run --Werror $^
 
-release: clean
-	git archive --format zip --output hangman_043.zip HEAD
+release: clean clean-artifacts
+	git archive --format zip --prefix proj_043/ --output proj_043.zip HEAD src Makefile README.md word_eng.txt hints .clang-format
