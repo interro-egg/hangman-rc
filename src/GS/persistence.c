@@ -60,6 +60,7 @@ WordList *parseWordListFile(char *wordFile) {
             return NULL;
         }
         list->numEntries++;
+        printf("number of entries: %zu", list->numEntries);
         list->entries = reallocarray(list->entries, list->numEntries,
                                      sizeof(WordListEntry));
         if (list->entries == NULL) {
@@ -165,7 +166,6 @@ void destroyGame(Game *game) {
         return;
     }
     free(game->PLID);
-    destroyWordListEntry(game->wordListEntry);
     free(game->maskedWord);
     for (size_t i = 0; i < game->numTrials; i++) {
         destroyGameTrial(game->trials[i]);
@@ -187,7 +187,7 @@ int saveGame(Game *game) {
     if (file == NULL || flock(fileno(file), LOCK_EX) == -1) {
         return -1;
     }
-    if (fprintf(file, "%s %s %s\n%c %u %d %u\n", game->wordListEntry->word,
+    if (fprintf(file, "%s %s %s\n%c %u %d %u", game->wordListEntry->word,
                 game->maskedWord, game->wordListEntry->hintFile, game->outcome,
                 game->numSucc, game->maxErrors, game->remainingLetters) <= 0) {
         fclose(file);
@@ -195,14 +195,14 @@ int saveGame(Game *game) {
     }
     for (size_t i = 0; i < game->numTrials; i++) {
         if (game->trials[i]->type == TRIAL_TYPE_LETTER) {
-            if (fprintf(file, "%c %c %d\n", game->trials[i]->type,
+            if (fprintf(file, "\n%c %c %d", game->trials[i]->type,
                         game->trials[i]->guess.letter,
                         game->trials[i]->correct) <= 0) {
                 fclose(file);
                 return -1;
             }
         } else if (game->trials[i]->type == TRIAL_TYPE_WORD) {
-            if (fprintf(file, "%c %s %d\n", game->trials[i]->type,
+            if (fprintf(file, "\n%c %s %d", game->trials[i]->type,
                         game->trials[i]->guess.word,
                         game->trials[i]->correct) <= 0) {
                 fclose(file);
@@ -330,9 +330,9 @@ FILE *findGameFileForPlayer(char *PLID, bool ongoingOnly) {
         return NULL;
     }
     FILE *file = fopen(filePath, "r");
-    free(filePath);
     if (file == NULL) {
         if (errno != ENOENT || ongoingOnly) {
+            free(filePath);
             return NULL;
         }
         filePath = computeGameFilePath(PLID, false);
@@ -341,10 +341,11 @@ FILE *findGameFileForPlayer(char *PLID, bool ongoingOnly) {
         }
         file = fopen(filePath, "r");
         if (file == NULL) {
+            free(filePath);
             return NULL;
         }
     }
-
+    free(filePath);
     return file;
 }
 
@@ -368,6 +369,7 @@ int endGame(Game *game, enum GameOutcome outcome) {
 
     // will save at new location
     if (saveGame(game) == -1) {
+        destroyGame(game);
         return -1;
     }
     return unlink(computeGameFilePath(game->PLID, true));
@@ -501,8 +503,8 @@ Score *loadScore(char *filePath) {
     }
 
     char *scoreStr = strtok(fileName, "_");
-    score->PLID = strtok(NULL, "_");
-    score->finishStamp = strtok(NULL, ".");
+    score->PLID = strdup(strtok(NULL, "_"));
+    score->finishStamp = strdup(strtok(NULL, "."));
     if (scoreStr == NULL || score->PLID == NULL || score->finishStamp == NULL ||
         sscanf(scoreStr, "%u", &score->score) != 1 ||
         fscanf(file, "%s %u %u", score->word, &score->numSucc,
@@ -551,7 +553,7 @@ int generateScoreboard() {
         fprintf(file, "%2d - %5u  %-6s  %-30s  %11u  %12u\n", n - i,
                 score->score, score->PLID, score->word, score->numSucc,
                 score->numTrials);
-        free(score);
+        destroyScore(score);
     }
     free(namelist);
 

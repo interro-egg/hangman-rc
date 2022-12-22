@@ -158,6 +158,7 @@ void *fulfillSNGRequest(void *req, ServerState *state) {
     if (game == NULL) {
         game = newGame(sng->PLID, state);
         if (game == NULL || saveGame(game) != 0) {
+            destroyGame(game);
             return NULL;
         }
     }
@@ -366,6 +367,7 @@ void *fulfillPWGRequest(void *req, UNUSED ServerState *state) {
             return NULL;
         }
     } else if (saveGame(game) != 0) {
+        destroyGame(game);
         return NULL;
     }
     destroyGame(game);
