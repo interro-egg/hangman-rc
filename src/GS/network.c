@@ -1,7 +1,10 @@
+#define _GNU_SOURCE // for NI_MAXHOST from netdb.h
+
 #include "network.h"
 #include "../common/common.h"
 #include "errno.h"
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
