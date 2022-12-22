@@ -8,42 +8,67 @@
 #include <unistd.h>
 
 char *startCmdAliases[] = {"start", "sg"};
-const UDPCommandDescriptor startCmd = {startCmdAliases,       2,
-                                       parseSNGArgs,          startPreHook,
-                                       serializeSNGMessage,   destroySNGMessage,
-                                       deserializeRSGMessage, destroyRSGMessage,
-                                       startCallback};
+const UDPCommandDescriptor startCmd = {
+    startCmdAliases,       2,
+    "start PLID",          "Start a new hangman game",
+    parseSNGArgs,          startPreHook,
+    serializeSNGMessage,   destroySNGMessage,
+    deserializeRSGMessage, destroyRSGMessage,
+    startCallback};
 char *playCmdAliases[] = {"play", "pl"};
-const UDPCommandDescriptor playCmd = {playCmdAliases,        2,
-                                      parsePLGArgs,          playPreHook,
-                                      serializePLGMessage,   destroyPLGMessage,
-                                      deserializeRLGMessage, destroyRLGMessage,
-                                      playCallback};
+const UDPCommandDescriptor playCmd = {
+    playCmdAliases,        2,
+    "play letter",         "Guess a letter that might be in the word",
+    parsePLGArgs,          playPreHook,
+    serializePLGMessage,   destroyPLGMessage,
+    deserializeRLGMessage, destroyRLGMessage,
+    playCallback};
 char *guessCmdAliases[] = {"guess", "gw"};
-const UDPCommandDescriptor guessCmd = {guessCmdAliases,       2,
-                                       parsePWGArgs,          guessPreHook,
-                                       serializePWGMessage,   destroyPWGMessage,
-                                       deserializeRWGMessage, destroyRWGMessage,
-                                       guessCallback};
+const UDPCommandDescriptor guessCmd = {
+    guessCmdAliases,       2,
+    "guess word",          "Guess what the word might be",
+    parsePWGArgs,          guessPreHook,
+    serializePWGMessage,   destroyPWGMessage,
+    deserializeRWGMessage, destroyRWGMessage,
+    guessCallback};
 char *quitCmdAliases[] = {"quit"};
-const UDPCommandDescriptor quitCmd = {quitCmdAliases,        1,
-                                      parseQUTArgs,          quitPreHook,
-                                      serializeQUTMessage,   destroyQUTMessage,
-                                      deserializeRQTMessage, destroyRQTMessage,
+const UDPCommandDescriptor quitCmd = {quitCmdAliases,
+                                      1,
+                                      "quit",
+                                      "Give up and quit from the current game",
+                                      parseQUTArgs,
+                                      quitPreHook,
+                                      serializeQUTMessage,
+                                      destroyQUTMessage,
+                                      deserializeRQTMessage,
+                                      destroyRQTMessage,
                                       quitCallback};
 char *exitCmdAliases[] = {"exit"};
-const UDPCommandDescriptor exitCmd = {exitCmdAliases,        1,
-                                      parseQUTArgs,          exitPreHook,
-                                      serializeQUTMessage,   destroyQUTMessage,
-                                      deserializeRQTMessage, destroyRQTMessage,
-                                      exitCallback};
+const UDPCommandDescriptor exitCmd = {
+    exitCmdAliases,
+    1,
+    "exit",
+    "Quit the current game and exit this application",
+    parseQUTArgs,
+    exitPreHook,
+    serializeQUTMessage,
+    destroyQUTMessage,
+    deserializeRQTMessage,
+    destroyRQTMessage,
+    exitCallback};
 
 char *revealCmdAliases[] = {"reveal", "rev"};
 const UDPCommandDescriptor revealCmd = {
-    revealCmdAliases,      2,
-    parseREVArgs,          revealPreHook,
-    serializeREVMessage,   destroyREVMessage,
-    deserializeRRVMessage, destroyRRVMessage,
+    revealCmdAliases,
+    2,
+    "reveal",
+    "Reveal the word, if the game server supports this feature",
+    parseREVArgs,
+    revealPreHook,
+    serializeREVMessage,
+    destroyREVMessage,
+    deserializeRRVMessage,
+    destroyRRVMessage,
     revealCallback};
 
 const UDPCommandDescriptor UDP_COMMANDS[] = {startCmd, playCmd, guessCmd,
@@ -51,34 +76,42 @@ const UDPCommandDescriptor UDP_COMMANDS[] = {startCmd, playCmd, guessCmd,
 const size_t UDP_COMMANDS_COUNT = 6;
 
 char *scoreboardCmdAliases[] = {"scoreboard", "sb"};
-const TCPCommandDescriptor scoreboardCmd = {scoreboardCmdAliases,
-                                            2,
-                                            parseGSBArgs,
-                                            NULL,
-                                            serializeGSBMessage,
-                                            destroyGSBMessage,
-                                            "RSB",
-                                            RSBMessageStatusStrings,
-                                            5,
-                                            RSBMessageFileReceiveStatuses,
-                                            scoreboardCallback};
+const TCPCommandDescriptor scoreboardCmd = {
+    scoreboardCmdAliases,
+    2,
+    "scoreboard",
+    "Show the game server's top 10 recorded scores",
+    parseGSBArgs,
+    NULL,
+    serializeGSBMessage,
+    destroyGSBMessage,
+    "RSB",
+    RSBMessageStatusStrings,
+    5,
+    RSBMessageFileReceiveStatuses,
+    scoreboardCallback};
 
 char *hintCmdAliases[] = {"hint", "h"};
-const TCPCommandDescriptor hintCmd = {hintCmdAliases,
-                                      2,
-                                      parseGHLArgs,
-                                      hintPreHook,
-                                      serializeGHLMessage,
-                                      destroyGHLMessage,
-                                      "RHL",
-                                      RHLMessageStatusStrings,
-                                      3,
-                                      RHLMessageFileReceiveStatuses,
-                                      hintCallback};
+const TCPCommandDescriptor hintCmd = {
+    hintCmdAliases,
+    2,
+    "hint",
+    "Request a hint image from the game server",
+    parseGHLArgs,
+    hintPreHook,
+    serializeGHLMessage,
+    destroyGHLMessage,
+    "RHL",
+    RHLMessageStatusStrings,
+    3,
+    RHLMessageFileReceiveStatuses,
+    hintCallback};
 
 char *stateCmdAliases[] = {"state", "st"};
 const TCPCommandDescriptor stateCmd = {stateCmdAliases,
                                        2,
+                                       "state",
+                                       "Show the current game state",
                                        parseSTAArgs,
                                        statePreHook,
                                        serializeSTAMessage,

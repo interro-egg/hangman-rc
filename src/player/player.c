@@ -34,6 +34,9 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    displayTitle();
+    displayHelp();
+
     while (!(playerState.shutdown) && printf(INPUT_PROMPT) >= 0 &&
            (getline(&playerState.line, &bufSize, stdin) != -1)) {
         size_t len = strlen(playerState.line);
@@ -77,6 +80,9 @@ void dispatch(char *line, PlayerState *state) {
 
     if (sscanf(line, MAX_COMMAND_NAME_SIZE_FMT, cmd) != 1) {
         fprintf(stderr, MSG_PARSE_ERROR);
+    } else if (strcmp(line, "help") == 0) {
+        displayHelp();
+        return;
     } else if ((descUDP = getCommandDescriptor(
                     cmd, (const void *)UDP_COMMANDS, UDP_COMMANDS_COUNT,
                     UDPCommandDescriptorsIndexer, getUDPCommandAliases,
@@ -128,6 +134,27 @@ char *findArgs(char *line, char *cmd) {
     } else {
         return NULL;
     }
+}
+
+void displayTitle() {
+    printf(
+        " _   _    _    _   _  ____ __  __    _    _   _           ____   "
+        "____\n| | | |  / \\  | \\ | |/ ___|  \\/  |  / \\  | \\ | |         | "
+        " "
+        "_ \\ / ___|\n| |_| | / _ \\ |  \\| | |  _| |\\/| | / _ \\ |  \\| |  "
+        "_____  | |_) | |    \n|  _  |/ ___ \\| |\\  | |_| | |  | |/ ___ \\| "
+        "|\\  | |_____| |  _ <| |___ \n|_| |_/_/   \\_\\_| \\_|\\____|_|  "
+        "|_/_/  "
+        " \\_\\_| \\_|         |_| \\_\\____|\n");
+}
+
+void displayHelp() {
+    printf("\nAvailable commands:\n");
+    for (size_t i = 0; i < UDP_COMMANDS_COUNT; i++) {
+        UDPCommandDescriptor desc = UDP_COMMANDS[i];
+        printf("\t- %s: %s\n", desc.usage, desc.description);
+    }
+    printf("\t- help: Display this list of commands\n\n");
 }
 
 char *translateNetworkInitError(int result) {

@@ -57,6 +57,8 @@ const void *getCommandDescriptor(char *cmd, const void *commandsArr,
                                  CommandAliasesCountGetter aliasesCountGetter);
 void dispatch(char *line, PlayerState *state);
 char *findArgs(char *line, char *cmd);
+void displayTitle();
+void displayHelp();
 char *translateNetworkInitError(int result);
 char *translateHandlerError(int result);
 void gracefulShutdown(int retcode);

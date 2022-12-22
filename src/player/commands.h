@@ -25,6 +25,8 @@ typedef void (*TCPCommandCallback)(void *req, int status, ReceivedFile *file,
 typedef struct {
     char **aliases;
     size_t aliasesCount;
+    char *usage;
+    char *description;
     CommandParser argsParser;
     CommandPreHook preHook;
     MessageSerializer requestSerializer;
@@ -37,6 +39,8 @@ typedef struct {
 typedef struct {
     char **aliases;
     size_t aliasesCount;
+    char *usage;
+    char *description;
     CommandParser argsParser;
     CommandPreHook preHook;
     MessageSerializer requestSerializer;
