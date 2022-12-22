@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     signal(SIGCHLD, SIG_IGN); // explicitly ignore SIGCHLD to avoid zombies
 
     readOpts(argc, argv, &(serverState.word_file), &(serverState.port),
-             &(serverState.verbose));
+             &(serverState.verbose), &(serverState.sequential_word_selection));
 
     if (serverState.word_file == NULL) {
         fprintf(stderr, USAGE_FMT, argv[0]);
@@ -59,6 +59,11 @@ int main(int argc, char *argv[]) {
                 serverState.word_file);
         destroyStateComponents(&serverState);
         exit(EXIT_FAILURE);
+    }
+
+    if (serverState.verbose) {
+        printf("Word selection mode: %s\n",
+               serverState.sequential_word_selection ? "SEQUENTIAL" : "RANDOM");
     }
 
     pid_t pid = fork();
@@ -213,10 +218,10 @@ int main(int argc, char *argv[]) {
 }
 
 void readOpts(int argc, char *argv[], char **word_file, char **port,
-              bool *verbose) {
+              bool *verbose, bool *sequential) {
     int opt;
 
-    while ((opt = getopt(argc, argv, "-p:v")) != -1) {
+    while ((opt = getopt(argc, argv, "-p:vr")) != -1) {
         switch (opt) {
         case 1:
             if (*word_file != NULL) {
@@ -234,6 +239,9 @@ void readOpts(int argc, char *argv[], char **word_file, char **port,
             break;
         case 'v':
             *verbose = true;
+            break;
+        case 'r':
+            *sequential = false;
             break;
         default:
             fprintf(stderr, USAGE_FMT, argv[0]);

@@ -35,7 +35,7 @@
     "An error occurred while marking TCP socket as accepting connections.\n"
 
 void readOpts(int argc, char *argv[], char **word_file, char **port,
-              bool *verbose);
+              bool *verbose, bool *sequential);
 
 const UDPCommandDescriptor *getUDPCommandDescriptor(char *inBuf);
 const TCPCommandDescriptor *getTCPCommandDescriptor(char *inBuf);
