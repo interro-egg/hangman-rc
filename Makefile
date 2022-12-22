@@ -35,7 +35,7 @@ CFLAGS += -fdiagnostics-color=always -Wall -Werror -Wextra -Wcast-align -Wconver
 
 # optional debug symbols: run make DEBUG=yes to activate them
 ifeq ($(strip $(DEBUG)), yes)
-  CFLAGS += -g
+  CFLAGS += -g -fsanitize=address
 endif
 
 # optional O3 optimization symbols: run make OPTIM=no to deactivate them

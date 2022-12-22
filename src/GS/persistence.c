@@ -69,6 +69,7 @@ void destroyGame(Game *game) {
     for (size_t i = 0; i < game->numTrials; i++) {
         destroyGameTrial(game->trials[i]);
     }
+    free(game->trials);
     free(game);
 }
 
@@ -88,6 +89,7 @@ void destroyWordList(WordList *list) {
     for (size_t i = 0; i < list->numEntries; i++) {
         destroyWordListEntry(list->entries[i]);
     }
+    free(list->entries);
     free(list);
 }
 
@@ -575,10 +577,12 @@ ResponseFile *getGameState(Game *game) {
 // Closes file if not NULL; takes ownership of responseFileName
 ResponseFile *getResponseFile(FILE *file, char *responseFileName) {
     if (file == NULL) {
+        free(responseFileName);
         return NULL;
     }
 
     if (responseFileName == NULL || flock(fileno(file), LOCK_SH) == -1) {
+        free(responseFileName);
         fclose(file);
         return NULL;
     }
@@ -615,9 +619,11 @@ ResponseFile *getResponseFile(FILE *file, char *responseFileName) {
 
     if (fread(resp->data, sizeof(char), resp->size, file) < resp->size) {
         destroyResponseFile(resp);
+        free(responseFileName);
         fclose(file);
         return NULL;
     }
+
     fclose(file);
     return resp;
 }
@@ -648,8 +654,10 @@ ResponseFile *getScoreboard() {
     char *stamp = formattedTimeStamp();
     if (name == NULL || stamp == NULL ||
         snprintf(name, MAX_FNAME_LEN + 1, "SB_%s.txt", stamp) <= 0) {
+        free(stamp);
         return NULL;
     }
+    free(stamp);
 
     return getFSResponseFile(SCORES_DIR, SCOREBOARD_FILE_NAME, name);
 }

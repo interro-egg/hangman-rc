@@ -8,7 +8,7 @@
 
 #define INPUT_PROMPT "> "
 #define MAX_COMMAND_NAME_SIZE 10 + 1
-#define MAX_COMMAND_NAME_SIZE_FMT "%11s"
+#define MAX_COMMAND_NAME_SIZE_FMT "%10s"
 
 #define EXIT_COMMAND "exit\n"
 
@@ -48,7 +48,6 @@
 #define MSG_HANDLER_EDESERIALIZE                                               \
     "An invalid response was received from the game server. Please try "       \
     "again.\n"
-
 
 void readOpts(int argc, char *argv[], char **host, char **port);
 const void *getCommandDescriptor(char *cmd, const void *commandsArr,

@@ -101,7 +101,7 @@ void *deserializeRSGMessage(char *inBuffer) {
         char n_letters[3] = {0};
         char max_errors[2] = {0};
         char whitespaces[3] = {0};
-        if (sscanf(inBuffer, "RSG%1c%3[^ ]%1c%2[^ ]%1c%2[^\n]%1c", whitespaces,
+        if (sscanf(inBuffer, "RSG%1c%3[^ ]%1c%2[^ ]%1c%1[^\n]%1c", whitespaces,
                    statusStr, whitespaces + 1, n_letters, whitespaces + 2,
                    max_errors, &newline) != 7) {
             destroyRSGMessage(msg);

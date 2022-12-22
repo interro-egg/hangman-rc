@@ -160,6 +160,7 @@ void *fulfillSNGRequest(void *req, ServerState *state) {
     rsg->status = RSG_OK;
     rsg->n_letters = (unsigned int)strlen(game->wordListEntry->word);
     rsg->max_errors = game->maxErrors;
+    destroyGame(game);
     return rsg;
 }
 
@@ -267,6 +268,7 @@ void *fulfillPLGRequest(void *req, UNUSED ServerState *state) {
     } else if (saveGame(game) != 0) {
         return NULL;
     }
+    destroyGame(game);
     return rlg;
 }
 
@@ -348,6 +350,7 @@ void *fulfillPWGRequest(void *req, UNUSED ServerState *state) {
     } else if (saveGame(game) != 0) {
         return NULL;
     }
+    destroyGame(game);
     return rwg;
 }
 
@@ -367,6 +370,7 @@ void *fulfillQUTRequest(void *req, UNUSED ServerState *state) {
         }
         rqt->status = RQT_OK;
     }
+    destroyGame(game);
     return rqt;
 }
 
@@ -382,8 +386,12 @@ void *fulfillREVRequest(void *req, UNUSED ServerState *state) {
         return NULL;
     } else {
         rrv->type = RRV_WORD;
-        rrv->data.word = game->wordListEntry->word;
+        rrv->data.word = strdup(game->wordListEntry->word);
+        if (rrv->data.word == NULL) {
+            return NULL;
+        }
     }
+    destroyGame(game);
     return rrv;
 }
 
@@ -403,6 +411,7 @@ int fulfillGHLRequest(void *req, UNUSED ServerState *state,
     }
 
     *fptr = getFSResponseFile(HINTS_DIR, game->wordListEntry->hintFile, NULL);
+    destroyGame(game);
 
     return (*fptr != NULL) ? RHL_OK : RHL_NOK;
 }
@@ -416,10 +425,12 @@ int fulfillSTARequest(void *req, UNUSED ServerState *state,
     }
 
     *fptr = getGameState(game);
+    bool ongoing = game->outcome == OUTCOME_ONGOING;
+    destroyGame(game);
 
     if (*fptr == NULL) {
         return RST_NOK;
-    } else if (game->outcome == OUTCOME_ONGOING) {
+    } else if (ongoing) {
         return RST_ACT;
     } else {
         return RST_FIN;
